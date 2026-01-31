@@ -6,7 +6,21 @@ import { OrdersTable } from "@/components/OrdersTable";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Package, RefreshCw, LogOut, CheckCircle, Clock } from "lucide-react";
+import { Package, RefreshCw, LogOut, CheckCircle, Clock, ShieldAlert } from "lucide-react";
+
+interface FraudData {
+  mobile_number: string;
+  total_parcels: number;
+  total_delivered: number;
+  total_cancel: number;
+  apis?: Record<string, {
+    total_parcels: number;
+    total_delivered_parcels: number;
+    total_cancelled_parcels: number;
+  }>;
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type JsonFraudData = FraudData | any;
 
 interface Order {
   id: string;
@@ -20,6 +34,10 @@ interface Order {
   price: number | null;
   status: string;
   created_at: string;
+  fraud_checked: boolean | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  fraud_data: FraudData | any | null;
+  delivery_rate: number | null;
 }
 
 export default function Dashboard() {
@@ -41,7 +59,7 @@ export default function Dashboard() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setOrders(data || []);
+      setOrders((data as Order[]) || []);
     } catch (error) {
       console.error("Error fetching orders:", error);
       toast.error("Failed to load orders");

@@ -19,6 +19,9 @@ export type Database = {
           address: string | null
           created_at: string
           customer_name: string | null
+          delivery_rate: number | null
+          fraud_checked: boolean | null
+          fraud_data: Json | null
           id: string
           order_number: string
           phone: string | null
@@ -33,6 +36,9 @@ export type Database = {
           address?: string | null
           created_at?: string
           customer_name?: string | null
+          delivery_rate?: number | null
+          fraud_checked?: boolean | null
+          fraud_data?: Json | null
           id?: string
           order_number: string
           phone?: string | null
@@ -47,6 +53,9 @@ export type Database = {
           address?: string | null
           created_at?: string
           customer_name?: string | null
+          delivery_rate?: number | null
+          fraud_checked?: boolean | null
+          fraud_data?: Json | null
           id?: string
           order_number?: string
           phone?: string | null
