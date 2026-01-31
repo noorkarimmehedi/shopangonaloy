@@ -26,6 +26,7 @@ export type Database = {
           fraud_checked: boolean | null
           fraud_data: Json | null
           id: string
+          notes: string | null
           order_number: string
           phone: string | null
           price: number | null
@@ -48,6 +49,7 @@ export type Database = {
           fraud_checked?: boolean | null
           fraud_data?: Json | null
           id?: string
+          notes?: string | null
           order_number: string
           phone?: string | null
           price?: number | null
@@ -70,6 +72,7 @@ export type Database = {
           fraud_checked?: boolean | null
           fraud_data?: Json | null
           id?: string
+          notes?: string | null
           order_number?: string
           phone?: string | null
           price?: number | null
