@@ -491,8 +491,17 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
               <TableCell className="max-w-[180px] truncate py-4 text-sm" title={order.address || ""}>
                 {order.address || "—"}
               </TableCell>
-              <TableCell className="max-w-[140px] truncate py-4 text-sm" title={order.product || ""}>
-                {order.product || "—"} {order.quantity ? `×${order.quantity}` : ""}
+              <TableCell className="max-w-[140px] py-4 text-sm">
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger asChild>
+                    <span className="block truncate cursor-default">
+                      {order.product || "—"} {order.quantity ? `×${order.quantity}` : ""}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    {order.product || "—"} {order.quantity ? `×${order.quantity}` : ""}
+                  </TooltipContent>
+                </Tooltip>
               </TableCell>
               <TableCell className="text-right font-mono py-4 text-sm">
                 {formatPrice(order.price, order.delivery_rate)}
