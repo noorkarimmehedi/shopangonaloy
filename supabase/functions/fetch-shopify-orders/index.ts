@@ -38,6 +38,68 @@ interface ShopifyOrder {
   }>;
 }
 
+interface FraudCheckResponse {
+  mobile_number: string;
+  total_parcels: number;
+  total_delivered: number;
+  total_cancel: number;
+  apis: Record<string, {
+    total_parcels: number;
+    total_delivered_parcels: number;
+    total_cancelled_parcels: number;
+  }>;
+}
+
+// Function to check fraud status for a phone number
+async function checkFraudStatus(phone: string, apiKey: string): Promise<{ fraudData: FraudCheckResponse | null; deliveryRate: number | null }> {
+  if (!phone || !apiKey) {
+    return { fraudData: null, deliveryRate: null };
+  }
+
+  // Clean phone number - remove non-digits and ensure it's a valid BD number
+  const cleanPhone = phone.replace(/\D/g, "");
+  
+  // Check if it's a valid Bangladesh number (11 digits starting with 01)
+  if (cleanPhone.length < 10 || !cleanPhone.startsWith("01")) {
+    console.log(`Skipping fraud check for non-BD number: ${phone}`);
+    return { fraudData: null, deliveryRate: null };
+  }
+
+  try {
+    console.log(`Checking fraud status for: ${cleanPhone}`);
+    
+    const formData = new FormData();
+    formData.append("phone", cleanPhone);
+
+    const response = await fetch("https://fraudchecker.link/api/v1/qc/", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      console.error(`Fraud API error for ${cleanPhone}: ${response.status}`);
+      return { fraudData: null, deliveryRate: null };
+    }
+
+    const data: FraudCheckResponse = await response.json();
+    
+    // Calculate delivery rate
+    const deliveryRate = data.total_parcels > 0 
+      ? (data.total_delivered / data.total_parcels) * 100 
+      : null;
+
+    console.log(`Fraud check result for ${cleanPhone}: ${data.total_delivered}/${data.total_parcels} delivered (${deliveryRate?.toFixed(1)}%)`);
+
+    return { fraudData: data, deliveryRate };
+  } catch (error) {
+    console.error(`Error checking fraud for ${cleanPhone}:`, error);
+    return { fraudData: null, deliveryRate: null };
+  }
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -47,9 +109,10 @@ Deno.serve(async (req) => {
   try {
     console.log("Starting fetch-shopify-orders function");
 
-    // Get Shopify credentials from environment
+    // Get credentials from environment
     const shopifyToken = Deno.env.get("SHOPIFY_ADMIN_API_TOKEN");
     const shopifyStoreUrl = Deno.env.get("SHOPIFY_STORE_URL");
+    const fraudCheckerApiKey = Deno.env.get("FRAUD_CHECKER_API_KEY");
 
     if (!shopifyToken || !shopifyStoreUrl) {
       console.error("Missing Shopify credentials");
@@ -57,6 +120,10 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: "Missing Shopify credentials" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    if (!fraudCheckerApiKey) {
+      console.warn("Missing FRAUD_CHECKER_API_KEY - fraud checking will be skipped");
     }
 
     // Clean up store URL - remove protocol and trailing slashes
@@ -100,8 +167,10 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Process and upsert orders
-    const processedOrders = orders.map((order) => {
+    // Process orders and check fraud status
+    const processedOrders = [];
+    
+    for (const order of orders) {
       // Extract phone from shipping_address, customer, or note_attributes
       let phone = order.shipping_address?.phone || order.customer?.phone || "";
       
@@ -137,7 +206,19 @@ Deno.serve(async (req) => {
       const quantity = firstItem?.quantity || 0;
       const price = firstItem ? parseFloat(firstItem.price) : 0;
 
-      return {
+      // Check fraud status if API key is available
+      let fraudData = null;
+      let deliveryRate = null;
+      let fraudChecked = false;
+
+      if (fraudCheckerApiKey && phone) {
+        const fraudResult = await checkFraudStatus(phone, fraudCheckerApiKey);
+        fraudData = fraudResult.fraudData;
+        deliveryRate = fraudResult.deliveryRate;
+        fraudChecked = true;
+      }
+
+      processedOrders.push({
         shopify_order_id: order.id,
         order_number: order.name || `#${order.order_number}`,
         customer_name: customerName,
@@ -146,8 +227,11 @@ Deno.serve(async (req) => {
         product,
         quantity,
         price,
-      };
-    });
+        fraud_checked: fraudChecked,
+        fraud_data: fraudData,
+        delivery_rate: deliveryRate,
+      });
+    }
 
     console.log(`Processing ${processedOrders.length} orders for upsert`);
 
