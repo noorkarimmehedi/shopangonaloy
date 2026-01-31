@@ -73,9 +73,9 @@ Deno.serve(async (req) => {
 
     console.log(`Fetching orders from store: ${cleanStoreUrl}`);
 
-    // Fetch orders from Shopify Admin API
+    // Fetch orders from Shopify Admin API - sorted by created_at desc to get latest first
     const shopifyResponse = await fetch(
-      `https://${cleanStoreUrl}/admin/api/2024-01/orders.json?status=any&limit=50`,
+      `https://${cleanStoreUrl}/admin/api/2024-10/orders.json?status=any&limit=50&order=created_at+desc`,
       {
         headers: {
           "X-Shopify-Access-Token": shopifyToken,
