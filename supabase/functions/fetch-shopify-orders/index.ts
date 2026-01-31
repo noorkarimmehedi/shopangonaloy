@@ -50,6 +50,11 @@ interface FraudCheckResponse {
   }>;
 }
 
+// Helper function to add delay between requests
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // Function to check fraud status for a phone number
 async function checkFraudStatus(phone: string, apiKey: string): Promise<{ fraudData: FraudCheckResponse | null; deliveryRate: number | null }> {
   if (!phone || !apiKey) {
@@ -184,8 +189,18 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Fetch existing orders to preserve fraud data
+    const { data: existingOrders } = await supabase
+      .from("orders")
+      .select("shopify_order_id, fraud_checked, fraud_data, delivery_rate");
+    
+    const existingOrdersMap = new Map(
+      (existingOrders || []).map(o => [o.shopify_order_id, o])
+    );
+
     // Process orders and check fraud status
     const processedOrders = [];
+    let fraudCheckCount = 0;
     
     for (const order of orders) {
       // Extract phone from shipping_address, customer, or note_attributes
@@ -223,16 +238,26 @@ Deno.serve(async (req) => {
       const quantity = firstItem?.quantity || 0;
       const price = firstItem ? parseFloat(firstItem.price) : 0;
 
-      // Check fraud status if API key is available
-      let fraudData = null;
-      let deliveryRate = null;
-      let fraudChecked = false;
+      // Check if we already have fraud data for this order
+      const existingOrder = existingOrdersMap.get(order.id);
+      let fraudData = existingOrder?.fraud_data || null;
+      let deliveryRate = existingOrder?.delivery_rate || null;
+      let fraudChecked = existingOrder?.fraud_checked || false;
 
-      if (fraudCheckerApiKey && phone) {
+      // Only check fraud if we don't already have data and API key is available
+      if (fraudCheckerApiKey && phone && !fraudData) {
+        // Add delay between requests to avoid rate limiting (1.5 seconds)
+        if (fraudCheckCount > 0) {
+          await delay(1500);
+        }
+        
         const fraudResult = await checkFraudStatus(phone, fraudCheckerApiKey);
-        fraudData = fraudResult.fraudData;
-        deliveryRate = fraudResult.deliveryRate;
+        if (fraudResult.fraudData) {
+          fraudData = fraudResult.fraudData;
+          deliveryRate = fraudResult.deliveryRate;
+        }
         fraudChecked = true;
+        fraudCheckCount++;
       }
 
       processedOrders.push({
@@ -249,6 +274,8 @@ Deno.serve(async (req) => {
         delivery_rate: deliveryRate,
       });
     }
+
+    console.log(`Checked fraud status for ${fraudCheckCount} new orders`);
 
     console.log(`Processing ${processedOrders.length} orders for upsert`);
 
