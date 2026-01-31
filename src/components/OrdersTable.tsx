@@ -341,11 +341,15 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                 {order.sent_to_courier ? (
                   <Tooltip>
                     <TooltipTrigger>
-                      {getCourierStatusBadge(order)}
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="font-mono text-sm font-medium">{order.consignment_id || "-"}</span>
+                        {getCourierStatusBadge(order)}
+                      </div>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <div className="text-sm">
-                        <p>Tracking: {order.tracking_code || "N/A"}</p>
+                      <div className="text-sm space-y-1">
+                        <p><strong>Consignment ID:</strong> {order.consignment_id || "N/A"}</p>
+                        <p><strong>Tracking:</strong> {order.tracking_code || "N/A"}</p>
                         {order.courier_message && <p>{order.courier_message}</p>}
                       </div>
                     </TooltipContent>
