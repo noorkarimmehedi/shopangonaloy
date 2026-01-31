@@ -123,7 +123,7 @@ function FraudIndicator({ order }: { order: Order }) {
   }
 
   return (
-    <Tooltip>
+    <Tooltip delayDuration={0}>
       <TooltipTrigger>
         <div className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg ${riskBgColor} transition-colors`}>
           <RiskIcon className={`h-4 w-4 ${riskColor}`} />
