@@ -153,7 +153,7 @@
 @layer components {
   /* Swiss Grid utilities */
   .swiss-container {
-    @apply max-w-7xl mx-auto px-6 md:px-12 lg:px-16;
+    @apply max-w-[1600px] mx-auto px-4;
   }
 
   .swiss-card {
