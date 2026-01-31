@@ -56,12 +56,20 @@ async function checkFraudStatus(phone: string, apiKey: string): Promise<{ fraudD
     return { fraudData: null, deliveryRate: null };
   }
 
-  // Clean phone number - remove non-digits and ensure it's a valid BD number
-  const cleanPhone = phone.replace(/\D/g, "");
+  // Clean phone number - remove non-digits
+  let cleanPhone = phone.replace(/\D/g, "");
   
-  // Check if it's a valid Bangladesh number (11 digits starting with 01)
-  if (cleanPhone.length < 10 || !cleanPhone.startsWith("01")) {
-    console.log(`Skipping fraud check for non-BD number: ${phone}`);
+  // Handle Bangladesh country code formats:
+  // +880XXXXXXXXXX (13 digits) -> remove 880 prefix
+  // 880XXXXXXXXXX (13 digits) -> remove 880 prefix  
+  // 01XXXXXXXXX (11 digits) -> valid as is
+  if (cleanPhone.startsWith("880") && cleanPhone.length >= 13) {
+    cleanPhone = cleanPhone.slice(3); // Remove 880 prefix
+  }
+  
+  // Now check if it's a valid Bangladesh number (11 digits starting with 01)
+  if (cleanPhone.length !== 11 || !cleanPhone.startsWith("01")) {
+    console.log(`Skipping fraud check for invalid BD number: ${phone} -> ${cleanPhone}`);
     return { fraudData: null, deliveryRate: null };
   }
 
