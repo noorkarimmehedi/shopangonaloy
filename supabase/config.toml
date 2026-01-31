@@ -1,1 +1,7 @@
 project_id = "gzwjabvnoleqhfxzavuz"
+
+[functions.fetch-shopify-orders]
+verify_jwt = false
+
+[functions.update-order-status]
+verify_jwt = false

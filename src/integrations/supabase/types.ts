@@ -14,7 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      orders: {
+        Row: {
+          address: string | null
+          created_at: string
+          customer_name: string | null
+          id: string
+          order_number: string
+          phone: string | null
+          price: number | null
+          product: string | null
+          quantity: number | null
+          shopify_order_id: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          customer_name?: string | null
+          id?: string
+          order_number: string
+          phone?: string | null
+          price?: number | null
+          product?: string | null
+          quantity?: number | null
+          shopify_order_id: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          customer_name?: string | null
+          id?: string
+          order_number?: string
+          phone?: string | null
+          price?: number | null
+          product?: string | null
+          quantity?: number | null
+          shopify_order_id?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
