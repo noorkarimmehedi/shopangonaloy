@@ -450,7 +450,6 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
             <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4 text-center">Fraud</TableHead>
             <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Address</TableHead>
             <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Product</TableHead>
-            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4 text-center">Qty</TableHead>
             <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4 text-right">Price</TableHead>
             <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4 text-center">Status</TableHead>
             <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4 text-center">Courier</TableHead>
@@ -486,9 +485,8 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                 {order.address || "—"}
               </TableCell>
               <TableCell className="max-w-[140px] truncate py-4 text-sm" title={order.product || ""}>
-                {order.product || "—"}
+                {order.product || "—"} {order.quantity ? `×${order.quantity}` : ""}
               </TableCell>
-              <TableCell className="text-center py-4 text-sm">{order.quantity ?? "—"}</TableCell>
               <TableCell className="text-right font-mono py-4 text-sm">
                 {formatPrice(order.price, order.delivery_rate)}
               </TableCell>
