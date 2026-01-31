@@ -169,12 +169,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Bulk check: Fetch latest 15 orders that haven't been fraud checked or don't have fraud data
+    // Bulk check: Fetch latest 15 orders
     const { data: orders, error: fetchError } = await supabase
       .from("orders")
       .select("id, phone, fraud_checked, fraud_data")
       .not("phone", "is", null)
-      .is("fraud_data", null)
       .order("created_at", { ascending: false })
       .limit(15);
 
@@ -186,9 +185,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    // All fetched orders need fraud checking (already filtered by query)
-    const ordersToCheck = orders || [];
-    console.log(`Found ${ordersToCheck.length} orders to check for fraud`);
+    // Filter to only check orders that don't have fraud data yet
+    const ordersToCheck = (orders || []).filter(o => !o.fraud_data && o.phone);
+    console.log(`Found ${ordersToCheck.length} orders to check for fraud (out of ${orders?.length || 0} latest orders)`);
 
     let checkedCount = 0;
     let successCount = 0;
