@@ -324,37 +324,37 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
 
   return (
     <div className="overflow-hidden">
-      <Table className="table-fixed w-full">
+      <Table className="w-full">
         <TableHeader>
           <TableRow className="border-b border-border/60 hover:bg-transparent">
-            <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground py-3 w-[70px]">Order</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground py-3 w-[100px]">Customer</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground py-3 w-[100px]">Phone</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground py-3 text-center w-[70px]">Fraud</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground py-3 w-[120px]">Address</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground py-3 w-[100px]">Product</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground py-3 text-center w-[40px]">Qty</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground py-3 text-right w-[80px]">Price</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground py-3 text-center w-[110px]">Status</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground py-3 text-center w-[90px]">Courier</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground py-3 text-center w-[120px]">Actions</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground py-2 px-2">Order</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground py-2 px-2">Customer</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground py-2 px-2">Phone</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground py-2 px-2 text-center">Risk</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground py-2 px-2">Address</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground py-2 px-2">Product</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground py-2 px-2 text-center">Qty</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground py-2 px-2 text-right">Price</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground py-2 px-2 text-center">Status</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground py-2 px-2 text-center">Courier</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground py-2 px-2 text-center">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {orders.map((order) => (
             <TableRow key={order.id} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
-              <TableCell className="font-medium py-3 text-xs">{order.order_number}</TableCell>
-              <TableCell className="py-3 text-xs truncate">{order.customer_name || "—"}</TableCell>
-              <TableCell className="font-mono text-xs py-3 truncate">{order.phone || "—"}</TableCell>
-              <TableCell className="text-center py-3">
-                <div className="flex items-center justify-center gap-1">
+              <TableCell className="font-medium py-2 px-2 text-[11px]">{order.order_number}</TableCell>
+              <TableCell className="py-2 px-2 text-[11px] max-w-[80px] truncate">{order.customer_name || "—"}</TableCell>
+              <TableCell className="font-mono text-[11px] py-2 px-2 max-w-[90px] truncate">{order.phone || "—"}</TableCell>
+              <TableCell className="text-center py-2 px-1">
+                <div className="flex items-center justify-center gap-0.5">
                   <FraudIndicator order={order} />
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => handleCheckFraud(order)}
                     disabled={checkingFraudIds.has(order.id)}
-                    className="h-6 w-6 p-0 hover:bg-muted"
+                    className="h-5 w-5 p-0 hover:bg-muted"
                     title="Check fraud status"
                   >
                     {checkingFraudIds.has(order.id) ? (
@@ -365,35 +365,34 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                   </Button>
                 </div>
               </TableCell>
-              <TableCell className="truncate py-3 text-xs" title={order.address || ""}>
+              <TableCell className="max-w-[100px] truncate py-2 px-2 text-[11px]" title={order.address || ""}>
                 {order.address || "—"}
               </TableCell>
-              <TableCell className="truncate py-3 text-xs" title={order.product || ""}>
+              <TableCell className="max-w-[80px] truncate py-2 px-2 text-[11px]" title={order.product || ""}>
                 {order.product || "—"}
               </TableCell>
-              <TableCell className="text-center py-3 text-xs">{order.quantity ?? "—"}</TableCell>
-              <TableCell className="text-right font-mono py-3 text-xs">
+              <TableCell className="text-center py-2 px-1 text-[11px]">{order.quantity ?? "—"}</TableCell>
+              <TableCell className="text-right font-mono py-2 px-2 text-[11px]">
                 {formatPrice(order.price)}
               </TableCell>
-              <TableCell className="text-center py-3">
-                <div className="flex items-center justify-center gap-2">
+              <TableCell className="text-center py-2 px-1">
+                <div className="flex items-center justify-center gap-1">
                   <Switch
                     checked={order.status === "confirmed"}
                     onCheckedChange={() => handleStatusToggle(order)}
                     disabled={updatingIds.has(order.id)}
-                    className="scale-90"
+                    className="scale-75"
                   />
-                  <span className={`text-[11px] font-medium ${order.status === "confirmed" ? "text-success" : "text-warning"}`}>
-                    {order.status === "confirmed" ? "OK" : "Pending"}
+                  <span className={`text-[10px] font-medium ${order.status === "confirmed" ? "text-success" : "text-warning"}`}>
+                    {order.status === "confirmed" ? "OK" : "—"}
                   </span>
                 </div>
               </TableCell>
-              <TableCell className="text-center py-3">
+              <TableCell className="text-center py-2 px-1">
                 {order.sent_to_courier ? (
                   <Tooltip>
                     <TooltipTrigger>
                       <div className="flex flex-col items-center">
-                        <span className="font-mono text-xs font-medium">{order.consignment_id || "—"}</span>
                         {getCourierStatusBadge(order)}
                       </div>
                     </TooltipTrigger>
@@ -406,25 +405,26 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                     </TooltipContent>
                   </Tooltip>
                 ) : (
-                  <span className="text-muted-foreground text-xs">—</span>
+                  <span className="text-muted-foreground text-[10px]">—</span>
                 )}
               </TableCell>
-              <TableCell className="text-center py-3">
+              <TableCell className="text-center py-2 px-1">
                 {!order.sent_to_courier ? (
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => handleSendToCourier(order)}
                     disabled={sendingIds.has(order.id)}
-                    className="h-7 text-[11px] font-medium px-2"
+                    className="h-6 text-[10px] font-medium px-2"
                   >
                     {sendingIds.has(order.id) ? (
-                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                    ) : null}
-                    {sendingIds.has(order.id) ? "..." : "Send"}
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Truck className="h-3 w-3" />
+                    )}
                   </Button>
                 ) : (
-                  <span className="text-[11px] text-muted-foreground">Sent</span>
+                  <CheckCircle2 className="h-3.5 w-3.5 text-success mx-auto" />
                 )}
               </TableCell>
             </TableRow>
