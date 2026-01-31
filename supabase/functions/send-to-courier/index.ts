@@ -82,8 +82,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Calculate COD amount (price * quantity)
-    const codAmount = (order.price || 0) * (order.quantity || 1);
+    // Calculate COD amount (price * quantity + delivery charge)
+    const productSubtotal = (order.price || 0) * (order.quantity || 1);
+    const codAmount = productSubtotal + (order.delivery_rate || 0);
 
     // Prepare Steadfast payload
     const steadfastPayload = {
