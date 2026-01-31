@@ -63,13 +63,15 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Clean phone number for Steadfast (needs 11 digits)
-    let cleanPhone = (order.phone || "").replace(/\D/g, "");
+    // Clean phone number for Steadfast (needs 11 digits starting with 01)
+    let cleanPhone = (order.phone || "").replace(/\D/g, ""); // Remove all non-digits
+    
+    // Handle +880 or 880 prefix (Bangladesh country code)
     if (cleanPhone.startsWith("880")) {
-      cleanPhone = "0" + cleanPhone.slice(3);
-    }
-    if (cleanPhone.startsWith("+880")) {
-      cleanPhone = "0" + cleanPhone.slice(4);
+      cleanPhone = cleanPhone.slice(3); // Remove 880 prefix
+      if (!cleanPhone.startsWith("0")) {
+        cleanPhone = "0" + cleanPhone; // Add leading 0 if not present
+      }
     }
 
     // Validate phone
