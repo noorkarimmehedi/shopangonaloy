@@ -4,9 +4,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { OrdersTable } from "@/components/OrdersTable";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Package, RefreshCw, LogOut, CheckCircle, Clock, ShieldAlert, ShieldCheck } from "lucide-react";
+import { RefreshCw, LogOut, ShieldCheck } from "lucide-react";
 
 interface FraudData {
   mobile_number: string;
@@ -19,8 +18,6 @@ interface FraudData {
     total_cancelled_parcels: number;
   }>;
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type JsonFraudData = FraudData | any;
 
 interface Order {
   id: string;
@@ -132,38 +129,43 @@ export default function Dashboard() {
   const pendingCount = orders.filter((o) => o.status === "pending").length;
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      {/* Header */}
-      <header className="bg-card border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
+    <div className="min-h-screen bg-background">
+      {/* Header - Swiss precision with generous spacing */}
+      <header className="border-b border-border/60 bg-card/80 backdrop-blur-sm sticky top-0 z-10">
+        <div className="swiss-container py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary">
-                <Package className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold">Order Dashboard</h1>
-                <p className="text-sm text-muted-foreground">{user?.email}</p>
-              </div>
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight">Orders</h1>
+              <p className="text-sm text-muted-foreground mt-1">{user?.email}</p>
             </div>
             <div className="flex items-center gap-3">
               <Button
                 variant="outline"
+                size="sm"
                 onClick={syncOrders}
                 disabled={syncing || checkingFraud}
+                className="h-9 px-4 font-medium"
               >
                 <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
-                {syncing ? "Syncing..." : "Sync Orders"}
+                {syncing ? "Syncing..." : "Sync"}
               </Button>
               <Button
                 variant="outline"
+                size="sm"
                 onClick={checkFraud}
                 disabled={syncing || checkingFraud}
+                className="h-9 px-4 font-medium"
               >
                 <ShieldCheck className={`h-4 w-4 mr-2 ${checkingFraud ? "animate-spin" : ""}`} />
-                {checkingFraud ? "Checking..." : "Check Fraud"}
+                {checkingFraud ? "Checking..." : "Fraud Check"}
               </Button>
-              <Button variant="ghost" size="icon" onClick={handleSignOut}>
+              <div className="w-px h-6 bg-border/60 mx-1" />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleSignOut}
+                className="h-9 px-3 text-muted-foreground hover:text-foreground"
+              >
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
@@ -171,65 +173,47 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Total Orders</CardDescription>
-              <CardTitle className="text-3xl">{orders.length}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Package className="h-4 w-4" />
-                <span className="text-sm">All synced orders</span>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Confirmed</CardDescription>
-              <CardTitle className="text-3xl text-success">{confirmedCount}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2 text-success">
-                <CheckCircle className="h-4 w-4" />
-                <span className="text-sm">Orders confirmed</span>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Pending</CardDescription>
-              <CardTitle className="text-3xl text-warning">{pendingCount}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2 text-warning">
-                <Clock className="h-4 w-4" />
-                <span className="text-sm">Awaiting confirmation</span>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Main Content - Swiss Grid */}
+      <main className="swiss-container py-10">
+        {/* Stats Row - Minimal Swiss cards */}
+        <div className="grid grid-cols-3 gap-6 mb-10">
+          <div className="swiss-card p-6">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">
+              Total Orders
+            </p>
+            <p className="text-4xl font-semibold tracking-tight">{orders.length}</p>
+          </div>
+          <div className="swiss-card p-6">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">
+              Confirmed
+            </p>
+            <p className="text-4xl font-semibold tracking-tight text-success">{confirmedCount}</p>
+          </div>
+          <div className="swiss-card p-6">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">
+              Pending
+            </p>
+            <p className="text-4xl font-semibold tracking-tight text-warning">{pendingCount}</p>
+          </div>
         </div>
 
-        {/* Orders Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Orders</CardTitle>
-            <CardDescription>
-              Manage your Shopify orders. Toggle status to confirm or mark as pending.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+        {/* Orders Table - Clean Swiss styling */}
+        <div className="swiss-card">
+          <div className="p-6 border-b border-border/60">
+            <h2 className="text-lg font-semibold tracking-tight">Order Management</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Manage orders, verify customers, and dispatch to courier
+            </p>
+          </div>
+          <div className="p-6">
             <OrdersTable
               orders={orders}
               loading={loading}
               onStatusUpdate={handleStatusUpdate}
               onOrderUpdate={handleOrderUpdate}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </main>
     </div>
   );

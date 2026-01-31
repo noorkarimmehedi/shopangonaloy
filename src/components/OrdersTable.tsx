@@ -306,9 +306,9 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
 
   if (loading) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-4">
         {[...Array(5)].map((_, i) => (
-          <Skeleton key={i} className="h-12 w-full" />
+          <Skeleton key={i} className="h-14 w-full" />
         ))}
       </div>
     );
@@ -316,37 +316,37 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
 
   if (orders.length === 0) {
     return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>No orders found. Click "Sync Orders" to fetch from Shopify.</p>
+      <div className="text-center py-16">
+        <p className="text-muted-foreground text-sm">No orders found. Click "Sync" to fetch from Shopify.</p>
       </div>
     );
   }
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow className="bg-muted/50">
-            <TableHead className="font-semibold">Order #</TableHead>
-            <TableHead className="font-semibold">Customer</TableHead>
-            <TableHead className="font-semibold">Phone</TableHead>
-            <TableHead className="font-semibold text-center">Fraud</TableHead>
-            <TableHead className="font-semibold">Address</TableHead>
-            <TableHead className="font-semibold">Product</TableHead>
-            <TableHead className="font-semibold text-center">Qty</TableHead>
-            <TableHead className="font-semibold text-right">Price</TableHead>
-            <TableHead className="font-semibold text-center">Status</TableHead>
-            <TableHead className="font-semibold text-center">Courier</TableHead>
-            <TableHead className="font-semibold text-center">Actions</TableHead>
+          <TableRow className="border-b border-border/60 hover:bg-transparent">
+            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Order</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Customer</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Phone</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4 text-center">Fraud</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Address</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Product</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4 text-center">Qty</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4 text-right">Price</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4 text-center">Status</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4 text-center">Courier</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4 text-center">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {orders.map((order) => (
-            <TableRow key={order.id} className="hover:bg-muted/30">
-              <TableCell className="font-medium">{order.order_number}</TableCell>
-              <TableCell>{order.customer_name || "-"}</TableCell>
-              <TableCell className="font-mono text-sm">{order.phone || "-"}</TableCell>
-              <TableCell className="text-center">
+            <TableRow key={order.id} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
+              <TableCell className="font-medium py-4">{order.order_number}</TableCell>
+              <TableCell className="py-4 text-sm">{order.customer_name || "—"}</TableCell>
+              <TableCell className="font-mono text-sm py-4">{order.phone || "—"}</TableCell>
+              <TableCell className="text-center py-4">
                 <div className="flex items-center justify-center gap-2">
                   <FraudIndicator order={order} />
                   <Button
@@ -354,45 +354,45 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                     variant="ghost"
                     onClick={() => handleCheckFraud(order)}
                     disabled={checkingFraudIds.has(order.id)}
-                    className="h-7 w-7 p-0"
+                    className="h-7 w-7 p-0 hover:bg-muted"
                     title="Check fraud status"
                   >
                     {checkingFraudIds.has(order.id) ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      <Search className="h-4 w-4" />
+                      <Search className="h-4 w-4 text-muted-foreground" />
                     )}
                   </Button>
                 </div>
               </TableCell>
-              <TableCell className="max-w-[200px] truncate" title={order.address || ""}>
-                {order.address || "-"}
+              <TableCell className="max-w-[180px] truncate py-4 text-sm" title={order.address || ""}>
+                {order.address || "—"}
               </TableCell>
-              <TableCell className="max-w-[150px] truncate" title={order.product || ""}>
-                {order.product || "-"}
+              <TableCell className="max-w-[140px] truncate py-4 text-sm" title={order.product || ""}>
+                {order.product || "—"}
               </TableCell>
-              <TableCell className="text-center">{order.quantity ?? "-"}</TableCell>
-              <TableCell className="text-right font-mono">
+              <TableCell className="text-center py-4 text-sm">{order.quantity ?? "—"}</TableCell>
+              <TableCell className="text-right font-mono py-4 text-sm">
                 {formatPrice(order.price)}
               </TableCell>
-              <TableCell className="text-center">
-                <div className="flex items-center justify-center gap-2">
+              <TableCell className="text-center py-4">
+                <div className="flex items-center justify-center gap-3">
                   <Switch
                     checked={order.status === "confirmed"}
                     onCheckedChange={() => handleStatusToggle(order)}
                     disabled={updatingIds.has(order.id)}
                   />
-                  <span className={`text-xs font-medium ${order.status === "confirmed" ? "text-success" : "text-warning"}`}>
+                  <span className={`text-xs font-medium min-w-[60px] ${order.status === "confirmed" ? "text-success" : "text-warning"}`}>
                     {order.status === "confirmed" ? "Confirmed" : "Pending"}
                   </span>
                 </div>
               </TableCell>
-              <TableCell className="text-center">
+              <TableCell className="text-center py-4">
                 {order.sent_to_courier ? (
                   <Tooltip>
                     <TooltipTrigger>
                       <div className="flex flex-col items-center gap-1">
-                        <span className="font-mono text-sm font-medium">{order.consignment_id || "-"}</span>
+                        <span className="font-mono text-sm font-medium">{order.consignment_id || "—"}</span>
                         {getCourierStatusBadge(order)}
                       </div>
                     </TooltipTrigger>
@@ -405,24 +405,25 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                     </TooltipContent>
                   </Tooltip>
                 ) : (
-                  <span className="text-muted-foreground text-sm">-</span>
+                  <span className="text-muted-foreground text-sm">—</span>
                 )}
               </TableCell>
-              <TableCell className="text-center">
+              <TableCell className="text-center py-4">
                 {!order.sent_to_courier ? (
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => handleSendToCourier(order)}
                     disabled={sendingIds.has(order.id)}
+                    className="h-8 text-xs font-medium"
                   >
                     {sendingIds.has(order.id) ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <Loader2 className="h-3 w-3 animate-spin mr-1.5" />
                     ) : null}
                     {sendingIds.has(order.id) ? "Sending..." : "Send to Steadfast"}
                   </Button>
                 ) : (
-                  <span className="text-muted-foreground text-sm">Sent</span>
+                  <span className="text-xs text-muted-foreground">Sent</span>
                 )}
               </TableCell>
             </TableRow>
