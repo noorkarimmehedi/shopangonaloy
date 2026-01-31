@@ -92,10 +92,10 @@ export default function Dashboard() {
 
       if (error) throw error;
 
-      if (data?.orders) {
-        setOrders(data.orders);
-        toast.success(`Fraud check complete: ${data.successful}/${data.checked} verified`);
-      }
+      // Always re-fetch from DB so the UI order matches the dashboard sorting
+      // (shopify_order_id desc) and reflects the latest 15 the fraud check was based on.
+      await fetchOrders();
+      toast.success(`Fraud check complete: ${data?.successful ?? 0}/${data?.checked ?? 0} verified`);
     } catch (error) {
       console.error("Error checking fraud:", error);
       toast.error("Failed to check fraud status");

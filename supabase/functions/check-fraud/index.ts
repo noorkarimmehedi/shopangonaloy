@@ -116,17 +116,24 @@ Deno.serve(async (req) => {
     if (!body.orderId && !body.skipSync) {
       console.log("Syncing Shopify orders before fraud check...");
       try {
+        // Call the Shopify sync function using the same auth/apikey headers as the incoming request
+        // so we don't depend on service-role-key-as-JWT behavior.
+        const authHeader =
+          req.headers.get("authorization") ?? req.headers.get("Authorization") ?? "";
+        const apikey = req.headers.get("apikey") ?? "";
+
         const syncResponse = await fetch(`${supabaseUrl}/functions/v1/fetch-shopify-orders`, {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${supabaseServiceKey}`,
+            ...(authHeader ? { Authorization: authHeader } : {}),
+            ...(apikey ? { apikey } : {}),
             "Content-Type": "application/json",
           },
         });
         
         if (syncResponse.ok) {
           const syncData = await syncResponse.json();
-          console.log(`Shopify sync complete: ${syncData.ordersCount || 0} orders synced`);
+          console.log(`Shopify sync complete: ${syncData.synced || 0} orders synced`);
         } else {
           console.error("Shopify sync failed:", await syncResponse.text());
         }
@@ -193,12 +200,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Bulk check: Fetch latest 15 orders
+    // Bulk check: Fetch the latest 15 orders exactly as shown on the dashboard
     const { data: orders, error: fetchError } = await supabase
       .from("orders")
-      .select("id, phone, fraud_checked, fraud_data")
-      .not("phone", "is", null)
-      .order("created_at", { ascending: false })
+      .select("id, shopify_order_id, phone, fraud_checked, fraud_data")
+      .order("shopify_order_id", { ascending: false })
       .limit(15);
 
     if (fetchError) {
@@ -248,7 +254,7 @@ Deno.serve(async (req) => {
     const { data: allOrders, error: allOrdersError } = await supabase
       .from("orders")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("shopify_order_id", { ascending: false });
 
     if (allOrdersError) {
       console.error("Error fetching all orders:", allOrdersError);
