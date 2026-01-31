@@ -215,28 +215,23 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
   const handleStatusToggle = async (order: Order) => {
     const newStatus = order.status === "confirmed" ? "pending" : "confirmed";
     
-    setUpdatingIds((prev) => new Set(prev).add(order.id));
+    // Optimistic update - update UI immediately
+    onStatusUpdate(order.id, newStatus);
     
     try {
-      const { error } = await supabase.functions.invoke("update-order-status", {
-        body: { orderId: order.id, status: newStatus },
-      });
+      const { error } = await supabase
+        .from("orders")
+        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .eq("id", order.id);
 
       if (error) {
+        // Revert on failure
+        onStatusUpdate(order.id, order.status);
         throw error;
       }
-
-      onStatusUpdate(order.id, newStatus);
-      toast.success(`Order ${order.order_number} marked as ${newStatus}`);
     } catch (error) {
       console.error("Error updating order status:", error);
       toast.error("Failed to update order status");
-    } finally {
-      setUpdatingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(order.id);
-        return next;
-      });
     }
   };
 
