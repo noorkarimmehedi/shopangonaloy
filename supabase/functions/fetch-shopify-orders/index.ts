@@ -60,11 +60,20 @@ async function checkFraudStatus(phone: string, apiKey: string): Promise<{ fraudD
   let cleanPhone = phone.replace(/\D/g, "");
   
   // Handle Bangladesh country code formats:
-  // +880XXXXXXXXXX (13 digits) -> remove 880 prefix
-  // 880XXXXXXXXXX (13 digits) -> remove 880 prefix  
-  // 01XXXXXXXXX (11 digits) -> valid as is
-  if (cleanPhone.startsWith("880") && cleanPhone.length >= 13) {
-    cleanPhone = cleanPhone.slice(3); // Remove 880 prefix
+  // International format: +880 1XXXXXXXXX (13 digits total) - country code replaces leading 0
+  // Local with extra 0: +880 01XXXXXXXXX (14 digits total) - some systems add extra 0
+  // Local format: 01XXXXXXXXX (11 digits) - valid as is
+  
+  if (cleanPhone.startsWith("880")) {
+    const afterCountryCode = cleanPhone.slice(3);
+    
+    if (afterCountryCode.startsWith("01") && afterCountryCode.length === 11) {
+      // Format: 880 + 01XXXXXXXXX (14 digits) - just remove country code
+      cleanPhone = afterCountryCode;
+    } else if (afterCountryCode.startsWith("1") && afterCountryCode.length === 10) {
+      // Format: 880 + 1XXXXXXXXX (13 digits) - add leading 0
+      cleanPhone = "0" + afterCountryCode;
+    }
   }
   
   // Now check if it's a valid Bangladesh number (11 digits starting with 01)
