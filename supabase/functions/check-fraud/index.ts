@@ -104,7 +104,72 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch latest 25 orders that haven't been fraud checked or don't have fraud data
+    // Check if a specific orderId was provided
+    let body: { orderId?: string } = {};
+    try {
+      body = await req.json();
+    } catch {
+      // No body provided, check all orders
+    }
+
+    if (body.orderId) {
+      // Check single order
+      const { data: order, error: fetchError } = await supabase
+        .from("orders")
+        .select("id, phone, fraud_checked, fraud_data")
+        .eq("id", body.orderId)
+        .single();
+
+      if (fetchError || !order) {
+        return new Response(
+          JSON.stringify({ error: "Order not found" }),
+          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (!order.phone) {
+        return new Response(
+          JSON.stringify({ error: "Order has no phone number" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { fraudData, deliveryRate } = await checkFraudStatus(order.phone, fraudCheckerApiKey);
+
+      const { error: updateError } = await supabase
+        .from("orders")
+        .update({
+          fraud_checked: true,
+          fraud_data: fraudData,
+          delivery_rate: deliveryRate,
+        })
+        .eq("id", order.id);
+
+      if (updateError) {
+        console.error(`Error updating order ${order.id}:`, updateError);
+        return new Response(
+          JSON.stringify({ error: "Failed to update order" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Fetch updated order
+      const { data: updatedOrder } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("id", body.orderId)
+        .single();
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          order: updatedOrder
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Bulk check: Fetch latest 25 orders that haven't been fraud checked or don't have fraud data
     const { data: orders, error: fetchError } = await supabase
       .from("orders")
       .select("id, phone, fraud_checked, fraud_data")
