@@ -35,6 +35,7 @@ interface Order {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fraud_data: FraudData | any | null;
   delivery_rate: number | null;
+  notes: string | null;
 }
 
 export default function Dashboard() {

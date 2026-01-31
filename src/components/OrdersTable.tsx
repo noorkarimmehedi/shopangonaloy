@@ -16,9 +16,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truck, Loader2, Search } from "lucide-react";
+import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truck, Loader2, Search, StickyNote, MessageSquare } from "lucide-react";
 
 interface FraudData {
   mobile_number: string;
@@ -53,6 +59,7 @@ interface Order {
   consignment_id?: number | null;
   tracking_code?: string | null;
   courier_message?: string | null;
+  notes?: string | null;
 }
 
 interface OrdersTableProps {
@@ -204,6 +211,77 @@ function FraudIndicator({ order }: { order: Order }) {
         </div>
       </TooltipContent>
     </Tooltip>
+  );
+}
+
+function NotesPopover({ order, onOrderUpdate }: { order: Order; onOrderUpdate?: (updatedOrder: Order) => void }) {
+  const [open, setOpen] = useState(false);
+  const [notes, setNotes] = useState(order.notes || "");
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .update({ notes })
+        .eq("id", order.id);
+
+      if (error) throw error;
+
+      if (onOrderUpdate) {
+        onOrderUpdate({ ...order, notes });
+      }
+      setOpen(false);
+      toast.success("Notes saved");
+    } catch (error) {
+      console.error("Error saving notes:", error);
+      toast.error("Failed to save notes");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const hasNotes = order.notes && order.notes.trim().length > 0;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <button
+              className={`p-1 rounded hover:bg-muted transition-colors ${hasNotes ? "text-primary" : "text-muted-foreground/50"}`}
+            >
+              <MessageSquare className="h-4 w-4" />
+            </button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        {!open && hasNotes && (
+          <TooltipContent side="top" className="max-w-[200px] text-sm">
+            {order.notes}
+          </TooltipContent>
+        )}
+      </Tooltip>
+      <PopoverContent className="w-64 p-3" align="end">
+        <div className="space-y-3">
+          <p className="text-xs font-medium text-muted-foreground">Order Notes</p>
+          <Textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Add notes..."
+            className="min-h-[80px] text-sm resize-none"
+          />
+          <div className="flex justify-end gap-2">
+            <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button size="sm" onClick={handleSave} disabled={saving}>
+              {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
+            </Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -415,15 +493,16 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                 {formatPrice(order.price, order.delivery_rate)}
               </TableCell>
               <TableCell className="text-center py-4">
-                <div className="flex items-center justify-center gap-3">
+                <div className="flex items-center justify-center gap-2">
                   <Switch
                     checked={order.status === "confirmed"}
                     onCheckedChange={() => handleStatusToggle(order)}
                     disabled={updatingIds.has(order.id)}
                   />
-                  <span className={`text-xs font-medium min-w-[60px] ${order.status === "confirmed" ? "text-success" : "text-warning"}`}>
+                  <span className={`text-xs font-medium min-w-[50px] ${order.status === "confirmed" ? "text-success" : "text-warning"}`}>
                     {order.status === "confirmed" ? "Confirmed" : "Pending"}
                   </span>
+                  <NotesPopover order={order} onOrderUpdate={onOrderUpdate} />
                 </div>
               </TableCell>
               <TableCell className="text-center py-4">
