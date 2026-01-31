@@ -104,12 +104,36 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Check if a specific orderId was provided
-    let body: { orderId?: string } = {};
+    // Check if a specific orderId was provided (skip sync for single order check)
+    let body: { orderId?: string; skipSync?: boolean } = {};
     try {
       body = await req.json();
     } catch {
-      // No body provided, check all orders
+      // No body provided, do bulk check with sync
+    }
+
+    // For bulk fraud check, first sync Shopify orders
+    if (!body.orderId && !body.skipSync) {
+      console.log("Syncing Shopify orders before fraud check...");
+      try {
+        const syncResponse = await fetch(`${supabaseUrl}/functions/v1/fetch-shopify-orders`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${supabaseServiceKey}`,
+            "Content-Type": "application/json",
+          },
+        });
+        
+        if (syncResponse.ok) {
+          const syncData = await syncResponse.json();
+          console.log(`Shopify sync complete: ${syncData.ordersCount || 0} orders synced`);
+        } else {
+          console.error("Shopify sync failed:", await syncResponse.text());
+        }
+      } catch (syncError) {
+        console.error("Error syncing Shopify orders:", syncError);
+        // Continue with fraud check even if sync fails
+      }
     }
 
     if (body.orderId) {
