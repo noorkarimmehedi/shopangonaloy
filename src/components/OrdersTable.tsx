@@ -63,99 +63,142 @@ interface OrdersTableProps {
 }
 
 function FraudIndicator({ order }: { order: Order }) {
-  if (!order.fraud_checked) {
+  if (!order.fraud_checked || !order.fraud_data) {
     return (
       <Tooltip>
         <TooltipTrigger>
           <div className="flex items-center justify-center">
-            <HelpCircle className="h-5 w-5 text-muted-foreground" />
+            <HelpCircle className="h-5 w-5 text-muted-foreground/50" />
           </div>
         </TooltipTrigger>
-        <TooltipContent>
-          <p>Not checked yet</p>
-        </TooltipContent>
-      </Tooltip>
-    );
-  }
-
-  if (!order.fraud_data) {
-    return (
-      <Tooltip>
-        <TooltipTrigger>
-          <div className="flex items-center justify-center">
-            <HelpCircle className="h-5 w-5 text-muted-foreground" />
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>No data available (invalid phone or new customer)</p>
+        <TooltipContent side="right" className="bg-card border-border shadow-lg">
+          <p className="text-sm text-muted-foreground">
+            {!order.fraud_checked ? "Not checked yet" : "No data available"}
+          </p>
         </TooltipContent>
       </Tooltip>
     );
   }
 
   const { total_parcels, total_delivered, total_cancel } = order.fraud_data;
-  const deliveryRate = order.delivery_rate ?? 0;
+  
+  // Calculate delivery rate from fraud_data directly (not from order.delivery_rate which is shipping cost)
+  const deliveryRate = total_parcels > 0 
+    ? (total_delivered / total_parcels) * 100 
+    : 0;
 
   // Determine risk level based on delivery rate
-  let riskLevel: "safe" | "warning" | "danger";
   let RiskIcon: typeof ShieldCheck;
   let riskColor: string;
+  let riskBgColor: string;
   let riskLabel: string;
 
   if (total_parcels === 0) {
-    riskLevel = "warning";
     RiskIcon = HelpCircle;
     riskColor = "text-muted-foreground";
+    riskBgColor = "bg-muted/50";
     riskLabel = "New Customer";
   } else if (deliveryRate >= 70) {
-    riskLevel = "safe";
     RiskIcon = ShieldCheck;
-    riskColor = "text-success";
+    riskColor = "text-emerald-600";
+    riskBgColor = "bg-emerald-50";
     riskLabel = "Safe";
   } else if (deliveryRate >= 50) {
-    riskLevel = "warning";
     RiskIcon = AlertTriangle;
-    riskColor = "text-warning";
+    riskColor = "text-amber-600";
+    riskBgColor = "bg-amber-50";
     riskLabel = "Caution";
   } else {
-    riskLevel = "danger";
     RiskIcon = ShieldAlert;
-    riskColor = "text-destructive";
+    riskColor = "text-red-600";
+    riskBgColor = "bg-red-50";
     riskLabel = "High Risk";
   }
 
   return (
     <Tooltip>
       <TooltipTrigger>
-        <div className="flex flex-col items-center gap-1">
-          <RiskIcon className={`h-5 w-5 ${riskColor}`} />
-          <span className={`text-xs font-medium ${riskColor}`}>
+        <div className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg ${riskBgColor} transition-colors`}>
+          <RiskIcon className={`h-4 w-4 ${riskColor}`} />
+          <span className={`text-xs font-semibold tabular-nums ${riskColor}`}>
             {total_parcels > 0 ? `${deliveryRate.toFixed(0)}%` : "N/A"}
           </span>
         </div>
       </TooltipTrigger>
-      <TooltipContent className="max-w-xs">
-        <div className="space-y-2">
-          <p className="font-semibold">{riskLabel}</p>
-          <div className="text-sm space-y-1">
-            <p>Total Orders: {total_parcels}</p>
-            <p className="text-success">Delivered: {total_delivered}</p>
-            <p className="text-destructive">Cancelled: {total_cancel}</p>
-            {total_parcels > 0 && (
-              <p>Delivery Rate: {deliveryRate.toFixed(1)}%</p>
-            )}
+      <TooltipContent 
+        side="right" 
+        align="start"
+        className="w-72 p-0 bg-card border-border shadow-xl rounded-xl overflow-hidden"
+      >
+        {/* Header */}
+        <div className={`px-4 py-3 ${riskBgColor} border-b border-border/50`}>
+          <div className="flex items-center gap-2">
+            <RiskIcon className={`h-5 w-5 ${riskColor}`} />
+            <span className={`font-semibold ${riskColor}`}>{riskLabel}</span>
           </div>
+          {total_parcels > 0 && (
+            <p className="text-2xl font-bold mt-1 text-foreground">
+              {deliveryRate.toFixed(1)}% <span className="text-sm font-normal text-muted-foreground">delivery rate</span>
+            </p>
+          )}
+        </div>
+        
+        {/* Stats */}
+        <div className="p-4 space-y-3">
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-foreground">{total_parcels}</p>
+              <p className="text-xs text-muted-foreground">Total</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-emerald-600">{total_delivered}</p>
+              <p className="text-xs text-muted-foreground">Delivered</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-red-600">{total_cancel}</p>
+              <p className="text-xs text-muted-foreground">Cancelled</p>
+            </div>
+          </div>
+
+          {/* Progress bar */}
+          {total_parcels > 0 && (
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Delivery Success</span>
+                <span>{total_delivered}/{total_parcels}</span>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-emerald-500 rounded-full transition-all"
+                  style={{ width: `${deliveryRate}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Courier breakdown */}
           {order.fraud_data?.apis && Object.keys(order.fraud_data.apis).length > 0 && (
-            <div className="border-t pt-2 mt-2">
-              <p className="text-xs font-medium mb-1">By Courier:</p>
-              {Object.entries(order.fraud_data.apis).map(([courier, data]) => {
-                const courierData = data as { total_delivered_parcels: number; total_parcels: number };
-                return (
-                  <p key={courier} className="text-xs">
-                    {courier}: {courierData.total_delivered_parcels}/{courierData.total_parcels}
-                  </p>
-                );
-              })}
+            <div className="pt-3 border-t border-border/50">
+              <p className="text-xs font-medium text-muted-foreground mb-2">By Courier</p>
+              <div className="space-y-1.5">
+                {Object.entries(order.fraud_data.apis).map(([courier, data]) => {
+                  const courierData = data as { total_delivered_parcels: number; total_parcels: number };
+                  const courierRate = courierData.total_parcels > 0 
+                    ? (courierData.total_delivered_parcels / courierData.total_parcels) * 100 
+                    : 0;
+                  return (
+                    <div key={courier} className="flex items-center justify-between text-sm">
+                      <span className="text-foreground">{courier}</span>
+                      <span className="font-mono text-muted-foreground">
+                        {courierData.total_delivered_parcels}/{courierData.total_parcels}
+                        {courierData.total_parcels > 0 && (
+                          <span className="ml-1 text-xs">({courierRate.toFixed(0)}%)</span>
+                        )}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
