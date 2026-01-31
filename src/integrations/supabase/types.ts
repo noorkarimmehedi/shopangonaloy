@@ -17,6 +17,9 @@ export type Database = {
       orders: {
         Row: {
           address: string | null
+          consignment_id: number | null
+          courier_message: string | null
+          courier_status: string | null
           created_at: string
           customer_name: string | null
           delivery_rate: number | null
@@ -28,12 +31,17 @@ export type Database = {
           price: number | null
           product: string | null
           quantity: number | null
+          sent_to_courier: boolean | null
           shopify_order_id: number
           status: string
+          tracking_code: string | null
           updated_at: string
         }
         Insert: {
           address?: string | null
+          consignment_id?: number | null
+          courier_message?: string | null
+          courier_status?: string | null
           created_at?: string
           customer_name?: string | null
           delivery_rate?: number | null
@@ -45,12 +53,17 @@ export type Database = {
           price?: number | null
           product?: string | null
           quantity?: number | null
+          sent_to_courier?: boolean | null
           shopify_order_id: number
           status?: string
+          tracking_code?: string | null
           updated_at?: string
         }
         Update: {
           address?: string | null
+          consignment_id?: number | null
+          courier_message?: string | null
+          courier_status?: string | null
           created_at?: string
           customer_name?: string | null
           delivery_rate?: number | null
@@ -62,8 +75,10 @@ export type Database = {
           price?: number | null
           product?: string | null
           quantity?: number | null
+          sent_to_courier?: boolean | null
           shopify_order_id?: number
           status?: string
+          tracking_code?: string | null
           updated_at?: string
         }
         Relationships: []
