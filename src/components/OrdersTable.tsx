@@ -347,7 +347,23 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
               <TableCell>{order.customer_name || "-"}</TableCell>
               <TableCell className="font-mono text-sm">{order.phone || "-"}</TableCell>
               <TableCell className="text-center">
-                <FraudIndicator order={order} />
+                <div className="flex items-center justify-center gap-2">
+                  <FraudIndicator order={order} />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleCheckFraud(order)}
+                    disabled={checkingFraudIds.has(order.id)}
+                    className="h-7 w-7 p-0"
+                    title="Check fraud status"
+                  >
+                    {checkingFraudIds.has(order.id) ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Search className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
               </TableCell>
               <TableCell className="max-w-[200px] truncate" title={order.address || ""}>
                 {order.address || "-"}
@@ -399,20 +415,6 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                     onCheckedChange={() => handleStatusToggle(order)}
                     disabled={updatingIds.has(order.id)}
                   />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleCheckFraud(order)}
-                    disabled={checkingFraudIds.has(order.id)}
-                    className="h-8"
-                    title="Check fraud status"
-                  >
-                    {checkingFraudIds.has(order.id) ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Search className="h-4 w-4" />
-                    )}
-                  </Button>
                   {!order.sent_to_courier && (
                     <Button
                       size="sm"
