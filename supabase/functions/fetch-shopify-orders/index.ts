@@ -198,7 +198,7 @@ Deno.serve(async (req) => {
     const { data: allOrders, error: fetchError } = await supabase
       .from("orders")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("shopify_order_id", { ascending: false });
 
     if (fetchError) {
       console.error("Error fetching orders:", fetchError);
