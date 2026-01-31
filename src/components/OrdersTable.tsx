@@ -499,16 +499,47 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
               </TableCell>
               <TableCell className="text-center py-4">
                 <div className="flex items-center justify-center gap-2">
-                  <button
-                    onClick={() => handleStatusToggle(order)}
-                    className={`h-8 px-3 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
-                      order.status === "confirmed"
-                        ? "bg-success text-success-foreground"
-                        : "bg-warning text-warning-foreground"
-                    }`}
-                  >
-                    {order.status === "confirmed" ? "Confirmed" : "Pending"}
-                  </button>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        className={`h-8 w-[85px] text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+                          order.status === "confirmed"
+                            ? "bg-success text-success-foreground"
+                            : "bg-warning text-warning-foreground"
+                        }`}
+                      >
+                        {order.status === "confirmed" ? "Confirmed" : "Pending"}
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[100px] p-1" align="center">
+                      <div className="flex flex-col gap-1">
+                        <button
+                          onClick={() => {
+                            if (order.status !== "pending") handleStatusToggle(order);
+                          }}
+                          className={`h-8 w-full text-xs font-semibold rounded-md transition-colors ${
+                            order.status === "pending"
+                              ? "bg-warning text-warning-foreground"
+                              : "hover:bg-muted text-foreground"
+                          }`}
+                        >
+                          Pending
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (order.status !== "confirmed") handleStatusToggle(order);
+                          }}
+                          className={`h-8 w-full text-xs font-semibold rounded-md transition-colors ${
+                            order.status === "confirmed"
+                              ? "bg-success text-success-foreground"
+                              : "hover:bg-muted text-foreground"
+                          }`}
+                        >
+                          Confirmed
+                        </button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                   <NotesPopover order={order} onOrderUpdate={onOrderUpdate} />
                 </div>
               </TableCell>
