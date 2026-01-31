@@ -6,7 +6,7 @@ import { OrdersTable } from "@/components/OrdersTable";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Package, RefreshCw, LogOut, CheckCircle, Clock, ShieldAlert } from "lucide-react";
+import { Package, RefreshCw, LogOut, CheckCircle, Clock, ShieldAlert, ShieldCheck } from "lucide-react";
 
 interface FraudData {
   mobile_number: string;
@@ -44,6 +44,7 @@ export default function Dashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [checkingFraud, setCheckingFraud] = useState(false);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -83,7 +84,26 @@ export default function Dashboard() {
       console.error("Error syncing orders:", error);
       toast.error("Failed to sync orders from Shopify");
     } finally {
-      setSyncing(false);
+    setSyncing(false);
+    }
+  };
+
+  const checkFraud = async () => {
+    setCheckingFraud(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("check-fraud");
+
+      if (error) throw error;
+
+      if (data?.orders) {
+        setOrders(data.orders);
+        toast.success(`Fraud check complete: ${data.successful}/${data.checked} verified`);
+      }
+    } catch (error) {
+      console.error("Error checking fraud:", error);
+      toast.error("Failed to check fraud status");
+    } finally {
+      setCheckingFraud(false);
     }
   };
 
@@ -122,10 +142,18 @@ export default function Dashboard() {
               <Button
                 variant="outline"
                 onClick={syncOrders}
-                disabled={syncing}
+                disabled={syncing || checkingFraud}
               >
                 <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
                 {syncing ? "Syncing..." : "Sync Orders"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={checkFraud}
+                disabled={syncing || checkingFraud}
+              >
+                <ShieldCheck className={`h-4 w-4 mr-2 ${checkingFraud ? "animate-spin" : ""}`} />
+                {checkingFraud ? "Checking..." : "Check Fraud"}
               </Button>
               <Button variant="ghost" size="icon" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4" />

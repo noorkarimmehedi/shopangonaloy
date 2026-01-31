@@ -38,89 +38,7 @@ interface ShopifyOrder {
   }>;
 }
 
-interface FraudCheckResponse {
-  mobile_number: string;
-  total_parcels: number;
-  total_delivered: number;
-  total_cancel: number;
-  apis: Record<string, {
-    total_parcels: number;
-    total_delivered_parcels: number;
-    total_cancelled_parcels: number;
-  }>;
-}
 
-// Helper function to add delay between requests
-function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// Function to check fraud status for a phone number
-async function checkFraudStatus(phone: string, apiKey: string): Promise<{ fraudData: FraudCheckResponse | null; deliveryRate: number | null }> {
-  if (!phone || !apiKey) {
-    return { fraudData: null, deliveryRate: null };
-  }
-
-  // Clean phone number - remove non-digits
-  let cleanPhone = phone.replace(/\D/g, "");
-  
-  // Handle Bangladesh country code formats:
-  // International format: +880 1XXXXXXXXX (13 digits total) - country code replaces leading 0
-  // Local with extra 0: +880 01XXXXXXXXX (14 digits total) - some systems add extra 0
-  // Local format: 01XXXXXXXXX (11 digits) - valid as is
-  
-  if (cleanPhone.startsWith("880")) {
-    const afterCountryCode = cleanPhone.slice(3);
-    
-    if (afterCountryCode.startsWith("01") && afterCountryCode.length === 11) {
-      // Format: 880 + 01XXXXXXXXX (14 digits) - just remove country code
-      cleanPhone = afterCountryCode;
-    } else if (afterCountryCode.startsWith("1") && afterCountryCode.length === 10) {
-      // Format: 880 + 1XXXXXXXXX (13 digits) - add leading 0
-      cleanPhone = "0" + afterCountryCode;
-    }
-  }
-  
-  // Now check if it's a valid Bangladesh number (11 digits starting with 01)
-  if (cleanPhone.length !== 11 || !cleanPhone.startsWith("01")) {
-    console.log(`Skipping fraud check for invalid BD number: ${phone} -> ${cleanPhone}`);
-    return { fraudData: null, deliveryRate: null };
-  }
-
-  try {
-    console.log(`Checking fraud status for: ${cleanPhone}`);
-    
-    const formData = new FormData();
-    formData.append("phone", cleanPhone);
-
-    const response = await fetch("https://fraudchecker.link/api/v1/qc/", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      console.error(`Fraud API error for ${cleanPhone}: ${response.status}`);
-      return { fraudData: null, deliveryRate: null };
-    }
-
-    const data: FraudCheckResponse = await response.json();
-    
-    // Calculate delivery rate
-    const deliveryRate = data.total_parcels > 0 
-      ? (data.total_delivered / data.total_parcels) * 100 
-      : null;
-
-    console.log(`Fraud check result for ${cleanPhone}: ${data.total_delivered}/${data.total_parcels} delivered (${deliveryRate?.toFixed(1)}%)`);
-
-    return { fraudData: data, deliveryRate };
-  } catch (error) {
-    console.error(`Error checking fraud for ${cleanPhone}:`, error);
-    return { fraudData: null, deliveryRate: null };
-  }
-}
 
 Deno.serve(async (req) => {
   // Handle CORS preflight
@@ -198,14 +116,10 @@ Deno.serve(async (req) => {
       (existingOrders || []).map(o => [o.shopify_order_id, o])
     );
 
-    // Process orders and check fraud status (limit to 25 latest orders for fraud check)
+    // Process orders WITHOUT fraud checking (sync only)
     const processedOrders = [];
-    let fraudCheckCount = 0;
-    const MAX_FRAUD_CHECKS = 25;
     
-    for (let i = 0; i < orders.length; i++) {
-      const order = orders[i];
-      
+    for (const order of orders) {
       // Extract phone from shipping_address, customer, or note_attributes
       let phone = order.shipping_address?.phone || order.customer?.phone || "";
       
@@ -241,22 +155,8 @@ Deno.serve(async (req) => {
       const quantity = firstItem?.quantity || 0;
       const price = firstItem ? parseFloat(firstItem.price) : 0;
 
-      // Check if we already have fraud data for this order
+      // Preserve existing fraud data if available
       const existingOrder = existingOrdersMap.get(order.id);
-      let fraudData = existingOrder?.fraud_data || null;
-      let deliveryRate = existingOrder?.delivery_rate || null;
-      let fraudChecked = existingOrder?.fraud_checked || false;
-
-      // Only check fraud for latest 25 orders without existing data
-      if (fraudCheckerApiKey && phone && !fraudData && fraudCheckCount < MAX_FRAUD_CHECKS) {
-        const fraudResult = await checkFraudStatus(phone, fraudCheckerApiKey);
-        if (fraudResult.fraudData) {
-          fraudData = fraudResult.fraudData;
-          deliveryRate = fraudResult.deliveryRate;
-        }
-        fraudChecked = true;
-        fraudCheckCount++;
-      }
 
       processedOrders.push({
         shopify_order_id: order.id,
@@ -267,13 +167,11 @@ Deno.serve(async (req) => {
         product,
         quantity,
         price,
-        fraud_checked: fraudChecked,
-        fraud_data: fraudData,
-        delivery_rate: deliveryRate,
+        fraud_checked: existingOrder?.fraud_checked || false,
+        fraud_data: existingOrder?.fraud_data || null,
+        delivery_rate: existingOrder?.delivery_rate || null,
       });
     }
-
-    console.log(`Checked fraud status for ${fraudCheckCount} orders (max ${MAX_FRAUD_CHECKS})`);
 
     console.log(`Processing ${processedOrders.length} orders for upsert`);
 
