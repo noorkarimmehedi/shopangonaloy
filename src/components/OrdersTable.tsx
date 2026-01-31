@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Switch } from "@/components/ui/switch";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -499,14 +499,31 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
               </TableCell>
               <TableCell className="text-center py-4">
                 <div className="flex items-center justify-center gap-2">
-                  <Switch
-                    checked={order.status === "confirmed"}
-                    onCheckedChange={() => handleStatusToggle(order)}
-                    disabled={updatingIds.has(order.id)}
-                  />
-                  <span className={`text-xs font-medium w-[55px] text-left ${order.status === "confirmed" ? "text-success" : "text-warning"}`}>
-                    {order.status === "confirmed" ? "Confirmed" : "Pending"}
-                  </span>
+                  <ToggleGroup
+                    type="single"
+                    value={order.status}
+                    onValueChange={(value) => {
+                      if (value && value !== order.status) {
+                        handleStatusToggle(order);
+                      }
+                    }}
+                    className="bg-muted/50 rounded-md p-0.5"
+                  >
+                    <ToggleGroupItem
+                      value="pending"
+                      aria-label="Set pending"
+                      className={`h-7 px-2.5 text-xs font-medium rounded transition-all data-[state=on]:bg-warning data-[state=on]:text-warning-foreground data-[state=on]:shadow-sm`}
+                    >
+                      Pending
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="confirmed"
+                      aria-label="Set confirmed"
+                      className={`h-7 px-2.5 text-xs font-medium rounded transition-all data-[state=on]:bg-success data-[state=on]:text-success-foreground data-[state=on]:shadow-sm`}
+                    >
+                      Confirmed
+                    </ToggleGroupItem>
+                  </ToggleGroup>
                   <NotesPopover order={order} onOrderUpdate={onOrderUpdate} />
                 </div>
               </TableCell>
