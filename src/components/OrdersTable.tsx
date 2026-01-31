@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truck, Loader2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truck, Loader2, Search } from "lucide-react";
 
 interface FraudData {
   mobile_number: string;
@@ -167,6 +167,7 @@ function FraudIndicator({ order }: { order: Order }) {
 export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: OrdersTableProps) {
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
   const [sendingIds, setSendingIds] = useState<Set<string>>(new Set());
+  const [checkingFraudIds, setCheckingFraudIds] = useState<Set<string>>(new Set());
 
   const handleStatusToggle = async (order: Order) => {
     const newStatus = order.status === "confirmed" ? "pending" : "confirmed";
@@ -222,6 +223,39 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
       toast.error("Failed to send order to courier");
     } finally {
       setSendingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(order.id);
+        return next;
+      });
+    }
+  };
+
+  const handleCheckFraud = async (order: Order) => {
+    setCheckingFraudIds((prev) => new Set(prev).add(order.id));
+    
+    try {
+      const { data, error } = await supabase.functions.invoke("check-fraud", {
+        body: { orderId: order.id },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
+
+      if (data?.order && onOrderUpdate) {
+        onOrderUpdate(data.order);
+      }
+      toast.success(`Fraud check completed for ${order.order_number}`);
+    } catch (error) {
+      console.error("Error checking fraud:", error);
+      toast.error("Failed to check fraud status");
+    } finally {
+      setCheckingFraudIds((prev) => {
         const next = new Set(prev);
         next.delete(order.id);
         return next;
@@ -365,13 +399,28 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                     onCheckedChange={() => handleStatusToggle(order)}
                     disabled={updatingIds.has(order.id)}
                   />
-                  {order.status === "confirmed" && !order.sent_to_courier && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleCheckFraud(order)}
+                    disabled={checkingFraudIds.has(order.id)}
+                    className="h-8"
+                    title="Check fraud status"
+                  >
+                    {checkingFraudIds.has(order.id) ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Search className="h-4 w-4" />
+                    )}
+                  </Button>
+                  {!order.sent_to_courier && (
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handleSendToCourier(order)}
                       disabled={sendingIds.has(order.id)}
                       className="h-8"
+                      title="Send to courier"
                     >
                       {sendingIds.has(order.id) ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
