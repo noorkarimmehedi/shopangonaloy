@@ -250,7 +250,11 @@ function NotesPopover({ order, onOrderUpdate }: { order: Order; onOrderUpdate?: 
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
             <button
-              className={`p-1 rounded hover:bg-muted transition-colors ${hasNotes ? "text-primary" : "text-muted-foreground/40"}`}
+              className={`p-1 rounded-md transition-colors ${
+                hasNotes 
+                  ? "bg-primary/10 text-primary hover:bg-primary/20" 
+                  : "text-muted-foreground/40 hover:bg-muted hover:text-muted-foreground"
+              }`}
             >
               <NotebookPen className="h-3.5 w-3.5" />
             </button>
@@ -497,7 +501,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                     onCheckedChange={() => handleStatusToggle(order)}
                     disabled={updatingIds.has(order.id)}
                   />
-                  <span className={`text-xs font-medium min-w-[50px] ${order.status === "confirmed" ? "text-success" : "text-warning"}`}>
+                  <span className={`text-xs font-medium w-[55px] text-left ${order.status === "confirmed" ? "text-success" : "text-warning"}`}>
                     {order.status === "confirmed" ? "Confirmed" : "Pending"}
                   </span>
                   <NotesPopover order={order} onOrderUpdate={onOrderUpdate} />
