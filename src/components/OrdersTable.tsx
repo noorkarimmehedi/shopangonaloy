@@ -250,13 +250,16 @@ function NotesPopover({ order, onOrderUpdate }: { order: Order; onOrderUpdate?: 
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
             <button
-              className={`p-1 rounded-md transition-colors ${
+              className={`relative p-1.5 rounded-lg transition-all duration-200 ${
                 hasNotes 
-                  ? "bg-primary/10 text-primary hover:bg-primary/20" 
-                  : "text-muted-foreground/40 hover:bg-muted hover:text-muted-foreground"
+                  ? "bg-gradient-to-br from-primary/15 to-primary/5 text-primary shadow-sm ring-1 ring-primary/20 hover:ring-primary/40 hover:shadow-md" 
+                  : "text-muted-foreground/30 hover:bg-muted/50 hover:text-muted-foreground"
               }`}
             >
               <NotebookPen className="h-3.5 w-3.5" />
+              {hasNotes && (
+                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary animate-pulse" />
+              )}
             </button>
           </PopoverTrigger>
         </TooltipTrigger>
