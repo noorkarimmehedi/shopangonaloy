@@ -376,16 +376,16 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                 {formatPrice(order.price)}
               </TableCell>
               <TableCell className="text-center">
-                <Badge
-                  variant={order.status === "confirmed" ? "default" : "secondary"}
-                  className={
-                    order.status === "confirmed"
-                      ? "bg-success text-success-foreground"
-                      : "bg-warning text-warning-foreground"
-                  }
-                >
-                  {order.status === "confirmed" ? "Confirmed" : "Pending"}
-                </Badge>
+                <div className="flex items-center justify-center gap-2">
+                  <Switch
+                    checked={order.status === "confirmed"}
+                    onCheckedChange={() => handleStatusToggle(order)}
+                    disabled={updatingIds.has(order.id)}
+                  />
+                  <span className={`text-xs font-medium ${order.status === "confirmed" ? "text-success" : "text-warning"}`}>
+                    {order.status === "confirmed" ? "Confirmed" : "Pending"}
+                  </span>
+                </div>
               </TableCell>
               <TableCell className="text-center">
                 {order.sent_to_courier ? (
@@ -409,29 +409,21 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                 )}
               </TableCell>
               <TableCell className="text-center">
-                <div className="flex items-center justify-center gap-2">
-                  <Switch
-                    checked={order.status === "confirmed"}
-                    onCheckedChange={() => handleStatusToggle(order)}
-                    disabled={updatingIds.has(order.id)}
-                  />
-                  {!order.sent_to_courier && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleSendToCourier(order)}
-                      disabled={sendingIds.has(order.id)}
-                      className="h-8"
-                      title="Send to courier"
-                    >
-                      {sendingIds.has(order.id) ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Truck className="h-4 w-4" />
-                      )}
-                    </Button>
-                  )}
-                </div>
+                {!order.sent_to_courier ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleSendToCourier(order)}
+                    disabled={sendingIds.has(order.id)}
+                  >
+                    {sendingIds.has(order.id) ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : null}
+                    {sendingIds.has(order.id) ? "Sending..." : "Send to Steadfast"}
+                  </Button>
+                ) : (
+                  <span className="text-muted-foreground text-sm">Sent</span>
+                )}
               </TableCell>
             </TableRow>
           ))}
