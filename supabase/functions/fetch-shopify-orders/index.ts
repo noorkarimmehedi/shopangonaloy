@@ -198,11 +198,14 @@ Deno.serve(async (req) => {
       (existingOrders || []).map(o => [o.shopify_order_id, o])
     );
 
-    // Process orders and check fraud status
+    // Process orders and check fraud status (limit to 25 latest orders for fraud check)
     const processedOrders = [];
     let fraudCheckCount = 0;
+    const MAX_FRAUD_CHECKS = 25;
     
-    for (const order of orders) {
+    for (let i = 0; i < orders.length; i++) {
+      const order = orders[i];
+      
       // Extract phone from shipping_address, customer, or note_attributes
       let phone = order.shipping_address?.phone || order.customer?.phone || "";
       
@@ -244,13 +247,8 @@ Deno.serve(async (req) => {
       let deliveryRate = existingOrder?.delivery_rate || null;
       let fraudChecked = existingOrder?.fraud_checked || false;
 
-      // Only check fraud if we don't already have data and API key is available
-      if (fraudCheckerApiKey && phone && !fraudData) {
-        // Add delay between requests to avoid rate limiting (1.5 seconds)
-        if (fraudCheckCount > 0) {
-          await delay(1500);
-        }
-        
+      // Only check fraud for latest 25 orders without existing data
+      if (fraudCheckerApiKey && phone && !fraudData && fraudCheckCount < MAX_FRAUD_CHECKS) {
         const fraudResult = await checkFraudStatus(phone, fraudCheckerApiKey);
         if (fraudResult.fraudData) {
           fraudData = fraudResult.fraudData;
@@ -275,7 +273,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log(`Checked fraud status for ${fraudCheckCount} new orders`);
+    console.log(`Checked fraud status for ${fraudCheckCount} orders (max ${MAX_FRAUD_CHECKS})`);
 
     console.log(`Processing ${processedOrders.length} orders for upsert`);
 
