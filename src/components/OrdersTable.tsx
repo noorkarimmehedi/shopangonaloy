@@ -263,12 +263,13 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
     }
   };
 
-  const formatPrice = (price: number | null) => {
+  const formatPrice = (price: number | null, deliveryRate: number | null = null) => {
     if (price === null) return "-";
+    const total = price + (deliveryRate ?? 0);
     return new Intl.NumberFormat("en-BD", {
       style: "currency",
       currency: "BDT",
-    }).format(price);
+    }).format(total);
   };
 
   const getCourierStatusBadge = (order: Order) => {
@@ -373,7 +374,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
               </TableCell>
               <TableCell className="text-center py-4 text-sm">{order.quantity ?? "—"}</TableCell>
               <TableCell className="text-right font-mono py-4 text-sm">
-                {formatPrice(order.price)}
+                {formatPrice(order.price, order.delivery_rate)}
               </TableCell>
               <TableCell className="text-center py-4">
                 <div className="flex items-center justify-center gap-3">
