@@ -199,13 +199,13 @@ export default function Dashboard() {
 
         {/* Orders Table - Clean Swiss styling */}
         <div className="swiss-card">
-          <div className="p-6 border-b border-border/60">
+          <div className="px-4 py-4 border-b border-border/60">
             <h2 className="text-lg font-semibold tracking-tight">Order Management</h2>
             <p className="text-sm text-muted-foreground mt-1">
               Manage orders, verify customers, and dispatch to courier
             </p>
           </div>
-          <div className="p-6">
+          <div className="p-3">
             <OrdersTable
               orders={orders}
               loading={loading}
