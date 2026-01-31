@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.check-fraud]
 verify_jwt = false
+
+[functions.send-to-courier]
+verify_jwt = false
+
+[functions.courier-webhook]
+verify_jwt = false

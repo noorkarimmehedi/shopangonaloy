@@ -115,6 +115,14 @@ export default function Dashboard() {
     );
   };
 
+  const handleOrderUpdate = (updatedOrder: Order) => {
+    setOrders((prev) =>
+      prev.map((order) =>
+        order.id === updatedOrder.id ? updatedOrder : order
+      )
+    );
+  };
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/auth");
@@ -218,6 +226,7 @@ export default function Dashboard() {
               orders={orders}
               loading={loading}
               onStatusUpdate={handleStatusUpdate}
+              onOrderUpdate={handleOrderUpdate}
             />
           </CardContent>
         </Card>

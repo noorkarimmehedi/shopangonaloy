@@ -10,6 +10,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
@@ -17,7 +18,7 @@ import {
 } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck } from "lucide-react";
+import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truck, Loader2 } from "lucide-react";
 
 interface FraudData {
   mobile_number: string;
@@ -47,12 +48,18 @@ interface Order {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fraud_data: FraudData | any | null;
   delivery_rate: number | null;
+  sent_to_courier?: boolean | null;
+  courier_status?: string | null;
+  consignment_id?: number | null;
+  tracking_code?: string | null;
+  courier_message?: string | null;
 }
 
 interface OrdersTableProps {
   orders: Order[];
   loading: boolean;
   onStatusUpdate: (orderId: string, newStatus: string) => void;
+  onOrderUpdate?: (updatedOrder: Order) => void;
 }
 
 function FraudIndicator({ order }: { order: Order }) {
@@ -157,8 +164,9 @@ function FraudIndicator({ order }: { order: Order }) {
   );
 }
 
-export function OrdersTable({ orders, loading, onStatusUpdate }: OrdersTableProps) {
+export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: OrdersTableProps) {
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
+  const [sendingIds, setSendingIds] = useState<Set<string>>(new Set());
 
   const handleStatusToggle = async (order: Order) => {
     const newStatus = order.status === "confirmed" ? "pending" : "confirmed";
@@ -188,12 +196,78 @@ export function OrdersTable({ orders, loading, onStatusUpdate }: OrdersTableProp
     }
   };
 
+  const handleSendToCourier = async (order: Order) => {
+    setSendingIds((prev) => new Set(prev).add(order.id));
+    
+    try {
+      const { data, error } = await supabase.functions.invoke("send-to-courier", {
+        body: { orderId: order.id },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
+
+      if (data?.order && onOrderUpdate) {
+        onOrderUpdate(data.order);
+      }
+      toast.success(`Order ${order.order_number} sent to Steadfast courier`);
+    } catch (error) {
+      console.error("Error sending to courier:", error);
+      toast.error("Failed to send order to courier");
+    } finally {
+      setSendingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(order.id);
+        return next;
+      });
+    }
+  };
+
   const formatPrice = (price: number | null) => {
     if (price === null) return "-";
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("en-BD", {
       style: "currency",
-      currency: "USD",
+      currency: "BDT",
     }).format(price);
+  };
+
+  const getCourierStatusBadge = (order: Order) => {
+    if (!order.sent_to_courier) {
+      return null;
+    }
+    
+    const status = order.courier_status?.toLowerCase();
+    let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
+    let className = "";
+    
+    switch (status) {
+      case "delivered":
+        variant = "default";
+        className = "bg-success text-success-foreground";
+        break;
+      case "cancelled":
+        variant = "destructive";
+        break;
+      case "in_review":
+      case "pending":
+        variant = "secondary";
+        className = "bg-warning text-warning-foreground";
+        break;
+      default:
+        variant = "outline";
+    }
+    
+    return (
+      <Badge variant={variant} className={className}>
+        {order.courier_status || "Sent"}
+      </Badge>
+    );
   };
 
   if (loading) {
@@ -222,13 +296,14 @@ export function OrdersTable({ orders, loading, onStatusUpdate }: OrdersTableProp
             <TableHead className="font-semibold">Order #</TableHead>
             <TableHead className="font-semibold">Customer</TableHead>
             <TableHead className="font-semibold">Phone</TableHead>
-            <TableHead className="font-semibold text-center">Fraud Check</TableHead>
+            <TableHead className="font-semibold text-center">Fraud</TableHead>
             <TableHead className="font-semibold">Address</TableHead>
             <TableHead className="font-semibold">Product</TableHead>
             <TableHead className="font-semibold text-center">Qty</TableHead>
             <TableHead className="font-semibold text-right">Price</TableHead>
             <TableHead className="font-semibold text-center">Status</TableHead>
-            <TableHead className="font-semibold text-center">Confirmed</TableHead>
+            <TableHead className="font-semibold text-center">Courier</TableHead>
+            <TableHead className="font-semibold text-center">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -263,11 +338,45 @@ export function OrdersTable({ orders, loading, onStatusUpdate }: OrdersTableProp
                 </Badge>
               </TableCell>
               <TableCell className="text-center">
-                <Switch
-                  checked={order.status === "confirmed"}
-                  onCheckedChange={() => handleStatusToggle(order)}
-                  disabled={updatingIds.has(order.id)}
-                />
+                {order.sent_to_courier ? (
+                  <Tooltip>
+                    <TooltipTrigger>
+                      {getCourierStatusBadge(order)}
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="text-sm">
+                        <p>Tracking: {order.tracking_code || "N/A"}</p>
+                        {order.courier_message && <p>{order.courier_message}</p>}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <span className="text-muted-foreground text-sm">-</span>
+                )}
+              </TableCell>
+              <TableCell className="text-center">
+                <div className="flex items-center justify-center gap-2">
+                  <Switch
+                    checked={order.status === "confirmed"}
+                    onCheckedChange={() => handleStatusToggle(order)}
+                    disabled={updatingIds.has(order.id)}
+                  />
+                  {order.status === "confirmed" && !order.sent_to_courier && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleSendToCourier(order)}
+                      disabled={sendingIds.has(order.id)}
+                      className="h-8"
+                    >
+                      {sendingIds.has(order.id) ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Truck className="h-4 w-4" />
+                      )}
+                    </Button>
+                  )}
+                </div>
               </TableCell>
             </TableRow>
           ))}
