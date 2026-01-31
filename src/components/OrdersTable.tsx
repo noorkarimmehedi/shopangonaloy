@@ -24,7 +24,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truck, Loader2, Search, StickyNote, MessageSquare } from "lucide-react";
+import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truck, Loader2, Search, NotebookPen } from "lucide-react";
 
 interface FraudData {
   mobile_number: string;
@@ -246,13 +246,13 @@ function NotesPopover({ order, onOrderUpdate }: { order: Order; onOrderUpdate?: 
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <Tooltip>
+      <Tooltip delayDuration={0}>
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
             <button
-              className={`p-1 rounded hover:bg-muted transition-colors ${hasNotes ? "text-primary" : "text-muted-foreground/50"}`}
+              className={`p-1 rounded hover:bg-muted transition-colors ${hasNotes ? "text-primary" : "text-muted-foreground/40"}`}
             >
-              <MessageSquare className="h-4 w-4" />
+              <NotebookPen className="h-3.5 w-3.5" />
             </button>
           </PopoverTrigger>
         </TooltipTrigger>
