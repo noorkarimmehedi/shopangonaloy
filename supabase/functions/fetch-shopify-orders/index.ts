@@ -10,6 +10,13 @@ interface ShopifyOrder {
   id: number;
   order_number: number;
   name: string;
+  total_price: string;
+  subtotal_price: string;
+  total_shipping_price_set?: {
+    shop_money?: {
+      amount: string;
+    };
+  };
   customer?: {
     first_name?: string;
     last_name?: string;
@@ -153,7 +160,11 @@ Deno.serve(async (req) => {
       const firstItem = order.line_items?.[0];
       const product = firstItem?.name || "";
       const quantity = firstItem?.quantity || 0;
-      const price = firstItem ? parseFloat(firstItem.price) : 0;
+      
+      // Get total price and shipping from Shopify order
+      const totalPrice = parseFloat(order.total_price) || 0;
+      const shippingPrice = parseFloat(order.total_shipping_price_set?.shop_money?.amount || "0");
+      const subtotalPrice = parseFloat(order.subtotal_price) || 0;
 
       // Preserve existing fraud data if available
       const existingOrder = existingOrdersMap.get(order.id);
@@ -166,10 +177,10 @@ Deno.serve(async (req) => {
         address,
         product,
         quantity,
-        price,
+        price: subtotalPrice,
+        delivery_rate: shippingPrice,
         fraud_checked: existingOrder?.fraud_checked || false,
         fraud_data: existingOrder?.fraud_data || null,
-        delivery_rate: existingOrder?.delivery_rate || null,
       });
     }
 
