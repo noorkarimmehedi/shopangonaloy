@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { OrdersTable } from "@/components/OrdersTable";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { RefreshCw, LogOut, ShieldCheck } from "lucide-react";
+import { RefreshCw, LogOut, ShieldCheck, Settings } from "lucide-react";
 
 interface FraudData {
   mobile_number: string;
@@ -44,6 +45,7 @@ export default function Dashboard() {
   const [syncing, setSyncing] = useState(false);
   const [checkingFraud, setCheckingFraud] = useState(false);
   const { user, signOut } = useAuth();
+  const { isAdmin } = useUserRole();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -161,6 +163,16 @@ export default function Dashboard() {
                 {checkingFraud ? "Checking..." : "Fraud Check"}
               </Button>
               <div className="w-px h-6 bg-border/60 mx-1" />
+              {isAdmin && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => navigate("/settings")}
+                  className="h-9 px-3 text-muted-foreground hover:text-foreground"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              )}
               <Button 
                 variant="ghost" 
                 size="sm" 
