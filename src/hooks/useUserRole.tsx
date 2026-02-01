@@ -22,14 +22,16 @@ export function useUserRole() {
           .from("user_roles")
           .select("role")
           .eq("user_id", user.id)
-          .single();
+          .maybeSingle();
 
         if (error) {
-          // If no role found, user might be the first admin or unassigned
-          console.log("No role found for user:", error.message);
+          console.error("Error fetching role:", error.message);
           setRole(null);
-        } else {
+        } else if (data) {
           setRole(data.role as AppRole);
+        } else {
+          // No role found for user
+          setRole(null);
         }
       } catch (error) {
         console.error("Error fetching user role:", error);
