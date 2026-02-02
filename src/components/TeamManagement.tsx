@@ -21,14 +21,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { UserPlus, Trash2, Mail, Users } from "lucide-react";
-
-interface TeamInvite {
-  id: string;
-  email: string;
-  created_at: string;
-  invited_by: string;
-}
+import { UserPlus, Trash2, Users, Copy, Check, Eye, EyeOff } from "lucide-react";
 
 interface TeamMember {
   id: string;
@@ -37,30 +30,35 @@ interface TeamMember {
   created_at: string;
 }
 
+interface GeneratedCredentials {
+  email: string;
+  password: string;
+}
+
 export function TeamManagement() {
   const { user } = useAuth();
   const [email, setEmail] = useState("");
-  const [inviting, setInviting] = useState(false);
-  const [invites, setInvites] = useState<TeamInvite[]>([]);
+  const [password, setPassword] = useState("");
+  const [creating, setCreating] = useState(false);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const [generatedCredentials, setGeneratedCredentials] = useState<GeneratedCredentials | null>(null);
+  const [copied, setCopied] = useState<"email" | "password" | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    fetchInvitesAndMembers();
+    fetchMembers();
   }, []);
 
-  const fetchInvitesAndMembers = async () => {
+  const fetchMembers = async () => {
     try {
-      const [invitesRes, membersRes] = await Promise.all([
-        supabase.from("team_invites").select("*").order("created_at", { ascending: false }),
-        supabase.from("user_roles").select("*").order("created_at", { ascending: false }),
-      ]);
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-      if (invitesRes.error) throw invitesRes.error;
-      if (membersRes.error) throw membersRes.error;
-
-      setInvites(invitesRes.data || []);
-      setMembers(membersRes.data || []);
+      if (error) throw error;
+      setMembers(data || []);
     } catch (error) {
       console.error("Error fetching team data:", error);
       toast.error("Failed to load team data");
@@ -69,7 +67,7 @@ export function TeamManagement() {
     }
   };
 
-  const handleInvite = async (e: React.FormEvent) => {
+  const handleCreateMember = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email.trim()) {
@@ -82,49 +80,31 @@ export function TeamManagement() {
       return;
     }
 
-    setInviting(true);
+    setCreating(true);
+    setGeneratedCredentials(null);
+    
     try {
-      // Check if already invited
-      const existingInvite = invites.find(
-        (invite) => invite.email.toLowerCase() === email.toLowerCase()
-      );
-      if (existingInvite) {
-        toast.error("This email has already been invited");
-        return;
-      }
-
-      const { error } = await supabase.from("team_invites").insert({
-        email: email.toLowerCase().trim(),
-        invited_by: user.id,
+      const { data, error } = await supabase.functions.invoke("create-team-member", {
+        body: { email: email.trim(), password: password || undefined },
       });
 
       if (error) throw error;
+      if (data.error) throw new Error(data.error);
 
-      toast.success(`Invitation sent to ${email}`);
+      setGeneratedCredentials({
+        email: data.email,
+        password: data.password,
+      });
+      
+      toast.success(`Team member created: ${data.email}`);
       setEmail("");
-      fetchInvitesAndMembers();
+      setPassword("");
+      fetchMembers();
     } catch (error) {
-      console.error("Error sending invite:", error);
-      toast.error("Failed to send invitation");
+      console.error("Error creating team member:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to create team member");
     } finally {
-      setInviting(false);
-    }
-  };
-
-  const handleDeleteInvite = async (inviteId: string) => {
-    try {
-      const { error } = await supabase
-        .from("team_invites")
-        .delete()
-        .eq("id", inviteId);
-
-      if (error) throw error;
-
-      toast.success("Invitation deleted");
-      setInvites((prev) => prev.filter((invite) => invite.id !== inviteId));
-    } catch (error) {
-      console.error("Error deleting invite:", error);
-      toast.error("Failed to delete invitation");
+      setCreating(false);
     }
   };
 
@@ -145,6 +125,12 @@ export function TeamManagement() {
     }
   };
 
+  const copyToClipboard = async (text: string, type: "email" | "password") => {
+    await navigator.clipboard.writeText(text);
+    setCopied(type);
+    setTimeout(() => setCopied(null), 2000);
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       month: "short",
@@ -155,83 +141,112 @@ export function TeamManagement() {
 
   return (
     <div className="space-y-6">
-      {/* Invite Form */}
+      {/* Create Team Member Form */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <UserPlus className="h-5 w-5" />
-            Invite Team Member
+            Create Team Member
           </CardTitle>
           <CardDescription>
-            Send an invitation email to add a new team member. They will be able to sign up using the invited email address.
+            Generate login credentials for a new team member. Share the credentials with them so they can log in.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleInvite} className="flex gap-3">
-            <div className="flex-1">
-              <Label htmlFor="invite-email" className="sr-only">
-                Email address
-              </Label>
-              <Input
-                id="invite-email"
-                type="email"
-                placeholder="team.member@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+        <CardContent className="space-y-4">
+          <form onSubmit={handleCreateMember} className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="member-email">Email address</Label>
+                <Input
+                  id="member-email"
+                  type="email"
+                  placeholder="team.member@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="member-password">Password (optional)</Label>
+                <Input
+                  id="member-password"
+                  type="text"
+                  placeholder="Leave empty to auto-generate"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
             </div>
-            <Button type="submit" disabled={inviting}>
-              <Mail className="h-4 w-4 mr-2" />
-              {inviting ? "Sending..." : "Send Invite"}
+            <Button type="submit" disabled={creating}>
+              <UserPlus className="h-4 w-4 mr-2" />
+              {creating ? "Creating..." : "Create Member"}
             </Button>
           </form>
+
+          {/* Generated Credentials Display */}
+          {generatedCredentials && (
+            <div className="mt-6 p-4 bg-muted rounded-lg border space-y-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                <Check className="h-4 w-4" />
+                Credentials Generated - Share these with the team member
+              </div>
+              
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Email</Label>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 px-3 py-2 bg-background rounded border text-sm">
+                      {generatedCredentials.email}
+                    </code>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => copyToClipboard(generatedCredentials.email, "email")}
+                    >
+                      {copied === "email" ? (
+                        <Check className="h-4 w-4 text-primary" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Password</Label>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 px-3 py-2 bg-background rounded border text-sm">
+                      {showPassword ? generatedCredentials.password : "••••••••••••"}
+                    </code>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => copyToClipboard(generatedCredentials.password, "password")}
+                    >
+                      {copied === "password" ? (
+                        <Check className="h-4 w-4 text-primary" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
-
-      {/* Pending Invites */}
-      {invites.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5" />
-              Pending Invitations
-            </CardTitle>
-            <CardDescription>
-              These invitations are waiting for the recipients to sign up.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Sent</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {invites.map((invite) => (
-                  <TableRow key={invite.id}>
-                    <TableCell className="font-medium">{invite.email}</TableCell>
-                    <TableCell>{formatDate(invite.created_at)}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteInvite(invite.id)}
-                        className="h-8 w-8 text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Team Members */}
       <Card>
@@ -249,7 +264,7 @@ export function TeamManagement() {
             <div className="text-center py-4 text-muted-foreground">Loading...</div>
           ) : members.length === 0 ? (
             <div className="text-center py-4 text-muted-foreground">
-              No team members yet. Invite someone to get started!
+              No team members yet. Create one above to get started!
             </div>
           ) : (
             <Table>
