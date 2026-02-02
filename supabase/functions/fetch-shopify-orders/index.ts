@@ -27,6 +27,7 @@ interface ShopifyOrder {
       province?: string;
       country?: string;
       zip?: string;
+      name?: string;
     };
   };
   shipping_address?: {
@@ -35,6 +36,15 @@ interface ShopifyOrder {
     province?: string;
     country?: string;
     zip?: string;
+    phone?: string;
+    name?: string;
+    first_name?: string;
+    last_name?: string;
+  };
+  billing_address?: {
+    name?: string;
+    first_name?: string;
+    last_name?: string;
     phone?: string;
   };
   note_attributes?: Array<{ name: string; value: string }>;
@@ -151,10 +161,37 @@ Deno.serve(async (req) => {
       ].filter(Boolean);
       const address = addressParts.join(", ");
 
-      // Get customer name
-      const customerName = order.customer
-        ? `${order.customer.first_name || ""} ${order.customer.last_name || ""}`.trim()
-        : "";
+      // Get customer name - try multiple sources in priority order
+      let customerName = "";
+      
+      // 1. Try shipping_address name (most reliable for delivery)
+      if (order.shipping_address?.name) {
+        customerName = order.shipping_address.name;
+      } else if (order.shipping_address?.first_name || order.shipping_address?.last_name) {
+        customerName = `${order.shipping_address.first_name || ""} ${order.shipping_address.last_name || ""}`.trim();
+      }
+      // 2. Try billing_address name
+      else if (order.billing_address?.name) {
+        customerName = order.billing_address.name;
+      } else if (order.billing_address?.first_name || order.billing_address?.last_name) {
+        customerName = `${order.billing_address.first_name || ""} ${order.billing_address.last_name || ""}`.trim();
+      }
+      // 3. Try customer object
+      else if (order.customer?.first_name || order.customer?.last_name) {
+        customerName = `${order.customer.first_name || ""} ${order.customer.last_name || ""}`.trim();
+      }
+      // 4. Try customer default_address name
+      else if (order.customer?.default_address?.name) {
+        customerName = order.customer.default_address.name;
+      }
+      // 5. Try note_attributes for custom name fields
+      if (!customerName && order.note_attributes) {
+        const nameAttr = order.note_attributes.find(
+          (attr) => attr.name.toLowerCase().includes("name") && 
+                    !attr.name.toLowerCase().includes("phone")
+        );
+        if (nameAttr) customerName = nameAttr.value;
+      }
 
       // Get first line item details
       const firstItem = order.line_items?.[0];
