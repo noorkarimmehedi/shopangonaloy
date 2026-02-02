@@ -149,6 +149,24 @@ Deno.serve(async (req) => {
         );
         if (phoneAttr) phone = phoneAttr.value;
       }
+      
+      // Normalize Bangladesh phone number format
+      if (phone) {
+        // Remove non-digits
+        let cleanPhone = phone.replace(/\D/g, "");
+        
+        // Handle country code 880
+        if (cleanPhone.startsWith("880")) {
+          cleanPhone = cleanPhone.slice(3);
+        }
+        
+        // Add leading 0 if missing (e.g., 1711408884 -> 01711408884)
+        if (cleanPhone.length === 10 && cleanPhone.startsWith("1")) {
+          cleanPhone = "0" + cleanPhone;
+        }
+        
+        phone = cleanPhone;
+      }
 
       // Build address string - check shipping_address, customer.default_address, and note_attributes
       const addr = order.shipping_address || order.customer?.default_address;
