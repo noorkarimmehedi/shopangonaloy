@@ -24,9 +24,10 @@ function delay(ms: number): Promise<void> {
 }
 
 // Function to check fraud status for a phone number
-async function checkFraudStatus(phone: string, apiKey: string): Promise<{ fraudData: FraudCheckResponse | null; deliveryRate: number | null }> {
+// Returns fraudData and successRate (percentage of successful deliveries)
+async function checkFraudStatus(phone: string, apiKey: string): Promise<{ fraudData: FraudCheckResponse | null; successRate: number | null }> {
   if (!phone || !apiKey) {
-    return { fraudData: null, deliveryRate: null };
+    return { fraudData: null, successRate: null };
   }
 
   // Clean phone number - remove non-digits
@@ -46,7 +47,7 @@ async function checkFraudStatus(phone: string, apiKey: string): Promise<{ fraudD
   // Validate Bangladesh number format
   if (cleanPhone.length !== 11 || !cleanPhone.startsWith("01")) {
     console.log(`Skipping fraud check for invalid BD number: ${phone} -> ${cleanPhone}`);
-    return { fraudData: null, deliveryRate: null };
+    return { fraudData: null, successRate: null };
   }
 
   try {
@@ -65,21 +66,22 @@ async function checkFraudStatus(phone: string, apiKey: string): Promise<{ fraudD
 
     if (!response.ok) {
       console.error(`Fraud API error for ${cleanPhone}: ${response.status}`);
-      return { fraudData: null, deliveryRate: null };
+      return { fraudData: null, successRate: null };
     }
 
     const data: FraudCheckResponse = await response.json();
     
-    const deliveryRate = data.total_parcels > 0 
+    // Calculate success rate percentage (NOT to be confused with shipping delivery_rate cost)
+    const successRate = data.total_parcels > 0 
       ? (data.total_delivered / data.total_parcels) * 100 
       : null;
 
-    console.log(`Fraud check result for ${cleanPhone}: ${data.total_delivered}/${data.total_parcels} delivered (${deliveryRate?.toFixed(1)}%)`);
+    console.log(`Fraud check result for ${cleanPhone}: ${data.total_delivered}/${data.total_parcels} delivered (${successRate?.toFixed(1)}%)`);
 
-    return { fraudData: data, deliveryRate };
+    return { fraudData: data, successRate };
   } catch (error) {
     console.error(`Error checking fraud for ${cleanPhone}:`, error);
-    return { fraudData: null, deliveryRate: null };
+    return { fraudData: null, successRate: null };
   }
 }
 
@@ -165,14 +167,14 @@ Deno.serve(async (req) => {
         );
       }
 
-      const { fraudData, deliveryRate } = await checkFraudStatus(order.phone, fraudCheckerApiKey);
+      const { fraudData } = await checkFraudStatus(order.phone, fraudCheckerApiKey);
 
+      // Only update fraud_checked and fraud_data - DO NOT overwrite delivery_rate (shipping cost from Shopify)
       const { error: updateError } = await supabase
         .from("orders")
         .update({
           fraud_checked: true,
           fraud_data: fraudData,
-          delivery_rate: deliveryRate,
         })
         .eq("id", order.id);
 
@@ -228,16 +230,15 @@ Deno.serve(async (req) => {
         await delay(1500);
       }
 
-      const { fraudData, deliveryRate } = await checkFraudStatus(order.phone, fraudCheckerApiKey);
+      const { fraudData } = await checkFraudStatus(order.phone, fraudCheckerApiKey);
       checkedCount++;
 
-      // Update order with fraud data
+      // Update order with fraud data - DO NOT overwrite delivery_rate (shipping cost from Shopify)
       const { error: updateError } = await supabase
         .from("orders")
         .update({
           fraud_checked: true,
           fraud_data: fraudData,
-          delivery_rate: deliveryRate,
         })
         .eq("id", order.id);
 
