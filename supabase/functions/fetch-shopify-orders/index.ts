@@ -150,15 +150,50 @@ Deno.serve(async (req) => {
         if (phoneAttr) phone = phoneAttr.value;
       }
 
-      // Build address string
+      // Build address string - check shipping_address, customer.default_address, and note_attributes
       const addr = order.shipping_address || order.customer?.default_address;
-      const addressParts = [
+      let addressParts = [
         addr?.address1,
         addr?.city,
         addr?.province,
         addr?.country,
         addr?.zip,
       ].filter(Boolean);
+      
+      // If address is missing or only has country, check note_attributes for address fields
+      if (addressParts.length <= 1 && order.note_attributes) {
+        const noteAddressParts: string[] = [];
+        
+        // Common address field names in note_attributes
+        const addressFields = ["address", "shipping address", "delivery address", "street", "road", "house", "flat"];
+        const cityFields = ["city", "town", "district", "thana", "upazila", "area"];
+        const regionFields = ["region", "province", "state", "division"];
+        const zipFields = ["zip", "postal", "postcode", "post code"];
+        
+        for (const attr of order.note_attributes) {
+          const attrNameLower = attr.name.toLowerCase();
+          const attrValue = attr.value?.trim();
+          
+          if (!attrValue) continue;
+          
+          // Check if this is an address-related field
+          if (addressFields.some(f => attrNameLower.includes(f)) ||
+              cityFields.some(f => attrNameLower.includes(f)) ||
+              regionFields.some(f => attrNameLower.includes(f)) ||
+              zipFields.some(f => attrNameLower.includes(f))) {
+            noteAddressParts.push(attrValue);
+          }
+        }
+        
+        // If we found address parts in note_attributes, use them (plus country if available)
+        if (noteAddressParts.length > 0) {
+          if (addr?.country) {
+            noteAddressParts.push(addr.country);
+          }
+          addressParts = noteAddressParts;
+        }
+      }
+      
       const address = addressParts.join(", ");
 
       // Get customer name - try multiple sources in priority order
