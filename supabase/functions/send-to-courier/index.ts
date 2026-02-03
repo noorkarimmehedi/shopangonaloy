@@ -82,9 +82,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Calculate COD amount (price * quantity + delivery charge)
-    const productSubtotal = (order.price || 0) * (order.quantity || 1);
+    // Calculate COD amount (price + delivery charge)
+    // order.price is the subtotal from Shopify, which already includes quantity
+    const productSubtotal = (order.price || 0);
     const codAmount = productSubtotal + (order.delivery_rate || 0);
+
 
     // Prepare Steadfast payload
     const steadfastPayload = {
