@@ -46,7 +46,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex w-full">
       {/* Left side - Animated Background */}
       <div className="hidden lg:flex lg:w-1/2 relative">
         <ProceduralGroundBackground />
