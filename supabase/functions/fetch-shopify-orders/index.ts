@@ -246,10 +246,11 @@ Deno.serve(async (req) => {
         if (nameAttr) customerName = nameAttr.value;
       }
 
-      // Get all line items details
+      // Get all line items details - including quantity per item for better dashboard visibility
       const lineItems = order.line_items || [];
-      const product = lineItems.map(item => item.name).join(", ");
+      const product = lineItems.map(item => `${item.quantity || 1}x ${item.name}`).join(", ");
       const quantity = lineItems.reduce((acc, item) => acc + (item.quantity || 0), 0);
+
 
 
       // Get total price and shipping from Shopify order
