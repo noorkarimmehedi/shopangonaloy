@@ -23,7 +23,7 @@ export default function Auth() {
     setLoading(true);
     const { error } = await signIn(email, password);
     setLoading(false);
-    
+
     if (error) {
       toast.error(error.message);
     } else {
@@ -37,7 +37,7 @@ export default function Auth() {
     setLoading(true);
     const { error } = await signUp(email, password);
     setLoading(false);
-    
+
     if (error) {
       toast.error(error.message);
     } else {
@@ -53,11 +53,11 @@ export default function Auth() {
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center text-white z-10 px-8">
             <div className="flex justify-center mb-6">
-              <div className="p-4 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-                <Package className="h-12 w-12 text-white" />
+              <div className="p-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 overflow-hidden w-24 h-24 flex items-center justify-center">
+                <img src="/favicon.svg" alt="ANGONALOY Logo" className="w-16 h-16 object-contain" />
               </div>
             </div>
-            <h1 className="text-4xl font-bold mb-4">Order Dashboard</h1>
+            <h1 className="text-4xl font-extrabold mb-4 tracking-wider uppercase">ANGONALOY</h1>
             <p className="text-lg text-white/80 max-w-md">
               Streamline your Shopify order management with powerful tools and real-time insights.
             </p>
@@ -70,11 +70,11 @@ export default function Auth() {
         <Card className="w-full max-w-md border-0 shadow-none lg:shadow-none">
           <CardHeader className="text-center lg:hidden">
             <div className="flex justify-center mb-4">
-              <div className="p-3 rounded-full bg-primary">
-                <Package className="h-8 w-8 text-primary-foreground" />
+              <div className="p-1 rounded-full bg-primary/10 w-16 h-16 flex items-center justify-center">
+                <img src="/favicon.svg" alt="ANGONALOY Logo" className="w-10 h-10 object-contain" />
               </div>
             </div>
-            <CardTitle className="text-2xl">Order Dashboard</CardTitle>
+            <CardTitle className="text-2xl font-extrabold tracking-wider uppercase">ANGONALOY</CardTitle>
             <CardDescription>
               Sign in to manage your Shopify orders
             </CardDescription>
