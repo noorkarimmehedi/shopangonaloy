@@ -105,10 +105,10 @@ Deno.serve(async (req) => {
       const errorText = await shopifyResponse.text();
       console.error(`Shopify API error: ${shopifyResponse.status} - ${errorText}`);
       return new Response(
-        JSON.stringify({ 
-          error: "Failed to fetch orders from Shopify", 
+        JSON.stringify({
+          error: "Failed to fetch orders from Shopify",
           details: errorText,
-          status: shopifyResponse.status 
+          status: shopifyResponse.status
         }),
         { status: shopifyResponse.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -128,43 +128,43 @@ Deno.serve(async (req) => {
     const { data: existingOrders } = await supabase
       .from("orders")
       .select("shopify_order_id, fraud_checked, fraud_data, delivery_rate");
-    
+
     const existingOrdersMap = new Map(
       (existingOrders || []).map(o => [o.shopify_order_id, o])
     );
 
     // Process orders WITHOUT fraud checking (sync only)
     const processedOrders = [];
-    
+
     for (const order of orders) {
       // Extract phone from shipping_address, customer, or note_attributes
       let phone = order.shipping_address?.phone || order.customer?.phone || "";
-      
+
       // Check note_attributes for phone
       if (!phone && order.note_attributes) {
         const phoneAttr = order.note_attributes.find(
-          (attr) => attr.name.toLowerCase().includes("phone") || 
-                    attr.name.toLowerCase().includes("tel") ||
-                    attr.name.toLowerCase().includes("mobile")
+          (attr) => attr.name.toLowerCase().includes("phone") ||
+            attr.name.toLowerCase().includes("tel") ||
+            attr.name.toLowerCase().includes("mobile")
         );
         if (phoneAttr) phone = phoneAttr.value;
       }
-      
+
       // Normalize Bangladesh phone number format
       if (phone) {
         // Remove non-digits
         let cleanPhone = phone.replace(/\D/g, "");
-        
+
         // Handle country code 880
         if (cleanPhone.startsWith("880")) {
           cleanPhone = cleanPhone.slice(3);
         }
-        
+
         // Add leading 0 if missing (e.g., 1711408884 -> 01711408884)
         if (cleanPhone.length === 10 && cleanPhone.startsWith("1")) {
           cleanPhone = "0" + cleanPhone;
         }
-        
+
         phone = cleanPhone;
       }
 
@@ -177,32 +177,32 @@ Deno.serve(async (req) => {
         addr?.country,
         addr?.zip,
       ].filter(Boolean);
-      
+
       // If address is missing or only has country, check note_attributes for address fields
       if (addressParts.length <= 1 && order.note_attributes) {
         const noteAddressParts: string[] = [];
-        
+
         // Common address field names in note_attributes
         const addressFields = ["address", "shipping address", "delivery address", "street", "road", "house", "flat"];
         const cityFields = ["city", "town", "district", "thana", "upazila", "area"];
         const regionFields = ["region", "province", "state", "division"];
         const zipFields = ["zip", "postal", "postcode", "post code"];
-        
+
         for (const attr of order.note_attributes) {
           const attrNameLower = attr.name.toLowerCase();
           const attrValue = attr.value?.trim();
-          
+
           if (!attrValue) continue;
-          
+
           // Check if this is an address-related field
           if (addressFields.some(f => attrNameLower.includes(f)) ||
-              cityFields.some(f => attrNameLower.includes(f)) ||
-              regionFields.some(f => attrNameLower.includes(f)) ||
-              zipFields.some(f => attrNameLower.includes(f))) {
+            cityFields.some(f => attrNameLower.includes(f)) ||
+            regionFields.some(f => attrNameLower.includes(f)) ||
+            zipFields.some(f => attrNameLower.includes(f))) {
             noteAddressParts.push(attrValue);
           }
         }
-        
+
         // If we found address parts in note_attributes, use them (plus country if available)
         if (noteAddressParts.length > 0) {
           if (addr?.country) {
@@ -211,12 +211,12 @@ Deno.serve(async (req) => {
           addressParts = noteAddressParts;
         }
       }
-      
+
       const address = addressParts.join(", ");
 
       // Get customer name - try multiple sources in priority order
       let customerName = "";
-      
+
       // 1. Try shipping_address name (most reliable for delivery)
       if (order.shipping_address?.name) {
         customerName = order.shipping_address.name;
@@ -240,17 +240,18 @@ Deno.serve(async (req) => {
       // 5. Try note_attributes for custom name fields
       if (!customerName && order.note_attributes) {
         const nameAttr = order.note_attributes.find(
-          (attr) => attr.name.toLowerCase().includes("name") && 
-                    !attr.name.toLowerCase().includes("phone")
+          (attr) => attr.name.toLowerCase().includes("name") &&
+            !attr.name.toLowerCase().includes("phone")
         );
         if (nameAttr) customerName = nameAttr.value;
       }
 
-      // Get first line item details
-      const firstItem = order.line_items?.[0];
-      const product = firstItem?.name || "";
-      const quantity = firstItem?.quantity || 0;
-      
+      // Get all line items details
+      const lineItems = order.line_items || [];
+      const product = lineItems.map(item => item.name).join(", ");
+      const quantity = lineItems.reduce((acc, item) => acc + (item.quantity || 0), 0);
+
+
       // Get total price and shipping from Shopify order
       const totalPrice = parseFloat(order.total_price) || 0;
       const shippingPrice = parseFloat(order.total_shipping_price_set?.shop_money?.amount || "0");
@@ -279,9 +280,9 @@ Deno.serve(async (req) => {
     // Upsert orders to database (update if exists, insert if new)
     const { data: upsertedOrders, error: upsertError } = await supabase
       .from("orders")
-      .upsert(processedOrders, { 
+      .upsert(processedOrders, {
         onConflict: "shopify_order_id",
-        ignoreDuplicates: false 
+        ignoreDuplicates: false
       })
       .select();
 
@@ -310,10 +311,10 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         orders: allOrders,
-        synced: processedOrders.length 
+        synced: processedOrders.length
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
