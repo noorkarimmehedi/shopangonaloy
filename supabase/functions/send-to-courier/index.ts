@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
 
     // Clean phone number for Steadfast (needs 11 digits starting with 01)
     let cleanPhone = (order.phone || "").replace(/\D/g, ""); // Remove all non-digits
-    
+
     // Handle +880 or 880 prefix (Bangladesh country code)
     if (cleanPhone.startsWith("880")) {
       cleanPhone = cleanPhone.slice(3); // Remove 880 prefix
@@ -85,7 +85,10 @@ Deno.serve(async (req) => {
     // Calculate COD amount (price + delivery charge)
     // order.price is the subtotal from Shopify, which already includes quantity
     const productSubtotal = (order.price || 0);
-    const codAmount = productSubtotal + (order.delivery_rate || 0);
+    const deliveryCharge = (order.delivery_rate || 0);
+    const codAmount = productSubtotal + deliveryCharge;
+
+    console.log(`COD Calculation: Subtotal(${productSubtotal}) + Delivery(${deliveryCharge}) = ${codAmount}`);
 
 
     // Prepare Steadfast payload
