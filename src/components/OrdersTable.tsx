@@ -495,11 +495,21 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                 <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
                     <span className="block truncate cursor-default">
-                      {order.product || "—"} {order.quantity ? `×${order.quantity}` : ""}
+                      {order.product 
+                        ? order.product.split(", ").length > 1 
+                          ? `${order.product.split(", ").length} items` 
+                          : order.product 
+                        : "—"}
                     </span>
                   </TooltipTrigger>
-                  <TooltipContent side="top">
-                    {order.product || "—"} {order.quantity ? `×${order.quantity}` : ""}
+                  <TooltipContent side="top" className="max-w-[300px]">
+                    <div className="space-y-1">
+                      {order.product 
+                        ? order.product.split(", ").map((item, index) => (
+                            <p key={index} className="text-sm">{item}</p>
+                          ))
+                        : "—"}
+                    </div>
                   </TooltipContent>
                 </Tooltip>
               </TableCell>
