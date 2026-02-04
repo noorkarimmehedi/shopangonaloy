@@ -26,6 +26,41 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truck, Loader2, Search, NotebookPen } from "lucide-react";
 
+function splitProductLines(product: string | null): string[] {
+  if (!product) return [];
+  return product
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function hasInlineQty(line: string): boolean {
+  // Matches "3x Item" or "3× Item" (case-insensitive)
+  return /^\d+\s*(x|×)\s+/i.test(line);
+}
+
+function formatProductLine(line: string, fallbackQty: number | null | undefined): string {
+  if (!line) return "—";
+  if (hasInlineQty(line)) return line;
+  if (fallbackQty && fallbackQty > 0) return `${line} ×${fallbackQty}`;
+  return line;
+}
+
+function productSummary(order: Order): { primary: string; moreCount: number; lines: string[] } {
+  const lines = splitProductLines(order.product);
+  if (lines.length === 0) {
+    return { primary: "—", moreCount: 0, lines: [] };
+  }
+
+  // Legacy single-item rows used to store quantity separately; keep that behavior.
+  const primary =
+    lines.length === 1
+      ? formatProductLine(lines[0], order.quantity)
+      : formatProductLine(lines[0], undefined);
+
+  return { primary, moreCount: Math.max(0, lines.length - 1), lines };
+}
+
 interface FraudData {
   mobile_number: string;
   total_parcels: number;
@@ -464,8 +499,11 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
           </TableRow>
         </TableHeader>
         <TableBody>
-          {orders.map((order) => (
-            <TableRow key={order.id} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
+          {orders.map((order) => {
+            const { primary, moreCount, lines } = productSummary(order);
+
+            return (
+              <TableRow key={order.id} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
               <TableCell className="font-medium py-4">{order.order_number}</TableCell>
               <TableCell className="py-4 text-sm">{order.customer_name || "—"}</TableCell>
               <TableCell className="font-mono text-sm py-4">{order.phone || "—"}</TableCell>
@@ -491,28 +529,36 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
               <TableCell className="max-w-[180px] truncate py-4 text-sm" title={order.address || ""}>
                 {order.address || "—"}
               </TableCell>
-              <TableCell className="max-w-[140px] py-4 text-sm">
-                <Tooltip delayDuration={0}>
-                  <TooltipTrigger asChild>
-                    <span className="block truncate cursor-default">
-                      {order.product 
-                        ? order.product.split(", ").length > 1 
-                          ? `${order.product.split(", ").length} items` 
-                          : order.product 
-                        : "—"}
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="max-w-[300px]">
-                    <div className="space-y-1">
-                      {order.product 
-                        ? order.product.split(", ").map((item, index) => (
-                            <p key={index} className="text-sm">{item}</p>
-                          ))
-                        : "—"}
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TableCell>
+                <TableCell className="max-w-[180px] py-4 text-sm">
+                  <Tooltip delayDuration={0}>
+                    <TooltipTrigger asChild>
+                      <span
+                        className="block truncate cursor-default"
+                        title={order.product || ""}
+                      >
+                        <span>{primary}</span>
+                        {moreCount > 0 && (
+                          <span className="ml-2 text-xs text-muted-foreground">+{moreCount} more</span>
+                        )}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-[360px]">
+                      {lines.length === 0 ? (
+                        <p className="text-sm">—</p>
+                      ) : (
+                        <div className="space-y-1">
+                          {lines.map((line, index) => (
+                            <p key={index} className="text-sm">
+                              {lines.length === 1
+                                ? formatProductLine(line, order.quantity)
+                                : line}
+                            </p>
+                          ))}
+                        </div>
+                      )}
+                    </TooltipContent>
+                  </Tooltip>
+                </TableCell>
               <TableCell className="text-right font-mono py-4 text-sm">
                 {formatPrice(order.price, order.delivery_rate)}
               </TableCell>
@@ -601,8 +647,9 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                   <span className="text-xs text-muted-foreground">Sent</span>
                 )}
               </TableCell>
-            </TableRow>
-          ))}
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>
