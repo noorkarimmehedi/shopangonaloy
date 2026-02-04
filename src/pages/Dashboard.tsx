@@ -50,6 +50,32 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchOrders();
+
+    // Subscribe to real-time updates for order changes (especially courier status)
+    const channel = supabase
+      .channel('orders-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'orders',
+        },
+        (payload) => {
+          console.log('Real-time order update:', payload);
+          const updatedOrder = payload.new as Order;
+          setOrders((prev) =>
+            prev.map((order) =>
+              order.id === updatedOrder.id ? updatedOrder : order
+            )
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchOrders = async () => {
