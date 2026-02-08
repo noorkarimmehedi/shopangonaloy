@@ -6,7 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { OrdersTable } from "@/components/OrdersTable";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { RefreshCw, LogOut, ShieldCheck, Settings } from "lucide-react";
+import { RefreshCw, LogOut, ShieldCheck, Settings, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface FraudData {
   mobile_number: string;
@@ -44,6 +45,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [checkingFraud, setCheckingFraud] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { user, signOut } = useAuth();
   const { isAdmin } = useUserRole();
   const navigate = useNavigate();
@@ -157,6 +159,17 @@ export default function Dashboard() {
   const confirmedCount = orders.filter((o) => o.status === "confirmed").length;
   const pendingCount = orders.filter((o) => o.status === "pending").length;
 
+  const filteredOrders = searchQuery.trim()
+    ? orders.filter((o) => {
+        const q = searchQuery.toLowerCase();
+        return (
+          o.order_number.toLowerCase().includes(q) ||
+          (o.customer_name && o.customer_name.toLowerCase().includes(q)) ||
+          (o.phone && o.phone.toLowerCase().includes(q))
+        );
+      })
+    : orders;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header - Swiss precision with generous spacing */}
@@ -239,14 +252,27 @@ export default function Dashboard() {
         {/* Orders Table - Clean Swiss styling */}
         <div className="swiss-card">
           <div className="px-4 py-4 border-b border-border/60">
-            <h2 className="text-lg font-semibold tracking-tight">Order Management</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Manage orders, verify customers, and dispatch to courier
-            </p>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold tracking-tight">Order Management</h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Manage orders, verify customers, and dispatch to courier
+                </p>
+              </div>
+              <div className="relative w-64 shrink-0">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search order, name, phone..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 h-9"
+                />
+              </div>
+            </div>
           </div>
           <div className="p-3">
             <OrdersTable
-              orders={orders}
+              orders={filteredOrders}
               loading={loading}
               onStatusUpdate={handleStatusUpdate}
               onOrderUpdate={handleOrderUpdate}
