@@ -38,6 +38,7 @@ interface Order {
   fraud_data: FraudData | any | null;
   delivery_rate: number | null;
   notes: string | null;
+  fulfillment_status: string | null;
 }
 
 export default function Dashboard() {
