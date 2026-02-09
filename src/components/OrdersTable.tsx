@@ -95,6 +95,7 @@ interface Order {
   tracking_code?: string | null;
   courier_message?: string | null;
   notes?: string | null;
+  fulfillment_status?: string | null;
 }
 
 interface OrdersTableProps {
@@ -505,7 +506,21 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
             return (
               <TableRow key={order.id} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
               <TableCell className="font-medium py-4">{order.order_number}</TableCell>
-              <TableCell className="py-4 text-sm">{order.customer_name || "—"}</TableCell>
+              <TableCell className="py-4 text-sm">
+                <div className="flex items-center gap-1.5">
+                  <span>{order.customer_name || "—"}</span>
+                  {order.fulfillment_status === "fulfilled" && (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 bg-emerald-50 text-emerald-700 border-emerald-200 font-medium shrink-0">
+                      Fulfilled
+                    </Badge>
+                  )}
+                  {order.fulfillment_status === "partial" && (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 bg-amber-50 text-amber-700 border-amber-200 font-medium shrink-0">
+                      Partial
+                    </Badge>
+                  )}
+                </div>
+              </TableCell>
               <TableCell className="font-mono text-sm py-4">{order.phone || "—"}</TableCell>
               <TableCell className="text-center py-4">
                 <div className="flex items-center justify-center gap-2">

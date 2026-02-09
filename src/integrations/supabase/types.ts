@@ -25,6 +25,7 @@ export type Database = {
           delivery_rate: number | null
           fraud_checked: boolean | null
           fraud_data: Json | null
+          fulfillment_status: string | null
           id: string
           notes: string | null
           order_number: string
@@ -48,6 +49,7 @@ export type Database = {
           delivery_rate?: number | null
           fraud_checked?: boolean | null
           fraud_data?: Json | null
+          fulfillment_status?: string | null
           id?: string
           notes?: string | null
           order_number: string
@@ -71,6 +73,7 @@ export type Database = {
           delivery_rate?: number | null
           fraud_checked?: boolean | null
           fraud_data?: Json | null
+          fulfillment_status?: string | null
           id?: string
           notes?: string | null
           order_number?: string
