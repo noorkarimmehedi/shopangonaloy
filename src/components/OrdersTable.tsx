@@ -161,9 +161,9 @@ function FraudIndicator({ order }: { order: Order }) {
   return (
     <Tooltip delayDuration={0}>
       <TooltipTrigger>
-        <div className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg ${riskBgColor} transition-colors`}>
-          <RiskIcon className={`h-4 w-4 ${riskColor}`} />
-          <span className={`text-xs font-semibold tabular-nums ${riskColor}`}>
+        <div className={`flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-md ${riskBgColor} transition-colors`}>
+          <RiskIcon className={`h-3.5 w-3.5 ${riskColor}`} />
+          <span className={`text-[10px] font-semibold tabular-nums ${riskColor}`}>
             {total_parcels > 0 ? `${deliveryRate.toFixed(0)}%` : "N/A"}
           </span>
         </div>
@@ -466,9 +466,9 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        {[...Array(5)].map((_, i) => (
-          <Skeleton key={i} className="h-14 w-full" />
+      <div className="space-y-3 p-4">
+        {[...Array(6)].map((_, i) => (
+          <Skeleton key={i} className="h-11 w-full rounded-md" />
         ))}
       </div>
     );
@@ -476,8 +476,9 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
 
   if (orders.length === 0) {
     return (
-      <div className="text-center py-16">
-        <p className="text-muted-foreground text-sm">No orders found. Click "Sync" to fetch from Shopify.</p>
+      <div className="text-center py-20">
+        <p className="text-xs text-muted-foreground tracking-wide uppercase">No orders found</p>
+        <p className="text-sm text-muted-foreground/60 mt-1">Click "Sync" to fetch from Shopify</p>
       </div>
     );
   }
@@ -486,17 +487,17 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
     <div className="overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow className="border-b border-border/60 hover:bg-transparent">
-            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Order</TableHead>
-            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Customer</TableHead>
-            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Phone</TableHead>
-            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4 text-center">Fraud</TableHead>
-            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Address</TableHead>
-            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Product</TableHead>
-            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4 text-right">Price</TableHead>
-            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4 text-center">Status</TableHead>
-            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4 text-center">Courier</TableHead>
-            <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4 text-center">Actions</TableHead>
+          <TableRow className="border-b border-border/40 hover:bg-transparent">
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Order</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Customer</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Phone</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto text-center">Fraud</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Address</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Product</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto text-right">Price</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto text-center">Status</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto text-center">Courier</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto text-center">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -504,47 +505,47 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
             const { primary, moreCount, lines } = productSummary(order);
 
             return (
-              <TableRow key={order.id} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
-              <TableCell className="font-medium py-4">{order.order_number}</TableCell>
-              <TableCell className="py-4 text-sm">
+              <TableRow key={order.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors group">
+              <TableCell className="font-medium text-xs py-3 tabular-nums">{order.order_number}</TableCell>
+              <TableCell className="py-3 text-xs">
                 <div className="flex items-center gap-1.5">
-                  <span>{order.customer_name || "—"}</span>
+                  <span className="font-medium">{order.customer_name || "—"}</span>
                   {order.fulfillment_status === "fulfilled" && (
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 bg-emerald-50 text-emerald-700 border-emerald-200 font-medium shrink-0">
+                    <span className="text-[9px] px-1.5 py-px rounded-full bg-success/10 text-success font-semibold uppercase tracking-wider shrink-0">
                       Fulfilled
-                    </Badge>
+                    </span>
                   )}
                   {order.fulfillment_status === "partial" && (
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 bg-amber-50 text-amber-700 border-amber-200 font-medium shrink-0">
+                    <span className="text-[9px] px-1.5 py-px rounded-full bg-warning/10 text-warning font-semibold uppercase tracking-wider shrink-0">
                       Partial
-                    </Badge>
+                    </span>
                   )}
                 </div>
               </TableCell>
-              <TableCell className="font-mono text-sm py-4">{order.phone || "—"}</TableCell>
-              <TableCell className="text-center py-4">
-                <div className="flex items-center justify-center gap-2">
+              <TableCell className="font-mono text-xs py-3 text-muted-foreground">{order.phone || "—"}</TableCell>
+              <TableCell className="text-center py-3">
+                <div className="flex items-center justify-center gap-1.5">
                   <FraudIndicator order={order} />
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => handleCheckFraud(order)}
                     disabled={checkingFraudIds.has(order.id)}
-                    className="h-7 w-7 p-0 hover:bg-muted"
+                    className="h-6 w-6 p-0 hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
                     title="Check fraud status"
                   >
                     {checkingFraudIds.has(order.id) ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-3 w-3 animate-spin" />
                     ) : (
-                      <Search className="h-4 w-4 text-muted-foreground" />
+                      <Search className="h-3 w-3 text-muted-foreground" />
                     )}
                   </Button>
                 </div>
               </TableCell>
-              <TableCell className="max-w-[180px] truncate py-4 text-sm" title={order.address || ""}>
+              <TableCell className="max-w-[160px] truncate py-3 text-xs text-muted-foreground" title={order.address || ""}>
                 {order.address || "—"}
               </TableCell>
-                <TableCell className="max-w-[180px] py-4 text-sm">
+                <TableCell className="max-w-[160px] py-3 text-xs">
                   <Tooltip delayDuration={0}>
                     <TooltipTrigger asChild>
                       <span
@@ -553,7 +554,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                       >
                         <span>{primary}</span>
                         {moreCount > 0 && (
-                          <span className="ml-2 text-xs text-muted-foreground">+{moreCount} more</span>
+                          <span className="ml-1.5 text-[10px] text-muted-foreground/60">+{moreCount}</span>
                         )}
                       </span>
                     </TooltipTrigger>
@@ -574,32 +575,32 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                     </TooltipContent>
                   </Tooltip>
                 </TableCell>
-              <TableCell className="text-right font-mono py-4 text-sm">
+              <TableCell className="text-right font-mono py-3 text-xs tabular-nums">
                 {formatPrice(order.price, order.delivery_rate)}
               </TableCell>
-              <TableCell className="text-center py-4">
-                <div className="flex items-center justify-center gap-2">
+              <TableCell className="text-center py-3">
+                <div className="flex items-center justify-center gap-1.5">
                   <Popover>
                     <PopoverTrigger asChild>
                       <button
-                        className={`h-8 w-[85px] text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+                        className={`h-7 w-[76px] text-[10px] font-semibold uppercase tracking-wider rounded-md transition-colors cursor-pointer ${
                           order.status === "confirmed"
-                            ? "bg-success text-success-foreground"
-                            : "bg-warning text-warning-foreground"
+                            ? "bg-success/10 text-success"
+                            : "bg-warning/10 text-warning"
                         }`}
                       >
                         {order.status === "confirmed" ? "Confirmed" : "Pending"}
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[100px] p-1" align="center">
-                      <div className="flex flex-col gap-1">
+                    <PopoverContent className="w-[96px] p-1" align="center">
+                      <div className="flex flex-col gap-0.5">
                         <button
                           onClick={() => {
                             if (order.status !== "pending") handleStatusToggle(order);
                           }}
-                          className={`h-8 w-full text-xs font-semibold rounded-md transition-colors ${
+                          className={`h-7 w-full text-[10px] font-semibold uppercase tracking-wider rounded-md transition-colors ${
                             order.status === "pending"
-                              ? "bg-warning text-warning-foreground"
+                              ? "bg-warning/10 text-warning"
                               : "hover:bg-muted text-foreground"
                           }`}
                         >
@@ -609,9 +610,9 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                           onClick={() => {
                             if (order.status !== "confirmed") handleStatusToggle(order);
                           }}
-                          className={`h-8 w-full text-xs font-semibold rounded-md transition-colors ${
+                          className={`h-7 w-full text-[10px] font-semibold uppercase tracking-wider rounded-md transition-colors ${
                             order.status === "confirmed"
-                              ? "bg-success text-success-foreground"
+                              ? "bg-success/10 text-success"
                               : "hover:bg-muted text-foreground"
                           }`}
                         >
@@ -623,12 +624,12 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                   <NotesPopover order={order} onOrderUpdate={onOrderUpdate} />
                 </div>
               </TableCell>
-              <TableCell className="text-center py-4">
+              <TableCell className="text-center py-3">
                 {order.sent_to_courier ? (
                   <Tooltip>
                     <TooltipTrigger>
-                      <div className="flex flex-col items-center gap-1">
-                        <span className="font-mono text-sm font-medium">{order.consignment_id || "—"}</span>
+                      <div className="flex flex-col items-center gap-0.5">
+                        <span className="font-mono text-xs font-medium tabular-nums">{order.consignment_id || "—"}</span>
                         {getCourierStatusBadge(order)}
                       </div>
                     </TooltipTrigger>
@@ -641,25 +642,25 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                     </TooltipContent>
                   </Tooltip>
                 ) : (
-                  <span className="text-muted-foreground text-sm">—</span>
+                  <span className="text-muted-foreground/40 text-xs">—</span>
                 )}
               </TableCell>
-              <TableCell className="text-center py-4">
+              <TableCell className="text-center py-3">
                 {!order.sent_to_courier ? (
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => handleSendToCourier(order)}
                     disabled={sendingIds.has(order.id)}
-                    className="h-8 text-xs font-medium"
+                    className="h-7 text-[10px] font-medium tracking-wide px-3 border-border/40 hover:bg-muted/60"
                   >
                     {sendingIds.has(order.id) ? (
-                      <Loader2 className="h-3 w-3 animate-spin mr-1.5" />
+                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
                     ) : null}
-                    {sendingIds.has(order.id) ? "Sending..." : "Send to Steadfast"}
+                    {sendingIds.has(order.id) ? "Sending…" : "Send"}
                   </Button>
                 ) : (
-                  <span className="text-xs text-muted-foreground">Sent</span>
+                  <span className="text-[10px] text-muted-foreground/40 uppercase tracking-wider">Sent</span>
                 )}
               </TableCell>
               </TableRow>
