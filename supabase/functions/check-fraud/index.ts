@@ -6,11 +6,29 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-interface FraudCheckResponse {
+interface CourierEntry {
+  name: string;
+  total_parcel: number;
+  success_parcel: number;
+  cancelled_parcel: number;
+  success_ratio: number;
+  logo?: string;
+}
+
+interface FraudShieldResponse {
+  reports: unknown[];
+  courierData: Record<string, CourierEntry>;
+}
+
+// Normalized fraud data stored in the DB (matches frontend expectations)
+interface NormalizedFraudData {
   mobile_number: string;
   total_parcels: number;
   total_delivered: number;
   total_cancel: number;
+  fraud_risk: string;
+  success_rate: number;
+  last_delivery: string;
   apis: Record<string, {
     total_parcels: number;
     total_delivered_parcels: number;
@@ -18,32 +36,35 @@ interface FraudCheckResponse {
   }>;
 }
 
-// Helper function to add delay between requests
 function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Function to check fraud status for a phone number
-// Returns fraudData and successRate (percentage of successful deliveries)
-async function checkFraudStatus(phone: string, apiKey: string): Promise<{ fraudData: FraudCheckResponse | null; successRate: number | null }> {
+/**
+ * Check fraud status via the FraudShield API.
+ * Returns data normalized to the shape the frontend already expects.
+ */
+async function checkFraudStatus(
+  phone: string,
+  apiKey: string,
+): Promise<{ fraudData: NormalizedFraudData | null; successRate: number | null }> {
   if (!phone || !apiKey) {
     return { fraudData: null, successRate: null };
   }
 
-  // Clean phone number - remove non-digits
+  // Clean phone number – remove non-digits
   let cleanPhone = phone.replace(/\D/g, "");
-  
+
   // Handle Bangladesh country code formats
   if (cleanPhone.startsWith("880")) {
     const afterCountryCode = cleanPhone.slice(3);
-    
     if (afterCountryCode.startsWith("01") && afterCountryCode.length === 11) {
       cleanPhone = afterCountryCode;
     } else if (afterCountryCode.startsWith("1") && afterCountryCode.length === 10) {
       cleanPhone = "0" + afterCountryCode;
     }
   }
-  
+
   // Validate Bangladesh number format
   if (cleanPhone.length !== 11 || !cleanPhone.startsWith("01")) {
     console.log(`Skipping fraud check for invalid BD number: ${phone} -> ${cleanPhone}`);
@@ -52,33 +73,68 @@ async function checkFraudStatus(phone: string, apiKey: string): Promise<{ fraudD
 
   try {
     console.log(`Checking fraud status for: ${cleanPhone}`);
-    
-    const formData = new FormData();
-    formData.append("phone", cleanPhone);
 
-    const response = await fetch("https://fraudchecker.link/api/v1/qc/", {
+    const response = await fetch("https://fraudshieldbd.site/api/customer/check", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
       },
-      body: formData,
+      body: JSON.stringify({ phone: cleanPhone }),
     });
 
     if (!response.ok) {
-      console.error(`Fraud API error for ${cleanPhone}: ${response.status}`);
+      console.error(`FraudShield API error for ${cleanPhone}: ${response.status}`);
       return { fraudData: null, successRate: null };
     }
 
-    const data: FraudCheckResponse = await response.json();
+    const rawText = await response.text();
+    console.log(`FraudShield raw response for ${cleanPhone}: ${rawText.substring(0, 300)}`);
     
-    // Calculate success rate percentage (NOT to be confused with shipping delivery_rate cost)
-    const successRate = data.total_parcels > 0 
-      ? (data.total_delivered / data.total_parcels) * 100 
-      : null;
+    let result: FraudShieldResponse;
+    try {
+      result = JSON.parse(rawText);
+    } catch {
+      console.error(`Failed to parse FraudShield response for ${cleanPhone}`);
+      return { fraudData: null, successRate: null };
+    }
 
-    console.log(`Fraud check result for ${cleanPhone}: ${data.total_delivered}/${data.total_parcels} delivered (${successRate?.toFixed(1)}%)`);
+    if (!result.courierData || !result.courierData.summary) {
+      console.error(`FraudShield returned no courierData for ${cleanPhone}`);
+      return { fraudData: null, successRate: null };
+    }
 
-    return { fraudData: data, successRate };
+    const summary = result.courierData.summary;
+
+    // Transform courier entries → apis object (matches frontend format)
+    const apis: NormalizedFraudData["apis"] = {};
+    for (const [key, entry] of Object.entries(result.courierData)) {
+      if (key === "summary") continue;
+      apis[entry.name || key] = {
+        total_parcels: entry.total_parcel,
+        total_delivered_parcels: entry.success_parcel,
+        total_cancelled_parcels: entry.cancelled_parcel,
+      };
+    }
+
+    const successRate = summary.success_ratio;
+
+    const fraudData: NormalizedFraudData = {
+      mobile_number: cleanPhone,
+      total_parcels: summary.total_parcel,
+      total_delivered: summary.success_parcel,
+      total_cancel: summary.cancelled_parcel,
+      fraud_risk: successRate >= 70 ? "low" : successRate >= 50 ? "medium" : "high",
+      success_rate: successRate,
+      last_delivery: "",
+      apis,
+    };
+
+    console.log(
+      `Fraud check result for ${cleanPhone}: ${summary.success_parcel}/${summary.total_parcel} delivered (${successRate}%)`,
+    );
+
+    return { fraudData, successRate };
   } catch (error) {
     console.error(`Error checking fraud for ${cleanPhone}:`, error);
     return { fraudData: null, successRate: null };
@@ -93,11 +149,11 @@ Deno.serve(async (req) => {
   try {
     console.log("Starting check-fraud function");
 
-    const fraudCheckerApiKey = Deno.env.get("FRAUD_CHECKER_API_KEY");
-    if (!fraudCheckerApiKey) {
+    const fraudShieldApiKey = Deno.env.get("FRAUDSHIELD_API_KEY");
+    if (!fraudShieldApiKey) {
       return new Response(
-        JSON.stringify({ error: "Missing FRAUD_CHECKER_API_KEY" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Missing FRAUDSHIELD_API_KEY" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -106,22 +162,19 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Check if a specific orderId was provided (skip sync for single order check)
+    // Parse optional body
     let body: { orderId?: string; skipSync?: boolean } = {};
     try {
       body = await req.json();
     } catch {
-      // No body provided, do bulk check with sync
+      // No body provided – do bulk check with sync
     }
 
     // For bulk fraud check, first sync Shopify orders
     if (!body.orderId && !body.skipSync) {
       console.log("Syncing Shopify orders before fraud check...");
       try {
-        // Call the Shopify sync function using the same auth/apikey headers as the incoming request
-        // so we don't depend on service-role-key-as-JWT behavior.
-        const authHeader =
-          req.headers.get("authorization") ?? req.headers.get("Authorization") ?? "";
+        const authHeader = req.headers.get("authorization") ?? req.headers.get("Authorization") ?? "";
         const apikey = req.headers.get("apikey") ?? "";
 
         const syncResponse = await fetch(`${supabaseUrl}/functions/v1/fetch-shopify-orders`, {
@@ -132,7 +185,7 @@ Deno.serve(async (req) => {
             "Content-Type": "application/json",
           },
         });
-        
+
         if (syncResponse.ok) {
           const syncData = await syncResponse.json();
           console.log(`Shopify sync complete: ${syncData.synced || 0} orders synced`);
@@ -141,12 +194,11 @@ Deno.serve(async (req) => {
         }
       } catch (syncError) {
         console.error("Error syncing Shopify orders:", syncError);
-        // Continue with fraud check even if sync fails
       }
     }
 
+    // ── Single-order check ───────────────────────────────────────────────
     if (body.orderId) {
-      // Check single order
       const { data: order, error: fetchError } = await supabase
         .from("orders")
         .select("id, phone, fraud_checked, fraud_data")
@@ -156,37 +208,32 @@ Deno.serve(async (req) => {
       if (fetchError || !order) {
         return new Response(
           JSON.stringify({ error: "Order not found" }),
-          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
 
       if (!order.phone) {
         return new Response(
           JSON.stringify({ error: "Order has no phone number" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
 
-      const { fraudData } = await checkFraudStatus(order.phone, fraudCheckerApiKey);
+      const { fraudData } = await checkFraudStatus(order.phone, fraudShieldApiKey);
 
-      // Only update fraud_checked and fraud_data - DO NOT overwrite delivery_rate (shipping cost from Shopify)
       const { error: updateError } = await supabase
         .from("orders")
-        .update({
-          fraud_checked: true,
-          fraud_data: fraudData,
-        })
+        .update({ fraud_checked: true, fraud_data: fraudData })
         .eq("id", order.id);
 
       if (updateError) {
         console.error(`Error updating order ${order.id}:`, updateError);
         return new Response(
           JSON.stringify({ error: "Failed to update order" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
 
-      // Fetch updated order
       const { data: updatedOrder } = await supabase
         .from("orders")
         .select("*")
@@ -194,15 +241,12 @@ Deno.serve(async (req) => {
         .single();
 
       return new Response(
-        JSON.stringify({ 
-          success: true, 
-          order: updatedOrder
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ success: true, order: updatedOrder }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    // Bulk check: Fetch the latest 15 orders exactly as shown on the dashboard
+    // ── Bulk check: latest 15 orders ─────────────────────────────────────
     const { data: orders, error: fetchError } = await supabase
       .from("orders")
       .select("id, shopify_order_id, phone, fraud_checked, fraud_data")
@@ -213,33 +257,25 @@ Deno.serve(async (req) => {
       console.error("Error fetching orders:", fetchError);
       return new Response(
         JSON.stringify({ error: "Failed to fetch orders", details: fetchError.message }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    // Filter to only check orders that don't have fraud data yet
     const ordersToCheck = (orders || []).filter(o => !o.fraud_data && o.phone);
-    console.log(`Found ${ordersToCheck.length} orders to check for fraud (out of ${orders?.length || 0} latest orders)`);
+    console.log(`Found ${ordersToCheck.length} orders to check (out of ${orders?.length || 0} latest)`);
 
     let checkedCount = 0;
     let successCount = 0;
 
     for (const order of ordersToCheck) {
-      // Add delay between requests to avoid rate limiting
-      if (checkedCount > 0) {
-        await delay(1500);
-      }
+      if (checkedCount > 0) await delay(1500);
 
-      const { fraudData } = await checkFraudStatus(order.phone, fraudCheckerApiKey);
+      const { fraudData } = await checkFraudStatus(order.phone, fraudShieldApiKey);
       checkedCount++;
 
-      // Update order with fraud data - DO NOT overwrite delivery_rate (shipping cost from Shopify)
       const { error: updateError } = await supabase
         .from("orders")
-        .update({
-          fraud_checked: true,
-          fraud_data: fraudData,
-        })
+        .update({ fraud_checked: true, fraud_data: fraudData })
         .eq("id", order.id);
 
       if (updateError) {
@@ -251,7 +287,6 @@ Deno.serve(async (req) => {
 
     console.log(`Fraud check complete: ${successCount}/${checkedCount} successful`);
 
-    // Fetch updated orders
     const { data: allOrders, error: allOrdersError } = await supabase
       .from("orders")
       .select("*")
@@ -262,20 +297,15 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        checked: checkedCount,
-        successful: successCount,
-        orders: allOrders || []
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ success: true, checked: checkedCount, successful: successCount, orders: allOrders || [] }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {
     console.error("Unexpected error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(
       JSON.stringify({ error: "Unexpected error", details: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });
