@@ -54,7 +54,6 @@ export default function Dashboard() {
   useEffect(() => {
     fetchOrders();
 
-    // Subscribe to real-time updates for order changes (especially courier status)
     const channel = supabase
       .channel('orders-realtime')
       .on(
@@ -124,8 +123,6 @@ export default function Dashboard() {
 
       if (error) throw error;
 
-      // Always re-fetch from DB so the UI order matches the dashboard sorting
-      // (shopify_order_id desc) and reflects the latest 15 the fraud check was based on.
       await fetchOrders();
       toast.success(`Fraud check complete: ${data?.successful ?? 0}/${data?.checked ?? 0} verified`);
     } catch (error) {
@@ -173,105 +170,110 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header - Swiss precision with generous spacing */}
-      <header className="border-b border-border/60 bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="swiss-container py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Angonaloy</h1>
-              <p className="text-sm text-muted-foreground mt-1">{user?.email}</p>
+      {/* ── Header ── Swiss precision, sticky */}
+      <header className="border-b border-border/40 bg-card/90 backdrop-blur-md sticky top-0 z-10">
+        <div className="swiss-container">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo & user */}
+            <div className="flex items-center gap-4">
+              <h1 className="text-xl !font-normal tracking-tight">Angonaloy</h1>
+              <div className="hidden sm:block swiss-divider w-px !h-5 !bg-border/40" />
+              <span className="hidden sm:block text-xs text-muted-foreground tracking-wide">
+                {user?.email}
+              </span>
             </div>
-            <div className="flex items-center gap-3">
+
+            {/* Actions — tight, minimal */}
+            <div className="flex items-center gap-1.5">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={syncOrders}
                 disabled={syncing || checkingFraud}
-                className="h-9 px-4 font-medium"
+                className="h-8 px-3 text-xs font-medium text-muted-foreground hover:text-foreground"
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
-                {syncing ? "Syncing..." : "Sync"}
+                <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${syncing ? "animate-spin" : ""}`} />
+                {syncing ? "Syncing…" : "Sync"}
               </Button>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={checkFraud}
                 disabled={syncing || checkingFraud}
-                className="h-9 px-4 font-medium"
+                className="h-8 px-3 text-xs font-medium text-muted-foreground hover:text-foreground"
               >
-                <ShieldCheck className={`h-4 w-4 mr-2 ${checkingFraud ? "animate-spin" : ""}`} />
-                {checkingFraud ? "Checking..." : "Fraud Check"}
+                <ShieldCheck className={`h-3.5 w-3.5 mr-1.5 ${checkingFraud ? "animate-spin" : ""}`} />
+                {checkingFraud ? "Checking…" : "Fraud"}
               </Button>
-              <div className="w-px h-6 bg-border/60 mx-1" />
+
+              <div className="w-px h-4 bg-border/40 mx-1" />
+
               {isAdmin && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => navigate("/settings")}
-                  className="h-9 px-3 text-muted-foreground hover:text-foreground"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                 >
-                  <Settings className="h-4 w-4" />
+                  <Settings className="h-3.5 w-3.5" />
                 </Button>
               )}
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={handleSignOut}
-                className="h-9 px-3 text-muted-foreground hover:text-foreground"
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-3.5 w-3.5" />
               </Button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Main Content - Swiss Grid */}
-      <main className="swiss-container py-10">
-        {/* Stats Row - Minimal Swiss cards */}
-        <div className="grid grid-cols-3 gap-6 mb-10">
-          <div className="swiss-card p-6">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">
-              Total Orders
-            </p>
-            <p className="text-4xl font-semibold tracking-tight">{orders.length}</p>
+      {/* ── Main Content ── */}
+      <main className="swiss-container py-8 md:py-12 space-y-8">
+        {/* ── Stats Row ── Large numbers, tiny labels — Swiss metric */}
+        <div className="grid grid-cols-3 gap-4 md:gap-6">
+          <div className="swiss-card p-5 md:p-6 hover-lift">
+            <p className="swiss-stat-label mb-3">Total Orders</p>
+            <p className="swiss-stat-value">{orders.length}</p>
           </div>
-          <div className="swiss-card p-6">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">
-              Confirmed
-            </p>
-            <p className="text-4xl font-semibold tracking-tight text-success">{confirmedCount}</p>
+          <div className="swiss-card p-5 md:p-6 hover-lift">
+            <p className="swiss-stat-label mb-3">Confirmed</p>
+            <p className="swiss-stat-value text-success">{confirmedCount}</p>
           </div>
-          <div className="swiss-card p-6">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">
-              Pending
-            </p>
-            <p className="text-4xl font-semibold tracking-tight text-warning">{pendingCount}</p>
+          <div className="swiss-card p-5 md:p-6 hover-lift">
+            <p className="swiss-stat-label mb-3">Pending</p>
+            <p className="swiss-stat-value text-warning">{pendingCount}</p>
           </div>
         </div>
 
-        {/* Orders Table - Clean Swiss styling */}
-        <div className="swiss-card">
-          <div className="px-4 py-4 border-b border-border/60">
+        {/* ── Orders Section ── */}
+        <div className="swiss-card-elevated overflow-hidden">
+          {/* Section header */}
+          <div className="px-5 md:px-6 py-4 border-b border-border/40">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-lg font-semibold tracking-tight">Order Management</h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Manage orders, verify customers, and dispatch to courier
+                <h2 className="text-base font-semibold tracking-tight">Orders</h2>
+                <p className="text-xs text-muted-foreground mt-0.5 tracking-wide">
+                  Manage, verify &amp; dispatch
                 </p>
               </div>
-              <div className="relative w-64 shrink-0">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <div className="relative w-56 shrink-0">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60" />
                 <Input
-                  placeholder="Search order, name, phone..."
+                  placeholder="Search…"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 h-9"
+                  className="pl-8 h-8 text-xs bg-muted/40 border-transparent focus:border-border focus:bg-card placeholder:text-muted-foreground/40"
                 />
               </div>
             </div>
           </div>
-          <div className="p-3">
+
+          {/* Table */}
+          <div className="px-2 md:px-3 pb-3">
             <OrdersTable
               orders={filteredOrders}
               loading={loading}
