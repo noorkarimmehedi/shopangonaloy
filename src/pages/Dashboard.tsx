@@ -233,53 +233,55 @@ export default function Dashboard() {
 
       {/* ── Main Content ── */}
       <main className="swiss-container py-8 md:py-12 space-y-8">
-        {/* ── Stats Row ── Large numbers, tiny labels — Swiss metric */}
-        <div className="grid grid-cols-3 gap-4 md:gap-6">
-          <div className="swiss-card p-5 md:p-6 hover-lift">
+        {/* ── Stats Row ── Swiss 12-col grid: 4+4+4 */}
+        <div className="grid grid-cols-12 gap-4 md:gap-5">
+          <div className="col-span-4 swiss-card p-5 md:p-6 hover-lift">
             <p className="swiss-stat-label mb-3">Total Orders</p>
             <p className="swiss-stat-value">{orders.length}</p>
           </div>
-          <div className="swiss-card p-5 md:p-6 hover-lift">
+          <div className="col-span-4 swiss-card p-5 md:p-6 hover-lift">
             <p className="swiss-stat-label mb-3">Confirmed</p>
             <p className="swiss-stat-value text-success">{confirmedCount}</p>
           </div>
-          <div className="swiss-card p-5 md:p-6 hover-lift">
+          <div className="col-span-4 swiss-card p-5 md:p-6 hover-lift">
             <p className="swiss-stat-label mb-3">Pending</p>
             <p className="swiss-stat-value text-warning">{pendingCount}</p>
           </div>
         </div>
 
-        {/* ── Orders Section ── */}
-        <div className="swiss-card-elevated overflow-hidden">
-          {/* Section header */}
-          <div className="px-5 md:px-6 py-4 border-b border-border/40">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h2 className="text-base font-semibold tracking-tight">Orders</h2>
-                <p className="text-xs text-muted-foreground mt-0.5 tracking-wide">
-                  Manage, verify &amp; dispatch
-                </p>
-              </div>
-              <div className="relative w-56 shrink-0">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60" />
-                <Input
-                  placeholder="Search…"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8 h-8 text-xs bg-muted/40 border-transparent focus:border-border focus:bg-card placeholder:text-muted-foreground/40"
-                />
+        {/* ── Orders Section ── Full 12-col span */}
+        <div className="grid grid-cols-12">
+          <div className="col-span-12 swiss-card-elevated overflow-hidden">
+            {/* Section header */}
+            <div className="px-5 md:px-6 py-4 border-b border-border/50">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-base font-semibold tracking-tight">Orders</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5 tracking-wide">
+                    Manage, verify &amp; dispatch
+                  </p>
+                </div>
+                <div className="relative w-56 shrink-0">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60" />
+                  <Input
+                    placeholder="Search…"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8 h-8 text-xs bg-muted/40 border-transparent focus:border-border focus:bg-card placeholder:text-muted-foreground/40"
+                  />
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Table */}
-          <div className="px-2 md:px-3 pb-3">
-            <OrdersTable
-              orders={filteredOrders}
-              loading={loading}
-              onStatusUpdate={handleStatusUpdate}
-              onOrderUpdate={handleOrderUpdate}
-            />
+            {/* Table */}
+            <div className="px-2 md:px-3 pb-3">
+              <OrdersTable
+                orders={filteredOrders}
+                loading={loading}
+                onStatusUpdate={handleStatusUpdate}
+                onOrderUpdate={handleOrderUpdate}
+              />
+            </div>
           </div>
         </div>
       </main>

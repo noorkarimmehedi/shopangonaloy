@@ -25,6 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truck, Loader2, Search, NotebookPen } from "lucide-react";
+import { format } from "date-fns";
 
 function splitProductLines(product: string | null): string[] {
   if (!product) return [];
@@ -489,6 +490,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
         <TableHeader>
           <TableRow className="border-b border-border/40 hover:bg-transparent">
             <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Order</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Date</TableHead>
             <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Customer</TableHead>
             <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Phone</TableHead>
             <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto text-center">Fraud</TableHead>
@@ -507,6 +509,9 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
             return (
               <TableRow key={order.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors group">
               <TableCell className="font-medium text-xs py-3 tabular-nums">{order.order_number}</TableCell>
+              <TableCell className="text-xs py-3 text-muted-foreground tabular-nums whitespace-nowrap">
+                {format(new Date(order.created_at), "dd MMM yyyy")}
+              </TableCell>
               <TableCell className="py-3 text-xs">
                 <div className="flex items-center gap-1.5">
                   <span className="font-medium">{order.customer_name || "—"}</span>
