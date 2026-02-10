@@ -509,6 +509,9 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
             return (
               <TableRow key={order.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors group">
               <TableCell className="font-medium text-xs py-3 tabular-nums">{order.order_number}</TableCell>
+              <TableCell className="text-xs py-3 text-muted-foreground tabular-nums whitespace-nowrap">
+                {format(new Date(order.created_at), "dd MMM yyyy")}
+              </TableCell>
               <TableCell className="py-3 text-xs">
                 <div className="flex items-center gap-1.5">
                   <span className="font-medium">{order.customer_name || "—"}</span>
