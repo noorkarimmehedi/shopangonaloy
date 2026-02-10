@@ -233,17 +233,17 @@ export default function Dashboard() {
 
       {/* ── Main Content ── */}
       <main className="swiss-container py-8 md:py-12 space-y-8">
-        {/* ── Stats Row ── Large numbers, tiny labels — Swiss metric */}
-        <div className="grid grid-cols-3 gap-4 md:gap-6">
-          <div className="swiss-card p-5 md:p-6 hover-lift">
+        {/* ── Stats Row ── Swiss 12-col grid: 4+4+4 */}
+        <div className="grid grid-cols-12 gap-4 md:gap-5">
+          <div className="col-span-4 swiss-card p-5 md:p-6 hover-lift">
             <p className="swiss-stat-label mb-3">Total Orders</p>
             <p className="swiss-stat-value">{orders.length}</p>
           </div>
-          <div className="swiss-card p-5 md:p-6 hover-lift">
+          <div className="col-span-4 swiss-card p-5 md:p-6 hover-lift">
             <p className="swiss-stat-label mb-3">Confirmed</p>
             <p className="swiss-stat-value text-success">{confirmedCount}</p>
           </div>
-          <div className="swiss-card p-5 md:p-6 hover-lift">
+          <div className="col-span-4 swiss-card p-5 md:p-6 hover-lift">
             <p className="swiss-stat-label mb-3">Pending</p>
             <p className="swiss-stat-value text-warning">{pendingCount}</p>
           </div>
