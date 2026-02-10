@@ -170,29 +170,29 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* ── Header ── Swiss precision, sticky */}
-      <header className="border-b border-border/40 bg-card/90 backdrop-blur-md sticky top-0 z-10">
+      {/* ── Header ── Refined, precise */}
+      <header className="border-b border-border/30 bg-card/80 backdrop-blur-xl sticky top-0 z-10">
         <div className="swiss-container">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-14">
             {/* Logo & user */}
-            <div className="flex items-center gap-4">
-              <h1 className="text-xl !font-normal tracking-tight">Angonaloy</h1>
-              <div className="hidden sm:block swiss-divider w-px !h-5 !bg-border/40" />
-              <span className="hidden sm:block text-xs text-muted-foreground tracking-wide">
+            <div className="flex items-center gap-5">
+              <h1 className="text-lg !font-normal tracking-[-0.02em]">Angonaloy</h1>
+              <div className="hidden sm:block w-px h-4 bg-border/60" />
+              <span className="hidden sm:block text-[11px] text-muted-foreground/60 tracking-wide font-light">
                 {user?.email}
               </span>
             </div>
 
-            {/* Actions — tight, minimal */}
-            <div className="flex items-center gap-1.5">
+            {/* Actions */}
+            <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={syncOrders}
                 disabled={syncing || checkingFraud}
-                className="h-8 px-3 text-xs font-medium text-muted-foreground hover:text-foreground"
+                className="h-7 px-2.5 text-[11px] font-medium text-muted-foreground hover:text-foreground"
               >
-                <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${syncing ? "animate-spin" : ""}`} />
+                <RefreshCw className={`h-3 w-3 mr-1.5 ${syncing ? "animate-spin" : ""}`} />
                 {syncing ? "Syncing…" : "Sync"}
               </Button>
               <Button
@@ -200,31 +200,31 @@ export default function Dashboard() {
                 size="sm"
                 onClick={checkFraud}
                 disabled={syncing || checkingFraud}
-                className="h-8 px-3 text-xs font-medium text-muted-foreground hover:text-foreground"
+                className="h-7 px-2.5 text-[11px] font-medium text-muted-foreground hover:text-foreground"
               >
-                <ShieldCheck className={`h-3.5 w-3.5 mr-1.5 ${checkingFraud ? "animate-spin" : ""}`} />
+                <ShieldCheck className={`h-3 w-3 mr-1.5 ${checkingFraud ? "animate-spin" : ""}`} />
                 {checkingFraud ? "Checking…" : "Fraud"}
               </Button>
 
-              <div className="w-px h-4 bg-border/40 mx-1" />
+              <div className="w-px h-3.5 bg-border/40 mx-1" />
 
               {isAdmin && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => navigate("/settings")}
-                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                  className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
                 >
-                  <Settings className="h-3.5 w-3.5" />
+                  <Settings className="h-3 w-3" />
                 </Button>
               )}
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleSignOut}
-                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
               >
-                <LogOut className="h-3.5 w-3.5" />
+                <LogOut className="h-3 w-3" />
               </Button>
             </div>
           </div>
@@ -232,19 +232,19 @@ export default function Dashboard() {
       </header>
 
       {/* ── Main Content ── */}
-      <main className="swiss-container py-8 md:py-12 space-y-8">
-        {/* ── Stats Row ── Swiss 12-col grid: 4+4+4 */}
+      <main className="swiss-container py-10 md:py-14 space-y-10">
+        {/* ── Stats Row ── Swiss 12-col: 4+4+4, refined cards */}
         <div className="grid grid-cols-12 gap-4 md:gap-5">
-          <div className="col-span-4 swiss-card p-5 md:p-6 hover-lift">
-            <p className="swiss-stat-label mb-3">Total Orders</p>
+          <div className="col-span-4 swiss-card p-6 md:p-8 hover-lift group">
+            <p className="swiss-stat-label mb-4">Total Orders</p>
             <p className="swiss-stat-value">{orders.length}</p>
           </div>
-          <div className="col-span-4 swiss-card p-5 md:p-6 hover-lift">
-            <p className="swiss-stat-label mb-3">Confirmed</p>
+          <div className="col-span-4 swiss-card p-6 md:p-8 hover-lift group">
+            <p className="swiss-stat-label mb-4">Confirmed</p>
             <p className="swiss-stat-value text-success">{confirmedCount}</p>
           </div>
-          <div className="col-span-4 swiss-card p-5 md:p-6 hover-lift">
-            <p className="swiss-stat-label mb-3">Pending</p>
+          <div className="col-span-4 swiss-card p-6 md:p-8 hover-lift group">
+            <p className="swiss-stat-label mb-4">Pending</p>
             <p className="swiss-stat-value text-warning">{pendingCount}</p>
           </div>
         </div>

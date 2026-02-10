@@ -183,14 +183,15 @@
     @apply h-px bg-border/50;
   }
 
-  /* Swiss Stat — large number, tiny label */
+  /* Swiss Stat — dramatic scale contrast */
   .swiss-stat-value {
-    @apply text-4xl md:text-5xl font-light tracking-tight;
+    @apply text-4xl md:text-5xl font-extralight tracking-[-0.04em];
     font-variant-numeric: tabular-nums;
+    line-height: 1;
   }
 
   .swiss-stat-label {
-    @apply text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground;
+    @apply text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/60;
   }
 
   /* Button styling */
