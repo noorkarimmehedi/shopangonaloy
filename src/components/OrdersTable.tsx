@@ -584,10 +584,10 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                     </TooltipContent>
                   </Tooltip>
                 </TableCell>
-              <TableCell className="text-right font-mono py-3 text-xs tabular-nums">
+              <TableCell className="text-right font-mono py-2.5 text-xs tabular-nums">
                 {formatPrice(order.price, order.delivery_rate)}
               </TableCell>
-              <TableCell className="text-center py-3">
+              <TableCell className="text-center py-2.5">
                 <div className="flex items-center justify-center gap-1.5">
                   <Popover>
                     <PopoverTrigger asChild>
