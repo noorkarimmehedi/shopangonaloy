@@ -167,15 +167,15 @@
 
   /* Swiss Card — minimal, precise */
   .swiss-card {
-    @apply bg-card rounded-lg border border-border/50;
-    box-shadow: 0 1px 2px 0 hsl(210 18% 12% / 0.03);
+    @apply bg-card rounded-md border border-border/60;
+    box-shadow: 0 1px 2px 0 hsl(220 20% 10% / 0.03);
   }
 
   .swiss-card-elevated {
-    @apply bg-card rounded-lg border border-border/40;
+    @apply bg-card rounded-md border border-border/50;
     box-shadow:
-      0 1px 3px 0 hsl(210 18% 12% / 0.04),
-      0 8px 24px -4px hsl(210 18% 12% / 0.06);
+      0 1px 3px 0 hsl(220 20% 10% / 0.04),
+      0 8px 24px -4px hsl(220 20% 10% / 0.06);
   }
 
   /* Swiss Divider */
