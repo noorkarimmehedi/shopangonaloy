@@ -633,7 +633,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                   <NotesPopover order={order} onOrderUpdate={onOrderUpdate} />
                 </div>
               </TableCell>
-              <TableCell className="text-center py-3">
+              <TableCell className="text-center py-2.5">
                 {order.sent_to_courier ? (
                   <Tooltip>
                     <TooltipTrigger>
