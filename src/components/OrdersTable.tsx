@@ -654,7 +654,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                   <span className="text-muted-foreground/40 text-xs">—</span>
                 )}
               </TableCell>
-              <TableCell className="text-center py-3">
+              <TableCell className="text-center py-2.5">
                 {!order.sent_to_courier ? (
                   <Button
                     size="sm"
