@@ -486,20 +486,19 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
 
   return (
     <div className="overflow-hidden">
-      <Table>
+      <Table className="table-fixed w-full">
         <TableHeader>
-          <TableRow className="border-b border-border/40 hover:bg-transparent">
-            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Order</TableHead>
-            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Date</TableHead>
-            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Customer</TableHead>
-            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Phone</TableHead>
-            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto text-center">Fraud</TableHead>
-            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Address</TableHead>
-            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Product</TableHead>
-            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto text-right">Price</TableHead>
-            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto text-center">Status</TableHead>
-            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto text-center">Courier</TableHead>
-            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto text-center">Actions</TableHead>
+          <TableRow className="border-b border-border/50 hover:bg-transparent">
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 py-3 h-auto w-[8%]">Order</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 py-3 h-auto w-[12%]">Customer</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 py-3 h-auto w-[10%]">Phone</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 py-3 h-auto w-[5%] text-center">Risk</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 py-3 h-auto w-[16%]">Address</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 py-3 h-auto w-[14%]">Product</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 py-3 h-auto w-[7%] text-right">Price</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 py-3 h-auto w-[8%] text-center">Status</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 py-3 h-auto w-[10%] text-center">Courier</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 py-3 h-auto w-[6%] text-center"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -507,14 +506,19 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
             const { primary, moreCount, lines } = productSummary(order);
 
             return (
-              <TableRow key={order.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors group">
-              <TableCell className="font-medium text-xs py-3 tabular-nums">{order.order_number}</TableCell>
-              <TableCell className="text-xs py-3 text-muted-foreground tabular-nums whitespace-nowrap">
-                {format(new Date(order.created_at), "dd MMM yyyy")}
+              <TableRow key={order.id} className="border-b border-border/30 hover:bg-accent/30 transition-colors group">
+              {/* Order # + Date stacked */}
+              <TableCell className="py-2.5">
+                <div className="flex flex-col">
+                  <span className="font-medium text-xs tabular-nums">{order.order_number}</span>
+                  <span className="text-[10px] text-muted-foreground/50 tabular-nums">
+                    {format(new Date(order.created_at), "dd MMM")}
+                  </span>
+                </div>
               </TableCell>
-              <TableCell className="py-3 text-xs">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-medium">{order.customer_name || "—"}</span>
+              <TableCell className="py-2.5 text-xs">
+                <div className="flex items-center gap-1.5 truncate">
+                  <span className="font-medium truncate">{order.customer_name || "—"}</span>
                   {order.fulfillment_status === "fulfilled" && (
                     <span className="text-[9px] px-1.5 py-px rounded-full bg-success/10 text-success font-semibold uppercase tracking-wider shrink-0">
                       Fulfilled
@@ -527,16 +531,16 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                   )}
                 </div>
               </TableCell>
-              <TableCell className="font-mono text-xs py-3 text-muted-foreground">{order.phone || "—"}</TableCell>
-              <TableCell className="text-center py-3">
-                <div className="flex items-center justify-center gap-1.5">
+              <TableCell className="font-mono text-xs py-2.5 text-muted-foreground truncate">{order.phone || "—"}</TableCell>
+              <TableCell className="text-center py-2.5">
+                <div className="flex items-center justify-center gap-1">
                   <FraudIndicator order={order} />
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => handleCheckFraud(order)}
                     disabled={checkingFraudIds.has(order.id)}
-                    className="h-6 w-6 p-0 hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="h-5 w-5 p-0 hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
                     title="Check fraud status"
                   >
                     {checkingFraudIds.has(order.id) ? (
@@ -547,10 +551,10 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                   </Button>
                 </div>
               </TableCell>
-              <TableCell className="max-w-[160px] truncate py-3 text-xs text-muted-foreground" title={order.address || ""}>
+              <TableCell className="truncate py-2.5 text-xs text-muted-foreground" title={order.address || ""}>
                 {order.address || "—"}
               </TableCell>
-                <TableCell className="max-w-[160px] py-3 text-xs">
+                <TableCell className="py-2.5 text-xs truncate">
                   <Tooltip delayDuration={0}>
                     <TooltipTrigger asChild>
                       <span
