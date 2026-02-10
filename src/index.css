@@ -206,7 +206,7 @@
   .hover-lift:hover {
     @apply -translate-y-px;
     box-shadow:
-      0 2px 8px -2px hsl(210 18% 12% / 0.08),
-      0 4px 16px -4px hsl(210 18% 12% / 0.06);
+      0 2px 8px -2px hsl(220 20% 10% / 0.08),
+      0 4px 16px -4px hsl(220 20% 10% / 0.06);
   }
 }
