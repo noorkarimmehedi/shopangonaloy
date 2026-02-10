@@ -13,105 +13,105 @@
 
 @layer base {
   :root {
-    /* Warm ivory background — quiet luxury */
-    --background: 40 25% 97%;
-    --foreground: 210 18% 12%;
+    /* Cool off-white — pure Swiss neutrality */
+    --background: 220 14% 96%;
+    --foreground: 220 20% 10%;
 
-    /* Cards: pure white, slight shadow separation */
+    /* Cards: crisp white */
     --card: 0 0% 100%;
-    --card-foreground: 210 18% 12%;
+    --card-foreground: 220 20% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 210 18% 12%;
+    --popover-foreground: 220 20% 10%;
 
-    /* Primary — near-black with warmth */
-    --primary: 210 12% 14%;
-    --primary-foreground: 40 25% 97%;
+    /* Primary — deep charcoal */
+    --primary: 220 16% 12%;
+    --primary-foreground: 220 14% 96%;
 
-    /* Secondary — warm stone */
-    --secondary: 38 12% 93%;
-    --secondary-foreground: 210 18% 12%;
+    /* Secondary — cool gray */
+    --secondary: 220 10% 92%;
+    --secondary-foreground: 220 20% 10%;
 
-    /* Muted — refined gray for labels */
-    --muted: 38 10% 94%;
-    --muted-foreground: 210 8% 50%;
+    /* Muted — refined neutral */
+    --muted: 220 10% 93%;
+    --muted-foreground: 220 8% 46%;
 
-    /* Accent — subtle warm gold hint */
-    --accent: 42 35% 91%;
-    --accent-foreground: 210 18% 12%;
+    /* Accent — cool steel blue hint */
+    --accent: 215 20% 90%;
+    --accent-foreground: 220 20% 10%;
 
-    /* Status colors — understated, never garish */
-    --destructive: 0 60% 50%;
+    /* Status colors — restrained, functional */
+    --destructive: 0 55% 48%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 155 40% 38%;
+    --success: 160 45% 36%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 80% 52%;
-    --warning-foreground: 210 18% 12%;
+    --warning: 35 75% 50%;
+    --warning-foreground: 220 20% 10%;
 
-    /* Borders — gossamer thin, barely visible */
-    --border: 38 12% 87%;
-    --input: 38 12% 87%;
-    --ring: 210 12% 14%;
+    /* Borders — hairline, precise */
+    --border: 220 10% 88%;
+    --input: 220 10% 88%;
+    --ring: 220 16% 12%;
 
-    /* Controlled radius — Swiss precision, not bubbly */
-    --radius: 8px;
+    /* Tight radius — geometric precision */
+    --radius: 6px;
 
     /* Sidebar */
-    --sidebar-background: 38 18% 96%;
-    --sidebar-foreground: 210 18% 12%;
-    --sidebar-primary: 210 12% 14%;
-    --sidebar-primary-foreground: 40 25% 97%;
-    --sidebar-accent: 38 12% 93%;
-    --sidebar-accent-foreground: 210 18% 12%;
-    --sidebar-border: 38 12% 87%;
-    --sidebar-ring: 210 12% 14%;
+    --sidebar-background: 220 12% 95%;
+    --sidebar-foreground: 220 20% 10%;
+    --sidebar-primary: 220 16% 12%;
+    --sidebar-primary-foreground: 220 14% 96%;
+    --sidebar-accent: 220 10% 92%;
+    --sidebar-accent-foreground: 220 20% 10%;
+    --sidebar-border: 220 10% 88%;
+    --sidebar-ring: 220 16% 12%;
   }
 
   .dark {
-    --background: 216 20% 7%;
-    --foreground: 38 20% 93%;
+    --background: 220 18% 7%;
+    --foreground: 220 10% 92%;
 
-    --card: 216 18% 11%;
-    --card-foreground: 38 20% 93%;
+    --card: 220 16% 11%;
+    --card-foreground: 220 10% 92%;
 
-    --popover: 216 18% 11%;
-    --popover-foreground: 38 20% 93%;
+    --popover: 220 16% 11%;
+    --popover-foreground: 220 10% 92%;
 
-    --primary: 38 20% 93%;
-    --primary-foreground: 216 20% 7%;
+    --primary: 220 10% 92%;
+    --primary-foreground: 220 18% 7%;
 
-    --secondary: 216 14% 16%;
-    --secondary-foreground: 38 20% 93%;
+    --secondary: 220 14% 16%;
+    --secondary-foreground: 220 10% 92%;
 
-    --muted: 216 14% 16%;
-    --muted-foreground: 38 8% 55%;
+    --muted: 220 14% 16%;
+    --muted-foreground: 220 8% 52%;
 
-    --accent: 216 14% 16%;
-    --accent-foreground: 38 20% 93%;
+    --accent: 220 14% 16%;
+    --accent-foreground: 220 10% 92%;
 
-    --destructive: 0 60% 42%;
+    --destructive: 0 55% 42%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 155 40% 38%;
+    --success: 160 45% 36%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 80% 52%;
-    --warning-foreground: 210 18% 12%;
+    --warning: 35 75% 50%;
+    --warning-foreground: 220 20% 10%;
 
-    --border: 216 14% 18%;
-    --input: 216 14% 18%;
-    --ring: 38 20% 93%;
+    --border: 220 14% 18%;
+    --input: 220 14% 18%;
+    --ring: 220 10% 92%;
 
-    --sidebar-background: 216 18% 9%;
-    --sidebar-foreground: 38 20% 93%;
-    --sidebar-primary: 38 20% 93%;
-    --sidebar-primary-foreground: 216 20% 7%;
-    --sidebar-accent: 216 14% 16%;
-    --sidebar-accent-foreground: 38 20% 93%;
-    --sidebar-border: 216 14% 18%;
-    --sidebar-ring: 38 20% 93%;
+    --sidebar-background: 220 16% 9%;
+    --sidebar-foreground: 220 10% 92%;
+    --sidebar-primary: 220 10% 92%;
+    --sidebar-primary-foreground: 220 18% 7%;
+    --sidebar-accent: 220 14% 16%;
+    --sidebar-accent-foreground: 220 10% 92%;
+    --sidebar-border: 220 14% 18%;
+    --sidebar-ring: 220 10% 92%;
   }
 }
 
@@ -167,15 +167,15 @@
 
   /* Swiss Card — minimal, precise */
   .swiss-card {
-    @apply bg-card rounded-lg border border-border/50;
-    box-shadow: 0 1px 2px 0 hsl(210 18% 12% / 0.03);
+    @apply bg-card rounded-md border border-border/60;
+    box-shadow: 0 1px 2px 0 hsl(220 20% 10% / 0.03);
   }
 
   .swiss-card-elevated {
-    @apply bg-card rounded-lg border border-border/40;
+    @apply bg-card rounded-md border border-border/50;
     box-shadow:
-      0 1px 3px 0 hsl(210 18% 12% / 0.04),
-      0 8px 24px -4px hsl(210 18% 12% / 0.06);
+      0 1px 3px 0 hsl(220 20% 10% / 0.04),
+      0 8px 24px -4px hsl(220 20% 10% / 0.06);
   }
 
   /* Swiss Divider */
@@ -206,7 +206,7 @@
   .hover-lift:hover {
     @apply -translate-y-px;
     box-shadow:
-      0 2px 8px -2px hsl(210 18% 12% / 0.08),
-      0 4px 16px -4px hsl(210 18% 12% / 0.06);
+      0 2px 8px -2px hsl(220 20% 10% / 0.08),
+      0 4px 16px -4px hsl(220 20% 10% / 0.06);
   }
 }
