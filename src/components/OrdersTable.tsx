@@ -490,6 +490,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
         <TableHeader>
           <TableRow className="border-b border-border/40 hover:bg-transparent">
             <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Order</TableHead>
+            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Date</TableHead>
             <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Customer</TableHead>
             <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Phone</TableHead>
             <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto text-center">Fraud</TableHead>
