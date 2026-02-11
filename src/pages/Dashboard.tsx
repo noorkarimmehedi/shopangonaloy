@@ -274,7 +274,7 @@ export default function Dashboard() {
             </div>
 
             {/* Table */}
-            <div className="px-2 md:px-3 pb-3">
+            <div className="px-0 pb-1">
               <OrdersTable
                 orders={filteredOrders}
                 loading={loading}
