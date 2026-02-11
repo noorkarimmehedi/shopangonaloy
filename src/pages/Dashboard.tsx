@@ -171,14 +171,14 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       {/* ── Header ── Swiss precision, sticky */}
-      <header className="border-b border-border/30 bg-card/80 backdrop-blur-xl sticky top-0 z-10">
+      <header className="border-b border-border/40 bg-card/90 backdrop-blur-md sticky top-0 z-10">
         <div className="swiss-container">
-          <div className="flex items-center justify-between h-14">
+          <div className="flex items-center justify-between h-16">
             {/* Logo & user */}
-            <div className="flex items-center gap-3">
-              <h1 className="text-lg !font-normal tracking-[-0.03em]">Angonaloy</h1>
-              <div className="hidden sm:block w-px h-4 bg-border/30" />
-              <span className="hidden sm:block text-[11px] text-muted-foreground/70 tracking-wide font-medium">
+            <div className="flex items-center gap-4">
+              <h1 className="text-xl !font-normal tracking-tight">Angonaloy</h1>
+              <div className="hidden sm:block swiss-divider w-px !h-5 !bg-border/40" />
+              <span className="hidden sm:block text-xs text-muted-foreground tracking-wide">
                 {user?.email}
               </span>
             </div>
@@ -232,54 +232,56 @@ export default function Dashboard() {
       </header>
 
       {/* ── Main Content ── */}
-      <main className="swiss-container py-6 md:py-8 space-y-5">
-        {/* ── Stats Row ── Swiss 12-col grid */}
-        <div className="grid grid-cols-12 gap-3">
-          <div className="col-span-4 swiss-card p-4 md:p-5 hover-lift">
-            <p className="swiss-stat-label mb-2">Total Orders</p>
+      <main className="swiss-container py-8 md:py-12 space-y-8">
+        {/* ── Stats Row ── Swiss 12-col grid: 4+4+4 */}
+        <div className="grid grid-cols-12 gap-4 md:gap-5">
+          <div className="col-span-4 swiss-card p-5 md:p-6 hover-lift">
+            <p className="swiss-stat-label mb-3">Total Orders</p>
             <p className="swiss-stat-value">{orders.length}</p>
           </div>
-          <div className="col-span-4 swiss-card p-4 md:p-5 hover-lift">
-            <p className="swiss-stat-label mb-2">Confirmed</p>
+          <div className="col-span-4 swiss-card p-5 md:p-6 hover-lift">
+            <p className="swiss-stat-label mb-3">Confirmed</p>
             <p className="swiss-stat-value text-success">{confirmedCount}</p>
           </div>
-          <div className="col-span-4 swiss-card p-4 md:p-5 hover-lift">
-            <p className="swiss-stat-label mb-2">Pending</p>
+          <div className="col-span-4 swiss-card p-5 md:p-6 hover-lift">
+            <p className="swiss-stat-label mb-3">Pending</p>
             <p className="swiss-stat-value text-warning">{pendingCount}</p>
           </div>
         </div>
 
-        {/* ── Orders Section ── */}
-        <div className="swiss-card-elevated overflow-hidden">
-          {/* Section header */}
-          <div className="px-4 md:px-5 py-3 border-b border-border/30">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h2 className="text-sm font-semibold tracking-[-0.02em]">Orders</h2>
-                <p className="text-[10px] text-muted-foreground/60 mt-0.5 tracking-wide uppercase">
-                  Manage · Verify · Dispatch
-                </p>
-              </div>
-              <div className="relative w-52 shrink-0">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground/40" />
-                <Input
-                  placeholder="Search…"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-7 h-7 text-[11px] bg-muted/30 border-transparent rounded-sm focus:border-border/60 focus:bg-card placeholder:text-muted-foreground/30"
-                />
+        {/* ── Orders Section ── Full 12-col span */}
+        <div className="grid grid-cols-12">
+          <div className="col-span-12 swiss-card-elevated overflow-hidden">
+            {/* Section header */}
+            <div className="px-5 md:px-6 py-4 border-b border-border/50">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-base font-semibold tracking-tight">Orders</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5 tracking-wide">
+                    Manage, verify &amp; dispatch
+                  </p>
+                </div>
+                <div className="relative w-56 shrink-0">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60" />
+                  <Input
+                    placeholder="Search…"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8 h-8 text-xs bg-muted/40 border-transparent focus:border-border focus:bg-card placeholder:text-muted-foreground/40"
+                  />
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Table */}
-          <div className="px-0">
-            <OrdersTable
-              orders={filteredOrders}
-              loading={loading}
-              onStatusUpdate={handleStatusUpdate}
-              onOrderUpdate={handleOrderUpdate}
-            />
+            {/* Table */}
+            <div className="px-0 pb-1">
+              <OrdersTable
+                orders={filteredOrders}
+                loading={loading}
+                onStatusUpdate={handleStatusUpdate}
+                onOrderUpdate={handleOrderUpdate}
+              />
+            </div>
           </div>
         </div>
       </main>
