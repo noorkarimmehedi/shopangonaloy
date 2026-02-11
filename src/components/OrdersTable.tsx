@@ -490,7 +490,6 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
         <TableHeader>
           <TableRow className="border-b border-border/40 hover:bg-transparent">
             <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Order</TableHead>
-            <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Date</TableHead>
             <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Customer</TableHead>
             <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto">Phone</TableHead>
             <TableHead className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 py-3 h-auto text-center">Fraud</TableHead>
@@ -508,9 +507,9 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
 
             return (
               <TableRow key={order.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors group">
-              <TableCell className="font-medium text-xs py-3 tabular-nums">{order.order_number}</TableCell>
-              <TableCell className="text-xs py-3 text-muted-foreground tabular-nums whitespace-nowrap">
-                {format(new Date(order.created_at), "dd MMM yyyy")}
+              <TableCell className="py-3">
+                <span className="font-medium text-xs tabular-nums block">{order.order_number}</span>
+                <span className="text-[10px] text-muted-foreground/60 tabular-nums">{format(new Date(order.created_at), "dd MMM yyyy")}</span>
               </TableCell>
               <TableCell className="py-3 text-xs">
                 <div className="flex items-center gap-1.5">
