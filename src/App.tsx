@@ -47,24 +47,20 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+import { DashboardLayout } from "@/components/DashboardLayout";
+
 const AppRoutes = () => (
   <Routes>
     <Route
-      path="/"
       element={
         <ProtectedRoute>
-          <Dashboard />
+          <DashboardLayout />
         </ProtectedRoute>
       }
-    />
-    <Route
-      path="/settings"
-      element={
-        <ProtectedRoute>
-          <Settings />
-        </ProtectedRoute>
-      }
-    />
+    >
+      <Route path="/" element={<Dashboard />} />
+      <Route path="/settings" element={<Settings />} />
+    </Route>
     <Route
       path="/auth"
       element={

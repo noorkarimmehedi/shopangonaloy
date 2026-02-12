@@ -31,7 +31,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
       {/* Header */}
       <header className="border-b border-border/60 bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="swiss-container py-6">
@@ -61,6 +61,6 @@ export default function Settings() {
       <main className="swiss-container py-10">
         <TeamManagement />
       </main>
-    </div>
+    </>
   );
 }
