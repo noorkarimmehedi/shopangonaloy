@@ -46,8 +46,15 @@ export default function Dashboard() {
   const [syncing, setSyncing] = useState(false);
   const [checkingFraud, setCheckingFraud] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    const saved = localStorage.getItem("sidebar-collapsed");
+    return saved === "true";
+  });
   const { user } = useAuth();
+
+  useEffect(() => {
+    localStorage.setItem("sidebar-collapsed", String(sidebarCollapsed));
+  }, [sidebarCollapsed]);
 
   useEffect(() => {
     fetchOrders();
