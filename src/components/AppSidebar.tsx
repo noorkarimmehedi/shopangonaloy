@@ -71,10 +71,10 @@ export function AppSidebar() {
     <Sidebar variant="floating" collapsible="icon">
       <SidebarHeader
         className={cn(
-          "flex md:pt-3.5 px-4",
+          "flex md:pt-3.5",
           isCollapsed
-            ? "flex-row items-center justify-between gap-y-4 md:flex-col md:items-center md:justify-center"
-            : "flex-row items-center justify-between"
+            ? "flex-row items-center justify-between gap-y-4 md:flex-col md:items-center md:justify-center px-0"
+            : "flex-row items-center justify-between px-4"
         )}
       >
         <a href="#" className={cn("flex items-center gap-2", isCollapsed && "md:justify-center w-full")}>
@@ -104,7 +104,7 @@ export function AppSidebar() {
           <SidebarTrigger />
         </motion.div>
       </SidebarHeader>
-      <SidebarContent className="gap-4 px-2 py-4">
+      <SidebarContent className={cn("gap-4 py-4", isCollapsed ? "px-0" : "px-2")}>
         <DashboardNavigation routes={dashboardRoutes} />
       </SidebarContent>
       <SidebarFooter className="px-2">
