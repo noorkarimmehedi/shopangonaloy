@@ -44,27 +44,36 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
       }`}
     >
       {/* Workspace header with toggle */}
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-border/40">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-semibold shrink-0">
-          A
-        </div>
-        {!collapsed && (
-          <div className="flex-1 min-w-0 animate-fade-in">
-            <p className="text-sm font-semibold truncate leading-tight">Angonaloy</p>
-            <p className="text-[11px] text-muted-foreground truncate">Workspace</p>
+      <div className={`flex flex-col border-b border-border/40 ${collapsed ? "items-center py-4 gap-3" : ""}`}>
+        <div className={`flex items-center gap-3 ${collapsed ? "px-0" : "px-4 py-5"}`}>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-semibold shrink-0">
+            A
           </div>
-        )}
-        <button
-          onClick={onToggle}
-          className="p-1.5 rounded-md text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors shrink-0"
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {collapsed ? (
-            <PanelLeft className="h-4 w-4" />
-          ) : (
-            <PanelLeftClose className="h-4 w-4" />
+          {!collapsed && (
+            <>
+              <div className="flex-1 min-w-0 animate-fade-in">
+                <p className="text-sm font-semibold truncate leading-tight">Angonaloy</p>
+                <p className="text-[11px] text-muted-foreground truncate">Workspace</p>
+              </div>
+              <button
+                onClick={onToggle}
+                className="p-1.5 rounded-md text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors shrink-0"
+                title="Collapse sidebar"
+              >
+                <PanelLeftClose className="h-4 w-4" />
+              </button>
+            </>
           )}
-        </button>
+        </div>
+        {collapsed && (
+          <button
+            onClick={onToggle}
+            className="p-1.5 rounded-md text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors"
+            title="Expand sidebar"
+          >
+            <PanelLeft className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       {/* Nav items */}
