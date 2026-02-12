@@ -1,132 +1,135 @@
-import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+"use client";
+
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import {
+  Activity,
+  DollarSign,
+  Home,
+  Infinity,
+  LinkIcon,
+  Package2,
+  Percent,
+  PieChart,
+  Settings,
+  ShoppingBag,
+  Sparkles,
+  Store,
+  TrendingUp,
+  Users,
+  PackageSearch,
+} from "lucide-react";
+import { Logo } from "./logo";
+import type { Route } from "./nav-main";
+import DashboardNavigation from "./nav-main";
+import { NotificationsPopover } from "./nav-notifications";
+import { TeamSwitcher } from "./team-switcher";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
-import {
-  Settings,
-  LogOut,
-  PackageSearch,
-  ChevronDown,
-  PanelLeftClose,
-  PanelLeft,
-} from "lucide-react";
 
-const navItems = [
-  { label: "Orders", icon: PackageSearch, path: "/" },
+const sampleNotifications = [
+  {
+    id: "1",
+    avatar: "/avatars/01.png",
+    fallback: "OM",
+    text: "New order received.",
+    time: "10m ago",
+  },
+  {
+    id: "2",
+    avatar: "/avatars/02.png",
+    fallback: "JL",
+    text: "Server upgrade completed.",
+    time: "1h ago",
+  },
+  {
+    id: "3",
+    avatar: "/avatars/03.png",
+    fallback: "HH",
+    text: "New user signed up.",
+    time: "2h ago",
+  },
 ];
 
-const adminItems = [
-  { label: "Settings", icon: Settings, path: "/settings" },
-];
-
-interface AppSidebarProps {
-  collapsed: boolean;
-  onToggle: () => void;
-}
-
-export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { user, signOut } = useAuth();
+export function AppSidebar() {
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
+  const { user } = useAuth();
   const { isAdmin } = useUserRole();
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/auth");
-  };
+  const dashboardRoutes: Route[] = [
+    {
+      id: "orders",
+      title: "Orders",
+      icon: <PackageSearch className="size-4" />,
+      link: "/",
+    },
+    ...(isAdmin ? [
+      {
+        id: "settings",
+        title: "Settings",
+        icon: <Settings className="size-4" />,
+        link: "/settings",
+        subs: [
+          { title: "General", link: "/settings" },
+          { title: "Notifications", link: "/settings" },
+        ],
+      }
+    ] : []),
+  ];
 
-  const allItems = [...navItems, ...(isAdmin ? adminItems : [])];
+  const teams = [
+    { id: "1", name: "Angonaloy", logo: Logo, plan: "Pro" },
+    { id: "2", name: "Admin Team", logo: Logo, plan: "Admin" },
+  ];
 
   return (
-    <aside
-      className={`fixed inset-y-0 left-0 z-20 flex flex-col border-r border-border/60 bg-card transition-all duration-300 ease-in-out ${
-        collapsed ? "w-[68px]" : "w-[240px]"
-      }`}
-    >
-      {/* Workspace header with toggle */}
-      <div className={`flex flex-col border-b border-border/40 ${collapsed ? "items-center py-4 gap-3" : ""}`}>
-        <div className={`flex items-center gap-3 ${collapsed ? "px-0" : "px-4 py-5"}`}>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-semibold shrink-0">
-            A
-          </div>
-          {!collapsed && (
-            <>
-              <div className="flex-1 min-w-0 animate-fade-in">
-                <p className="text-sm font-semibold truncate leading-tight">Angonaloy</p>
-                <p className="text-[11px] text-muted-foreground truncate">Workspace</p>
-              </div>
-              <button
-                onClick={onToggle}
-                className="p-1.5 rounded-md text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors shrink-0"
-                title="Collapse sidebar"
-              >
-                <PanelLeftClose className="h-4 w-4" />
-              </button>
-            </>
-          )}
-        </div>
-        {collapsed && (
-          <button
-            onClick={onToggle}
-            className="p-1.5 rounded-md text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors"
-            title="Expand sidebar"
-          >
-            <PanelLeft className="h-4 w-4" />
-          </button>
+    <Sidebar variant="floating" collapsible="icon">
+      <SidebarHeader
+        className={cn(
+          "flex md:pt-3.5",
+          isCollapsed
+            ? "flex-row items-center justify-between gap-y-4 md:flex-col md:items-start md:justify-start"
+            : "flex-row items-center justify-between"
         )}
-      </div>
-
-      {/* Nav items */}
-      <nav className="flex-1 px-3 py-2 space-y-0.5">
-        {allItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <button
-              key={item.path}
-              onClick={() => navigate(item.path)}
-              title={collapsed ? item.label : undefined}
-              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                collapsed ? "justify-center" : ""
-              } ${
-                isActive
-                  ? "bg-accent text-foreground"
-                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-              }`}
-            >
-              <item.icon className="h-4 w-4 shrink-0" />
-              {!collapsed && <span className="truncate">{item.label}</span>}
-            </button>
-          );
-        })}
-      </nav>
-
-      {/* User footer */}
-      <div className="border-t border-border/40 px-3 py-4">
-        <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground shrink-0">
-            {user?.email?.charAt(0).toUpperCase() || "U"}
-          </div>
-          {!collapsed && (
-            <div className="flex-1 min-w-0 animate-fade-in">
-              <p className="text-sm font-medium truncate leading-tight">
-                {user?.email?.split("@")[0] || "User"}
-              </p>
-              <p className="text-[11px] text-muted-foreground truncate">
-                {user?.email || ""}
-              </p>
-            </div>
+      >
+        <a href="#" className="flex items-center gap-2">
+          <Logo className="h-8 w-8" />
+          {!isCollapsed && (
+            <span className="font-semibold text-black dark:text-white">
+              Angonaloy
+            </span>
           )}
-          {!collapsed && (
-            <button
-              onClick={handleSignOut}
-              className="p-1.5 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-              title="Sign out"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-            </button>
+        </a>
+
+        <motion.div
+          key={isCollapsed ? "header-collapsed" : "header-expanded"}
+          className={cn(
+            "flex items-center gap-2",
+            isCollapsed ? "flex-row md:flex-col-reverse" : "flex-row"
           )}
-        </div>
-      </div>
-    </aside>
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8 }}
+        >
+          <NotificationsPopover notifications={sampleNotifications} />
+          <SidebarTrigger />
+        </motion.div>
+      </SidebarHeader>
+      <SidebarContent className="gap-4 px-2 py-4">
+        <DashboardNavigation routes={dashboardRoutes} />
+      </SidebarContent>
+      <SidebarFooter className="px-2">
+        <TeamSwitcher teams={teams} />
+      </SidebarFooter>
+    </Sidebar>
   );
 }
