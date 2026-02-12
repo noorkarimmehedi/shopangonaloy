@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { OrdersTable } from "@/components/OrdersTable";
@@ -46,6 +46,7 @@ export default function Dashboard() {
   const [syncing, setSyncing] = useState(false);
   const [checkingFraud, setCheckingFraud] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -158,10 +159,10 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <AppSidebar />
+      <AppSidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
 
       {/* Main content — offset by sidebar width */}
-      <main className="ml-[240px] min-h-screen">
+      <main className={`min-h-screen transition-all duration-300 ease-in-out ${sidebarCollapsed ? "ml-[68px]" : "ml-[240px]"}`}>
         {/* Top bar with actions */}
         <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border/40 bg-card/90 backdrop-blur-md px-8 h-14">
           <div className="flex items-center gap-2">
