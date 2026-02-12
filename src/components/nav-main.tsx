@@ -19,7 +19,9 @@ import {
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+
 
 export interface Route {
     id: string;
@@ -49,10 +51,11 @@ export default function DashboardNavigation({ routes }: { routes: Route[] }) {
                             return (
                                 <SidebarMenuItem key={route.id}>
                                     <SidebarMenuButton asChild tooltip={route.title}>
-                                        <a href={route.link} className="flex w-full items-center justify-center">
+                                        <Link to={route.link} className="flex w-full items-center justify-center">
                                             {route.icon}
-                                        </a>
+                                        </Link>
                                     </SidebarMenuButton>
+
                                 </SidebarMenuItem>
                             );
                         }
@@ -74,23 +77,25 @@ export default function DashboardNavigation({ routes }: { routes: Route[] }) {
                                                     {route.subs?.map((sub) => (
                                                         <SidebarMenuSubItem key={sub.title}>
                                                             <SidebarMenuSubButton asChild>
-                                                                <a href={sub.link}>
+                                                                <Link to={sub.link}>
                                                                     {sub.icon}
                                                                     <span>{sub.title}</span>
-                                                                </a>
+                                                                </Link>
                                                             </SidebarMenuSubButton>
                                                         </SidebarMenuSubItem>
                                                     ))}
+
                                                 </SidebarMenuSub>
                                             </CollapsibleContent>
                                         </>
                                     ) : (
                                         <SidebarMenuButton asChild tooltip={route.title}>
-                                            <a href={route.link}>
+                                            <Link to={route.link}>
                                                 {route.icon}
                                                 <span>{route.title}</span>
-                                            </a>
+                                            </Link>
                                         </SidebarMenuButton>
+
                                     )}
                                 </SidebarMenuItem>
                             </Collapsible>

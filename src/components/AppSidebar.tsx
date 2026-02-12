@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo } from "react";
+
 import {
   Sidebar,
   SidebarContent,
@@ -65,7 +67,7 @@ export function AppSidebar() {
   const { user } = useAuth();
   const { isAdmin, loading: roleLoading } = useUserRole();
 
-  const dashboardRoutes: Route[] = [
+  const dashboardRoutes = useMemo((): Route[] => [
     {
       id: "orders",
       title: "Orders",
@@ -80,7 +82,8 @@ export function AppSidebar() {
         link: "/settings",
       }
     ] : []),
-  ];
+  ], [isAdmin, roleLoading]);
+
 
   const teams = [
     { id: "1", name: "Angonaloy", logo: Logo, plan: "Pro" },
