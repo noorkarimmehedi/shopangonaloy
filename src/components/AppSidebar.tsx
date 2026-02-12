@@ -48,14 +48,14 @@ export function AppSidebar() {
     {
       id: "orders",
       title: "Orders",
-      icon: <PackageSearch className="size-4 shrink-0" />,
+      icon: <PackageSearch className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />,
       link: "/",
     },
     ...(!roleLoading && isAdmin ? [
       {
         id: "settings",
         title: "Settings",
-        icon: <Settings className="size-4 shrink-0" />,
+        icon: <Settings className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />,
         link: "/settings",
       }
     ] : []),

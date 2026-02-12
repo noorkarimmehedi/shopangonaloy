@@ -50,7 +50,7 @@ export default function DashboardNavigation({ routes }: { routes: Route[] }) {
                         if (isCollapsed) {
                             return (
                                 <SidebarMenuItem key={route.id}>
-                                    <SidebarMenuButton asChild tooltip={route.title}>
+                                    <SidebarMenuButton asChild tooltip={route.title} className="group">
                                         <Link to={route.link} className="flex w-full items-center justify-center">
                                             {route.icon}
                                         </Link>
@@ -66,7 +66,7 @@ export default function DashboardNavigation({ routes }: { routes: Route[] }) {
                                     {hasSubs ? (
                                         <>
                                             <CollapsibleTrigger asChild>
-                                                <SidebarMenuButton tooltip={route.title}>
+                                                <SidebarMenuButton tooltip={route.title} className="group">
                                                     {route.icon}
                                                     <span>{route.title}</span>
                                                     <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
@@ -89,7 +89,7 @@ export default function DashboardNavigation({ routes }: { routes: Route[] }) {
                                             </CollapsibleContent>
                                         </>
                                     ) : (
-                                        <SidebarMenuButton asChild tooltip={route.title}>
+                                        <SidebarMenuButton asChild tooltip={route.title} className="group">
                                             <Link to={route.link}>
                                                 {route.icon}
                                                 <span>{route.title}</span>
