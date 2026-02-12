@@ -74,10 +74,18 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      spacing: {
+        "swiss-unit": "1rem",
+        "swiss-2xl": "8rem",
+        "swiss-xl": "4rem",
+        "swiss-lg": "2rem",
+        "swiss-md": "1.5rem",
+        "swiss-sm": "0.75rem",
+        "swiss-xs": "0.5rem",
+      },
       boxShadow: {
-        "swiss": "0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04)",
-        "swiss-md": "0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05)",
-        "swiss-lg": "0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05)",
+        "swiss": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+        "swiss-heavy": "0 20px 40px -10px rgb(0 0 0 / 0.1)",
       },
       keyframes: {
         "accordion-down": {

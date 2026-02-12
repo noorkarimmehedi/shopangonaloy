@@ -125,10 +125,9 @@ function FraudIndicator({ order }: { order: Order }) {
   }
 
   const { total_parcels, total_delivered, total_cancel } = order.fraud_data;
-  
   // Calculate delivery rate from fraud_data directly (not from order.delivery_rate which is shipping cost)
-  const deliveryRate = total_parcels > 0 
-    ? (total_delivered / total_parcels) * 100 
+  const deliveryRate = total_parcels > 0
+    ? (total_delivered / total_parcels) * 100
     : 0;
 
   // Determine risk level based on delivery rate
@@ -169,8 +168,8 @@ function FraudIndicator({ order }: { order: Order }) {
           </span>
         </div>
       </TooltipTrigger>
-      <TooltipContent 
-        side="right" 
+      <TooltipContent
+        side="right"
         align="start"
         className="w-72 p-0 bg-card border-border shadow-xl rounded-xl overflow-hidden"
       >
@@ -186,7 +185,7 @@ function FraudIndicator({ order }: { order: Order }) {
             </p>
           )}
         </div>
-        
+
         {/* Stats */}
         <div className="p-4 space-y-3">
           <div className="grid grid-cols-3 gap-3">
@@ -212,7 +211,7 @@ function FraudIndicator({ order }: { order: Order }) {
                 <span>{total_delivered}/{total_parcels}</span>
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div 
+                <div
                   className="h-full bg-emerald-500 rounded-full transition-all"
                   style={{ width: `${deliveryRate}%` }}
                 />
@@ -227,8 +226,8 @@ function FraudIndicator({ order }: { order: Order }) {
               <div className="space-y-1.5">
                 {Object.entries(order.fraud_data.apis).map(([courier, data]) => {
                   const courierData = data as { total_delivered_parcels: number; total_parcels: number };
-                  const courierRate = courierData.total_parcels > 0 
-                    ? (courierData.total_delivered_parcels / courierData.total_parcels) * 100 
+                  const courierRate = courierData.total_parcels > 0
+                    ? (courierData.total_delivered_parcels / courierData.total_parcels) * 100
                     : 0;
                   return (
                     <div key={courier} className="flex items-center justify-between text-sm">
@@ -287,11 +286,10 @@ function NotesPopover({ order, onOrderUpdate }: { order: Order; onOrderUpdate?: 
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
             <button
-              className={`relative p-1.5 rounded-lg transition-all duration-200 ${
-                hasNotes 
-                  ? "bg-gradient-to-br from-primary/15 to-primary/5 text-primary shadow-sm ring-1 ring-primary/20 hover:ring-primary/40 hover:shadow-md" 
-                  : "text-muted-foreground/30 hover:bg-muted/50 hover:text-muted-foreground"
-              }`}
+              className={`relative p-1.5 rounded-lg transition-all duration-200 ${hasNotes
+                ? "bg-gradient-to-br from-primary/15 to-primary/5 text-primary shadow-sm ring-1 ring-primary/20 hover:ring-primary/40 hover:shadow-md"
+                : "text-muted-foreground/30 hover:bg-muted/50 hover:text-muted-foreground"
+                }`}
             >
               <NotebookPen className="h-3.5 w-3.5" />
               {hasNotes && (
@@ -336,18 +334,15 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
 
   const handleStatusToggle = async (order: Order) => {
     const newStatus = order.status === "confirmed" ? "pending" : "confirmed";
-    
     // Optimistic update - update UI immediately
     onStatusUpdate(order.id, newStatus);
-    
+
     try {
       const { error } = await supabase
         .from("orders")
         .update({ status: newStatus, updated_at: new Date().toISOString() })
         .eq("id", order.id);
-
       if (error) {
-        // Revert on failure
         onStatusUpdate(order.id, order.status);
         throw error;
       }
@@ -359,25 +354,18 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
 
   const handleSendToCourier = async (order: Order) => {
     setSendingIds((prev) => new Set(prev).add(order.id));
-    
+
     try {
       const { data, error } = await supabase.functions.invoke("send-to-courier", {
         body: { orderId: order.id },
       });
-
-      if (error) {
-        throw error;
-      }
-
+      if (error) throw error;
       if (data?.error) {
         toast.error(data.error);
         return;
       }
-
-      if (data?.order && onOrderUpdate) {
-        onOrderUpdate(data.order);
-      }
-      toast.success(`Order ${order.order_number} sent to Steadfast courier`);
+      if (data?.order && onOrderUpdate) onOrderUpdate(data.order);
+      toast.success(`Order ${order.order_number} sent to Steadfast`);
     } catch (error) {
       console.error("Error sending to courier:", error);
       toast.error("Failed to send order to courier");
@@ -392,25 +380,18 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
 
   const handleCheckFraud = async (order: Order) => {
     setCheckingFraudIds((prev) => new Set(prev).add(order.id));
-    
+
     try {
       const { data, error } = await supabase.functions.invoke("check-fraud", {
         body: { orderId: order.id },
       });
-
-      if (error) {
-        throw error;
-      }
-
+      if (error) throw error;
       if (data?.error) {
         toast.error(data.error);
         return;
       }
-
-      if (data?.order && onOrderUpdate) {
-        onOrderUpdate(data.order);
-      }
-      toast.success(`Fraud check completed for ${order.order_number}`);
+      if (data?.order && onOrderUpdate) onOrderUpdate(data.order);
+      toast.success(`Verified ${order.order_number}`);
     } catch (error) {
       console.error("Error checking fraud:", error);
       toast.error("Failed to check fraud status");
@@ -436,11 +417,11 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
     if (!order.sent_to_courier) {
       return null;
     }
-    
+
     const status = order.courier_status?.toLowerCase();
     let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
     let className = "";
-    
+
     switch (status) {
       case "delivered":
         variant = "default";
@@ -457,7 +438,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
       default:
         variant = "outline";
     }
-    
+
     return (
       <Badge variant={variant} className={className}>
         {order.courier_status || "Sent"}
@@ -467,9 +448,9 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
 
   if (loading) {
     return (
-      <div className="space-y-3 p-4">
-        {[...Array(6)].map((_, i) => (
-          <Skeleton key={i} className="h-11 w-full rounded-md" />
+      <div className="space-y-0 p-0">
+        {[...Array(8)].map((_, i) => (
+          <Skeleton key={i} className="h-16 w-full rounded-none border-b border-border" />
         ))}
       </div>
     );
@@ -477,196 +458,155 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
 
   if (orders.length === 0) {
     return (
-      <div className="text-center py-20">
-        <p className="text-xs text-muted-foreground tracking-wide uppercase">No orders found</p>
-        <p className="text-sm text-muted-foreground/60 mt-1">Click "Sync" to fetch from Shopify</p>
+      <div className="text-center py-40 border-b border-border">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Log Empty</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow className="border-b border-border/40 hover:bg-transparent">
-            <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70 py-3 h-auto">Order</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70 py-3 h-auto">Customer</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70 py-3 h-auto">Phone</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70 py-3 h-auto text-center">Fraud</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70 py-3 h-auto">Address</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70 py-3 h-auto">Product</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70 py-3 h-auto text-right">Price</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70 py-3 h-auto text-center">Status</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70 py-3 h-auto text-center">Courier</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70 py-3 h-auto text-center">Actions</TableHead>
+    <div className="overflow-x-auto">
+      <Table className="border-collapse">
+        <TableHeader className="bg-secondary/50">
+          <TableRow className="border-b border-border hover:bg-transparent">
+            <TableHead className="h-16 px-8 text-[10px] font-bold uppercase tracking-widest border-r border-border">ID</TableHead>
+            <TableHead className="h-16 px-8 text-[10px] font-bold uppercase tracking-widest border-r border-border">Entity</TableHead>
+            <TableHead className="h-16 px-8 text-[10px] font-bold uppercase tracking-widest border-r border-border">Contact</TableHead>
+            <TableHead className="h-16 px-8 text-[10px] font-bold uppercase tracking-widest border-r border-border text-center">Risk</TableHead>
+            <TableHead className="h-16 px-8 text-[10px] font-bold uppercase tracking-widest border-r border-border">Asset</TableHead>
+            <TableHead className="h-16 px-8 text-[10px] font-bold uppercase tracking-widest border-r border-border text-right">Value</TableHead>
+            <TableHead className="h-16 px-8 text-[10px] font-bold uppercase tracking-widest border-r border-border text-center">Status</TableHead>
+            <TableHead className="h-16 px-8 text-[10px] font-bold uppercase tracking-widest text-center">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {orders.map((order) => {
             const { primary, moreCount, lines } = productSummary(order);
-
             return (
-              <TableRow key={order.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors group">
-              <TableCell className="py-3">
-                <span className="font-medium text-[13px] tabular-nums block">{order.order_number}</span>
-                <span className="text-[11px] text-muted-foreground/60 tabular-nums">{format(new Date(order.created_at), "dd MMM yyyy")}</span>
-              </TableCell>
-              <TableCell className="py-3 text-[13px]">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-medium">{order.customer_name || "—"}</span>
-                  {order.fulfillment_status === "fulfilled" && (
-                    <span className="text-[9px] px-1.5 py-px rounded-full bg-success/10 text-success font-semibold uppercase tracking-wider shrink-0">
-                      Fulfilled
-                    </span>
-                  )}
-                  {order.fulfillment_status === "partial" && (
-                    <span className="text-[9px] px-1.5 py-px rounded-full bg-warning/10 text-warning font-semibold uppercase tracking-wider shrink-0">
-                      Partial
-                    </span>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell className="font-mono text-[13px] py-3 text-muted-foreground">{order.phone || "—"}</TableCell>
-              <TableCell className="text-center py-3">
-                <div className="flex items-center justify-center gap-1.5">
-                  <FraudIndicator order={order} />
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleCheckFraud(order)}
-                    disabled={checkingFraudIds.has(order.id)}
-                    className="h-6 w-6 p-0 hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="Check fraud status"
-                  >
-                    {checkingFraudIds.has(order.id) ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <Search className="h-3 w-3 text-muted-foreground" />
-                    )}
-                  </Button>
-                </div>
-              </TableCell>
-              <TableCell className="max-w-[180px] truncate py-3 text-[13px] text-muted-foreground" title={order.address || ""}>
-                {order.address || "—"}
-              </TableCell>
-                <TableCell className="max-w-[180px] py-3 text-[13px]">
+              <TableRow key={order.id} className="border-b border-border hover:bg-secondary/30 transition-all group">
+                <TableCell className="px-8 py-6 border-r border-border">
+                  <span className="text-xs font-bold tabular-nums block">{order.order_number}</span>
+                  <span className="text-[9px] text-muted-foreground uppercase mt-1 block">
+                    {format(new Date(order.created_at), "dd.MM.yy")}
+                  </span>
+                </TableCell>
+                <TableCell className="px-8 py-6 border-r border-border">
+                  <span className="text-xs font-bold uppercase tracking-tight block">
+                    {order.customer_name || "—"}
+                  </span>
+                  <span className="text-[9px] text-muted-foreground uppercase mt-1 block truncate max-w-[150px]">
+                    {order.address || "—"}
+                  </span>
+                </TableCell>
+                <TableCell className="px-8 py-6 border-r border-border font-mono text-[11px] tabular-nums">
+                  {order.phone || "—"}
+                </TableCell>
+                <TableCell className="px-8 py-6 border-r border-border text-center">
+                  <div className="flex items-center justify-center gap-2">
+                    <FraudIndicator order={order} />
+                    <button
+                      onClick={() => handleCheckFraud(order)}
+                      disabled={checkingFraudIds.has(order.id)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      {checkingFraudIds.has(order.id) ? (
+                        <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                      ) : (
+                        <Search className="h-3 w-3 text-muted-foreground hover:text-primary transition-colors" />
+                      )}
+                    </button>
+                  </div>
+                </TableCell>
+                <TableCell className="px-8 py-6 border-r border-border">
                   <Tooltip delayDuration={0}>
                     <TooltipTrigger asChild>
-                      <span
-                        className="block truncate cursor-default"
-                        title={order.product || ""}
-                      >
-                        <span>{primary}</span>
+                      <div className="cursor-default">
+                        <span className="text-xs font-bold uppercase tracking-tight block truncate max-w-[200px]">
+                          {primary}
+                        </span>
                         {moreCount > 0 && (
-                          <span className="ml-1.5 text-[10px] text-muted-foreground/60">+{moreCount}</span>
+                          <span className="text-[9px] text-muted-foreground uppercase mt-1 block">
+                            +{moreCount} Additional
+                          </span>
                         )}
-                      </span>
+                      </div>
                     </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-[360px]">
-                      {lines.length === 0 ? (
-                        <p className="text-sm">—</p>
-                      ) : (
-                        <div className="space-y-1">
-                          {lines.map((line, index) => (
-                            <p key={index} className="text-sm">
-                              {lines.length === 1
-                                ? formatProductLine(line, order.quantity)
-                                : line}
-                            </p>
-                          ))}
-                        </div>
-                      )}
+                    <TooltipContent side="top" className="bg-primary text-primary-foreground rounded-none p-4">
+                      <div className="space-y-2">
+                        {lines.map((line, idx) => (
+                          <p key={idx} className="text-[10px] font-bold uppercase tracking-widest border-b border-white/10 pb-1">
+                            {formatProductLine(line, lines.length === 1 ? order.quantity : undefined)}
+                          </p>
+                        ))}
+                      </div>
                     </TooltipContent>
                   </Tooltip>
                 </TableCell>
-              <TableCell className="text-right font-mono py-3 text-[13px] tabular-nums">
-                {formatPrice(order.price, order.delivery_rate)}
-              </TableCell>
-              <TableCell className="text-center py-3">
-                <div className="flex items-center justify-center gap-1.5">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button
-                        className={`h-7 w-[76px] text-[10px] font-semibold uppercase tracking-wider rounded-md transition-colors cursor-pointer ${
-                          order.status === "confirmed"
-                            ? "bg-success/10 text-success"
-                            : "bg-warning/10 text-warning"
-                        }`}
-                      >
-                        {order.status === "confirmed" ? "Confirmed" : "Pending"}
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[96px] p-1" align="center">
-                      <div className="flex flex-col gap-0.5">
+                <TableCell className="px-8 py-6 border-r border-border text-right font-bold tabular-nums text-xs">
+                  {formatPrice(order.price, order.delivery_rate)}
+                </TableCell>
+                <TableCell className="px-8 py-6 border-r border-border text-center">
+                  <div className="flex flex-col items-center gap-2">
+                    <Popover>
+                      <PopoverTrigger asChild>
                         <button
-                          onClick={() => {
-                            if (order.status !== "pending") handleStatusToggle(order);
-                          }}
-                          className={`h-7 w-full text-[10px] font-semibold uppercase tracking-wider rounded-md transition-colors ${
-                            order.status === "pending"
-                              ? "bg-warning/10 text-warning"
-                              : "hover:bg-muted text-foreground"
-                          }`}
+                          className={`px-3 py-1 text-[9px] font-bold uppercase tracking-widest border transition-colors ${order.status === "confirmed"
+                            ? "border-emerald-500 text-emerald-600 bg-emerald-50"
+                            : "border-amber-500 text-amber-600 bg-amber-50"
+                            }`}
                         >
-                          Pending
+                          {order.status === "confirmed" ? "Confirmed" : "Pending"}
                         </button>
-                        <button
-                          onClick={() => {
-                            if (order.status !== "confirmed") handleStatusToggle(order);
-                          }}
-                          className={`h-7 w-full text-[10px] font-semibold uppercase tracking-wider rounded-md transition-colors ${
-                            order.status === "confirmed"
-                              ? "bg-success/10 text-success"
-                              : "hover:bg-muted text-foreground"
-                          }`}
-                        >
-                          Confirmed
-                        </button>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                  <NotesPopover order={order} onOrderUpdate={onOrderUpdate} />
-                </div>
-              </TableCell>
-              <TableCell className="text-center py-3">
-                {order.sent_to_courier ? (
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <div className="flex flex-col items-center gap-0.5">
-                        <span className="font-mono text-[13px] font-medium tabular-nums">{order.consignment_id || "—"}</span>
-                        {getCourierStatusBadge(order)}
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <div className="text-sm space-y-1">
-                        <p><strong>Consignment ID:</strong> {order.consignment_id || "N/A"}</p>
-                        <p><strong>Tracking:</strong> {order.tracking_code || "N/A"}</p>
-                        {order.courier_message && <p>{order.courier_message}</p>}
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                ) : (
-                  <span className="text-muted-foreground/40 text-xs">—</span>
-                )}
-              </TableCell>
-              <TableCell className="text-center py-3">
-                {!order.sent_to_courier ? (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleSendToCourier(order)}
-                    disabled={sendingIds.has(order.id)}
-                    className="h-7 text-[10px] font-medium tracking-wide px-3 border-border/40 hover:bg-muted/60"
-                  >
-                    {sendingIds.has(order.id) ? (
-                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                    ) : null}
-                    {sendingIds.has(order.id) ? "Sending…" : "Send"}
-                  </Button>
-                ) : (
-                  <span className="text-[10px] text-muted-foreground/40 uppercase tracking-wider">Sent</span>
-                )}
-              </TableCell>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-32 p-1 rounded-none border-border" align="center">
+                        <div className="flex flex-col gap-0.5">
+                          <button
+                            onClick={() => {
+                              if (order.status !== "pending") handleStatusToggle(order);
+                            }}
+                            className={`px-3 py-2 text-[9px] font-bold uppercase tracking-widest transition-colors text-left ${order.status === "pending"
+                              ? "bg-secondary text-primary"
+                              : "hover:bg-secondary/50 text-muted-foreground"
+                              }`}
+                          >
+                            Pending
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (order.status !== "confirmed") handleStatusToggle(order);
+                            }}
+                            className={`px-3 py-2 text-[9px] font-bold uppercase tracking-widest transition-colors text-left ${order.status === "confirmed"
+                              ? "bg-secondary text-primary"
+                              : "hover:bg-secondary/50 text-muted-foreground"
+                              }`}
+                          >
+                            Confirmed
+                          </button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    <NotesPopover order={order} onOrderUpdate={onOrderUpdate} />
+                  </div>
+                </TableCell>
+                <TableCell className="px-8 py-6 text-center">
+                  {!order.sent_to_courier ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleSendToCourier(order)}
+                      disabled={sendingIds.has(order.id)}
+                      className="h-10 text-[10px] font-bold uppercase tracking-widest px-6 rounded-none border-primary hover:bg-primary hover:text-primary-foreground transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      {sendingIds.has(order.id) && <Loader2 className="h-3 w-3 animate-spin" />}
+                      {sendingIds.has(order.id) ? "Syncing" : "Dispatch"}
+                    </Button>
+                  ) : (
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">Dispatched</span>
+                      <span className="text-[9px] font-mono text-muted-foreground">{order.consignment_id}</span>
+                    </div>
+                  )}
+                </TableCell>
               </TableRow>
             );
           })}

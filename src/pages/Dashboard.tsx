@@ -158,97 +158,98 @@ export default function Dashboard() {
 
   return (
     <>
-      {/* Top bar with actions */}
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border/40 bg-card/90 backdrop-blur-md px-8 h-14">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+      {/* Top bar — Rigid Swiss Header */}
+      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background px-8 h-[80px]">
+        <div className="flex items-center gap-4">
+          <ShieldCheck className="h-4 w-4" />
+          <h2 className="text-xs font-bold uppercase tracking-widest">Control Panel</h2>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center">
           <Button
             variant="ghost"
             size="sm"
             onClick={syncOrders}
             disabled={syncing || checkingFraud}
-            className="h-8 px-3 text-xs font-medium text-muted-foreground hover:text-foreground"
+            className="h-[80px] px-8 rounded-none border-l border-border text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all"
           >
-            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${syncing ? "animate-spin" : ""}`} />
-            {syncing ? "Syncing…" : "Sync"}
+            <RefreshCw className={`h-3 w-3 mr-3 ${syncing ? "animate-spin" : ""}`} />
+            {syncing ? "Syncing" : "Sync Data"}
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={checkFraud}
             disabled={syncing || checkingFraud}
-            className="h-8 px-3 text-xs font-medium text-muted-foreground hover:text-foreground"
+            className="h-[80px] px-8 rounded-none border-l border-border text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all"
           >
-            <ShieldCheck className={`h-3.5 w-3.5 mr-1.5 ${checkingFraud ? "animate-spin" : ""}`} />
-            {checkingFraud ? "Checking…" : "Fraud Check"}
+            <ShieldCheck className={`h-3 w-3 mr-3 ${checkingFraud ? "animate-spin" : ""}`} />
+            {checkingFraud ? "Verifying" : "Fraud Check"}
           </Button>
         </div>
       </header>
 
-      <div className="px-8 py-8 space-y-8">
-        {/* Page heading */}
-        <div>
-          <h1 className="!text-2xl !font-semibold tracking-tight">Orders</h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage and verify your orders</p>
-        </div>
-
-        {/* Stats row — divided cells like reference */}
-        <div className="swiss-card overflow-hidden">
-          <div className="grid grid-cols-4 divide-x divide-border/60">
-            <div className="px-6 py-5 text-center">
-              <p className="swiss-stat-label mb-2">Total</p>
-              <p className="text-3xl font-semibold tracking-tight tabular-nums">{orders.length}</p>
-            </div>
-            <div className="px-6 py-5 text-center">
-              <p className="swiss-stat-label mb-2">Confirmed</p>
-              <p className="text-3xl font-semibold tracking-tight tabular-nums text-success">{confirmedCount}</p>
-            </div>
-            <div className="px-6 py-5 text-center">
-              <p className="swiss-stat-label mb-2">Pending</p>
-              <p className="text-3xl font-semibold tracking-tight tabular-nums text-warning">{pendingCount}</p>
-            </div>
-            <div className="px-6 py-5 text-center">
-              <p className="swiss-stat-label mb-2">Fraud Checked</p>
-              <p className="text-3xl font-semibold tracking-tight tabular-nums">
-                {orders.filter((o) => o.fraud_checked).length}
-              </p>
-            </div>
+      <div className="p-0">
+        {/* Page heading — Stark & Bold */}
+        <div className="swiss-grid-container">
+          <div className="col-span-12 swiss-grid-cell border-b-[2px] border-primary">
+            <h1 className="leading-none">Overview</h1>
+            <p className="text-[10px] font-bold uppercase tracking-widest mt-4 text-muted-foreground">
+              {orders.length} ACTIVE ENTRIES / {confirmedCount} CONFIRMED
+            </p>
           </div>
         </div>
 
-        {/* Orders card */}
-        <div className="swiss-card-elevated overflow-hidden">
-          {/* Section header with search */}
-          <div className="px-6 py-4 border-b border-border/50">
-            <div className="flex items-center justify-between gap-4">
+        {/* Stats Grid — Rigid 4x1 */}
+        <div className="swiss-grid-container">
+          <div className="col-span-12 md:col-span-3 swiss-grid-cell">
+            <p className="swiss-stat-label">Total Volume</p>
+            <p className="swiss-stat-value mt-4">{orders.length}</p>
+          </div>
+          <div className="col-span-12 md:col-span-3 swiss-grid-cell">
+            <p className="swiss-stat-label">Confirmed</p>
+            <p className="swiss-stat-value mt-4 text-accent">{confirmedCount}</p>
+          </div>
+          <div className="col-span-12 md:col-span-3 swiss-grid-cell">
+            <p className="swiss-stat-label">Pending</p>
+            <p className="swiss-stat-value mt-4">{pendingCount}</p>
+          </div>
+          <div className="col-span-12 md:col-span-3 swiss-grid-cell">
+            <p className="swiss-stat-label">Verified</p>
+            <p className="swiss-stat-value mt-4">
+              {orders.filter((o) => o.fraud_checked).length}
+            </p>
+          </div>
+        </div>
+
+        {/* Orders Table — Integrated into the grid */}
+        <div className="swiss-grid-container border-b border-border">
+          <div className="col-span-12 border-r border-border">
+            {/* Table Search Section */}
+            <div className="p-8 flex items-center justify-between border-b border-border">
               <div>
-                <h2 className="text-base font-semibold tracking-tight">All Orders</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {orders.length} orders in your workspace
-                </p>
+                <h3 className="text-sm font-bold uppercase tracking-widest">Inventory Log</h3>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">Real-time update stream</p>
               </div>
-              <div className="relative w-56 shrink-0">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60" />
+              <div className="relative w-72">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search orders..."
+                  placeholder="FILTER BY ID / NAME / PHONE"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8 h-8 text-xs bg-muted/40 border-border/60 focus:border-border focus:bg-card placeholder:text-muted-foreground/40"
+                  className="pl-12 h-12 bg-secondary border-none text-[10px] font-bold uppercase tracking-widest placeholder:text-muted-foreground/50"
                 />
               </div>
             </div>
-          </div>
 
-          {/* Table */}
-          <div className="pb-1">
-            <OrdersTable
-              orders={filteredOrders}
-              loading={loading}
-              onStatusUpdate={handleStatusUpdate}
-              onOrderUpdate={handleOrderUpdate}
-            />
+            {/* Table Component */}
+            <div className="bg-background">
+              <OrdersTable
+                orders={filteredOrders}
+                loading={loading}
+                onStatusUpdate={handleStatusUpdate}
+                onOrderUpdate={handleOrderUpdate}
+              />
+            </div>
           </div>
         </div>
       </div>

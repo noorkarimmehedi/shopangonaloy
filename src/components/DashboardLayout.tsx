@@ -13,13 +13,12 @@ export function DashboardLayout() {
     }, [sidebarCollapsed]);
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-background flex">
             <AppSidebar
                 collapsed={sidebarCollapsed}
                 onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
             />
-
-            <main className={`min-h-screen transition-all duration-300 ease-in-out ${sidebarCollapsed ? "ml-[68px]" : "ml-[240px]"}`}>
+            <main className={`flex-1 min-h-screen transition-all duration-300 ease-in-out border-l border-border ${sidebarCollapsed ? "ml-0" : "ml-0"}`}>
                 <Outlet />
             </main>
         </div>
