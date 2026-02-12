@@ -8,7 +8,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { Badge } from "@/components/ui/badge";
+
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
@@ -352,38 +353,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
     }).format(total);
   };
 
-  const getCourierStatusBadge = (order: Order) => {
-    if (!order.sent_to_courier) {
-      return null;
-    }
 
-    const status = order.courier_status?.toLowerCase();
-    let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
-    let className = "";
-
-    switch (status) {
-      case "delivered":
-        variant = "default";
-        className = "bg-success text-success-foreground";
-        break;
-      case "cancelled":
-        variant = "destructive";
-        break;
-      case "in_review":
-      case "pending":
-        variant = "secondary";
-        className = "bg-warning text-warning-foreground";
-        break;
-      default:
-        variant = "outline";
-    }
-
-    return (
-      <Badge variant={variant} className={className}>
-        {order.courier_status || "Sent"}
-      </Badge>
-    );
-  };
 
   if (loading) {
     return (
@@ -540,13 +510,5 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
         </TableBody>
       </Table>
     </div>
-  );
-}
-              </TableRow >
-            );
-          })}
-        </TableBody >
-      </Table >
-    </div >
   );
 }
