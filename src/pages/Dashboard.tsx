@@ -158,104 +158,97 @@ export default function Dashboard() {
 
   return (
     <>
-      {/* Swiss Minimalist Header */}
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background px-8 h-20">
-        <div className="flex items-center gap-6">
-          <span className="swiss-label mb-0">System Status</span>
-          <div className="flex items-center gap-2">
-            <div className="h-2 w-2 bg-success" />
-            <span className="text-[10px] font-bold uppercase tracking-widest">Active</span>
-          </div>
+      {/* Top bar with actions */}
+      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border/40 bg-card/90 backdrop-blur-md px-8 h-14">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4 text-muted-foreground" />
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1.5">
           <Button
             variant="ghost"
+            size="sm"
             onClick={syncOrders}
             disabled={syncing || checkingFraud}
-            className="h-10 px-6 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-black hover:text-white border border-transparent hover:border-black"
+            className="h-8 px-3 text-xs font-medium text-muted-foreground hover:text-foreground"
           >
-            <RefreshCw className={`h-3.5 w-3.5 mr-2 ${syncing ? "animate-spin" : ""}`} />
-            {syncing ? "Syncing" : "Sync Database"}
+            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${syncing ? "animate-spin" : ""}`} />
+            {syncing ? "Syncing…" : "Sync"}
           </Button>
           <Button
             variant="ghost"
+            size="sm"
             onClick={checkFraud}
             disabled={syncing || checkingFraud}
-            className="h-10 px-6 text-[10px] font-black uppercase tracking-[0.2em] bg-black text-white hover:bg-accent hover:border-accent"
+            className="h-8 px-3 text-xs font-medium text-muted-foreground hover:text-foreground"
           >
-            <ShieldCheck className={`h-3.5 w-3.5 mr-2 ${checkingFraud ? "animate-spin" : ""}`} />
-            {checkingFraud ? "Verifying..." : "Run Fraud Check"}
+            <ShieldCheck className={`h-3.5 w-3.5 mr-1.5 ${checkingFraud ? "animate-spin" : ""}`} />
+            {checkingFraud ? "Checking…" : "Fraud Check"}
           </Button>
         </div>
       </header>
 
-      <div className="p-0"> {/* Continuous Grid Structure */}
-        <div className="swiss-grid-container">
-          {/* Main Title Block */}
-          <div className="swiss-grid-item col-span-12 lg:col-span-8 bg-black text-white">
-            <span className="swiss-label text-white/50">Workspace / Analytics</span>
-            <h1 className="mt-4">Order Verification <br /> & Performance.</h1>
-            <p className="text-sm text-white/60 mt-6 max-w-md font-light leading-relaxed">
-              Precision management of Shopify transitions. Real-time fraud detection and fulfillment optimization for the modern commerce environment.
-            </p>
-          </div>
+      <div className="px-8 py-8 space-y-8">
+        {/* Page heading */}
+        <div>
+          <h1 className="!text-2xl !font-semibold tracking-tight">Orders</h1>
+          <p className="text-sm text-muted-foreground mt-1">Manage and verify your orders</p>
+        </div>
 
-          {/* Quick Search Block */}
-          <div className="swiss-grid-item col-span-12 lg:col-span-4 flex flex-col justify-end">
-            <span className="swiss-label">Live Search</span>
-            <div className="relative mt-2">
-              <Search className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-black" />
-              <Input
-                placeholder="ORDER ID, CUSTOMER, OR PHONE..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 h-12 text-xs font-bold uppercase tracking-widest border-0 border-b border-black focus-visible:ring-0 placeholder:text-black/20 bg-transparent"
-              />
+        {/* Stats row — divided cells like reference */}
+        <div className="swiss-card overflow-hidden">
+          <div className="grid grid-cols-4 divide-x divide-border/60">
+            <div className="px-6 py-5 text-center">
+              <p className="swiss-stat-label mb-2">Total</p>
+              <p className="text-3xl font-semibold tracking-tight tabular-nums">{orders.length}</p>
+            </div>
+            <div className="px-6 py-5 text-center">
+              <p className="swiss-stat-label mb-2">Confirmed</p>
+              <p className="text-3xl font-semibold tracking-tight tabular-nums text-success">{confirmedCount}</p>
+            </div>
+            <div className="px-6 py-5 text-center">
+              <p className="swiss-stat-label mb-2">Pending</p>
+              <p className="text-3xl font-semibold tracking-tight tabular-nums text-warning">{pendingCount}</p>
+            </div>
+            <div className="px-6 py-5 text-center">
+              <p className="swiss-stat-label mb-2">Fraud Checked</p>
+              <p className="text-3xl font-semibold tracking-tight tabular-nums">
+                {orders.filter((o) => o.fraud_checked).length}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Orders card */}
+        <div className="swiss-card-elevated overflow-hidden">
+          {/* Section header with search */}
+          <div className="px-6 py-4 border-b border-border/50">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-base font-semibold tracking-tight">All Orders</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {orders.length} orders in your workspace
+                </p>
+              </div>
+              <div className="relative w-56 shrink-0">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60" />
+                <Input
+                  placeholder="Search orders..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8 h-8 text-xs bg-muted/40 border-border/60 focus:border-border focus:bg-card placeholder:text-muted-foreground/40"
+                />
+              </div>
             </div>
           </div>
 
-          {/* Stats Bar — Integrated Grid */}
-          <div className="swiss-grid-item col-span-6 lg:col-span-3">
-            <span className="swiss-label">Total Volume</span>
-            <p className="text-6xl font-light tabular-nums leading-none tracking-tighter">
-              {orders.length}
-            </p>
-          </div>
-          <div className="swiss-grid-item col-span-6 lg:col-span-3">
-            <span className="swiss-label">Confirmed Safe</span>
-            <p className="text-6xl font-light tabular-nums leading-none tracking-tighter text-success">
-              {confirmedCount}
-            </p>
-          </div>
-          <div className="swiss-grid-item col-span-6 lg:col-span-3">
-            <span className="swiss-label">Awaiting Verification</span>
-            <p className="text-6xl font-light tabular-nums leading-none tracking-tighter text-red">
-              {pendingCount}
-            </p>
-          </div>
-          <div className="swiss-grid-item col-span-6 lg:col-span-3">
-            <span className="swiss-label">Verified Security</span>
-            <p className="text-6xl font-light tabular-nums leading-none tracking-tighter">
-              {orders.filter((o) => o.fraud_checked).length}
-            </p>
-          </div>
-
-          {/* Table Container */}
-          <div className="swiss-grid-item col-span-12 p-0">
-            <div className="border-b border-border px-8 py-6 bg-secondary/30 flex items-center justify-between">
-              <h2 className="text-sm font-black uppercase tracking-[0.3em]">Master Order Registry</h2>
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                {orders.length} Entries Found
-              </span>
-            </div>
-            <div className="p-0">
-              <OrdersTable
-                orders={filteredOrders}
-                loading={loading}
-                onStatusUpdate={handleStatusUpdate}
-                onOrderUpdate={handleOrderUpdate}
-              />
-            </div>
+          {/* Table */}
+          <div className="pb-1">
+            <OrdersTable
+              orders={filteredOrders}
+              loading={loading}
+              onStatusUpdate={handleStatusUpdate}
+              onOrderUpdate={handleOrderUpdate}
+            />
           </div>
         </div>
       </div>

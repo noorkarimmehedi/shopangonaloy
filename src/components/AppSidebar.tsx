@@ -39,27 +39,28 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-20 flex flex-col border-r border-sidebar-border bg-sidebar transition-[width] duration-300 ${collapsed ? "w-[64px]" : "w-[240px]"
-        }`}
+      className={`fixed inset-y-0 left-0 z-20 flex flex-col border-r border-border/60 bg-card transition-all duration-300 ease-in-out ${
+        collapsed ? "w-[68px]" : "w-[240px]"
+      }`}
     >
       {/* Workspace header with toggle */}
-      <div className={`flex flex-col border-b border-sidebar-border ${collapsed ? "items-center py-6 gap-3" : ""}`}>
-        <div className={`flex items-center gap-4 ${collapsed ? "px-0" : "px-6 py-6"}`}>
-          <div className="flex h-10 w-10 items-center justify-center bg-accent text-accent-foreground text-sm font-black shrink-0">
+      <div className={`flex flex-col border-b border-border/40 ${collapsed ? "items-center py-4 gap-3" : ""}`}>
+        <div className={`flex items-center gap-3 ${collapsed ? "px-0" : "px-4 py-5"}`}>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-semibold shrink-0">
             A
           </div>
           {!collapsed && (
             <>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-sidebar-foreground">Angonaloy</p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-0.5">Admin v1</p>
+              <div className="flex-1 min-w-0 animate-fade-in">
+                <p className="text-sm font-semibold truncate leading-tight">Angonaloy</p>
+                <p className="text-[11px] text-muted-foreground truncate">Workspace</p>
               </div>
               <button
                 onClick={onToggle}
-                className="p-1 hover:text-accent transition-colors shrink-0"
-                title="Collapse"
+                className="p-1.5 rounded-md text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors shrink-0"
+                title="Collapse sidebar"
               >
-                <PanelLeftClose className="h-5 w-5" />
+                <PanelLeftClose className="h-4 w-4" />
               </button>
             </>
           )}
@@ -67,16 +68,16 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
         {collapsed && (
           <button
             onClick={onToggle}
-            className="p-1 hover:text-accent transition-colors"
-            title="Expand"
+            className="p-1.5 rounded-md text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors"
+            title="Expand sidebar"
           >
-            <PanelLeft className="h-5 w-5" />
+            <PanelLeft className="h-4 w-4" />
           </button>
         )}
       </div>
 
       {/* Nav items */}
-      <nav className="flex-1 py-4">
+      <nav className="flex-1 px-3 py-2 space-y-0.5">
         {allItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
@@ -84,11 +85,13 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
               key={item.path}
               onClick={() => navigate(item.path)}
               title={collapsed ? item.label : undefined}
-              className={`flex w-full items-center gap-4 px-6 py-4 text-[11px] font-bold uppercase tracking-[0.15em] transition-colors border-l-4 ${collapsed ? "justify-center px-0 border-l-0" : ""
-                } ${isActive
-                  ? "border-accent text-accent bg-sidebar-accent"
-                  : "border-transparent text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
-                }`}
+              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                collapsed ? "justify-center" : ""
+              } ${
+                isActive
+                  ? "bg-accent text-foreground"
+                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+              }`}
             >
               <item.icon className="h-4 w-4 shrink-0" />
               {!collapsed && <span className="truncate">{item.label}</span>}
@@ -98,17 +101,17 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
       </nav>
 
       {/* User footer */}
-      <div className="border-t border-sidebar-border p-4 bg-sidebar-accent/20">
+      <div className="border-t border-border/40 px-3 py-4">
         <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
-          <div className="flex h-8 w-8 items-center justify-center bg-sidebar-foreground text-[10px] font-black text-sidebar-background shrink-0">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground shrink-0">
             {user?.email?.charAt(0).toUpperCase() || "U"}
           </div>
           {!collapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-bold truncate tracking-wider text-sidebar-foreground">
-                {user?.email?.split("@")[0].toUpperCase() || "USER"}
+            <div className="flex-1 min-w-0 animate-fade-in">
+              <p className="text-sm font-medium truncate leading-tight">
+                {user?.email?.split("@")[0] || "User"}
               </p>
-              <p className="text-[9px] text-muted-foreground truncate uppercase tracking-tighter">
+              <p className="text-[11px] text-muted-foreground truncate">
                 {user?.email || ""}
               </p>
             </div>
@@ -116,10 +119,10 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
           {!collapsed && (
             <button
               onClick={handleSignOut}
-              className="p-1.5 text-muted-foreground hover:text-accent transition-colors"
+              className="p-1.5 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
               title="Sign out"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
