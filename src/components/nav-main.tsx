@@ -45,8 +45,8 @@ export default function DashboardNavigation({ routes }: { routes: Route[] }) {
                                         <CollapsibleTrigger asChild>
                                             <SidebarMenuButton tooltip={route.title}>
                                                 {route.icon}
-                                                <span>{route.title}</span>
-                                                <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                                                <span className="group-data-[collapsible=icon]:hidden">{route.title}</span>
+                                                <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" />
                                             </SidebarMenuButton>
                                         </CollapsibleTrigger>
                                         <CollapsibleContent>
@@ -68,7 +68,7 @@ export default function DashboardNavigation({ routes }: { routes: Route[] }) {
                                     <SidebarMenuButton asChild tooltip={route.title}>
                                         <a href={route.link}>
                                             {route.icon}
-                                            <span>{route.title}</span>
+                                            <span className="group-data-[collapsible=icon]:hidden">{route.title}</span>
                                         </a>
                                     </SidebarMenuButton>
                                 )}

@@ -63,20 +63,20 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
   const { user } = useAuth();
-  const { isAdmin } = useUserRole();
+  const { isAdmin, loading: roleLoading } = useUserRole();
 
   const dashboardRoutes: Route[] = [
     {
       id: "orders",
       title: "Orders",
-      icon: <PackageSearch className="size-4" />,
+      icon: <PackageSearch className="size-4 shrink-0" />,
       link: "/",
     },
-    ...(isAdmin ? [
+    ...(!roleLoading && isAdmin ? [
       {
         id: "settings",
         title: "Settings",
-        icon: <Settings className="size-4" />,
+        icon: <Settings className="size-4 shrink-0" />,
         link: "/settings",
         subs: [
           { title: "General", link: "/settings" },
