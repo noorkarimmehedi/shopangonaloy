@@ -78,10 +78,6 @@ export function AppSidebar() {
         title: "Settings",
         icon: <Settings className="size-4 shrink-0" />,
         link: "/settings",
-        subs: [
-          { title: "General", link: "/settings" },
-          { title: "Notifications", link: "/settings" },
-        ],
       }
     ] : []),
   ];
