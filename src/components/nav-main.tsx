@@ -50,7 +50,7 @@ export default function DashboardNavigation({ routes }: { routes: Route[] }) {
                         if (isCollapsed) {
                             return (
                                 <SidebarMenuItem key={route.id}>
-                                    <SidebarMenuButton asChild tooltip={route.title} className="group">
+                                    <SidebarMenuButton asChild tooltip={route.title} variant="ghost" size="icon" className="group">
                                         <Link to={route.link} className="flex w-full items-center justify-center">
                                             {route.icon}
                                         </Link>
