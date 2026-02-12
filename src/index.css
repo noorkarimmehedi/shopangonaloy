@@ -13,115 +13,112 @@
 
 @layer base {
   :root {
-    /* Cool off-white — pure Swiss neutrality */
-    --background: 220 14% 96%;
-    --foreground: 220 20% 10%;
+    /* Pure Swiss Foundations */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
 
-    /* Cards: crisp white */
+    /* Crisp High-Contrast Cards */
     --card: 0 0% 100%;
-    --card-foreground: 220 20% 10%;
+    --card-foreground: 0 0% 0%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 10%;
+    --popover-foreground: 0 0% 0%;
 
-    /* Primary — deep charcoal */
-    --primary: 220 16% 12%;
-    --primary-foreground: 220 14% 96%;
+    /* Primary: Solid Black */
+    --primary: 0 0% 0%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary — cool gray */
-    --secondary: 220 10% 92%;
-    --secondary-foreground: 220 20% 10%;
+    /* Swiss Red: Vibrant Accent */
+    --accent: 0 100% 50%;
+    --accent-foreground: 0 0% 100%;
 
-    /* Muted — refined neutral */
-    --muted: 220 10% 93%;
-    --muted-foreground: 220 8% 46%;
+    /* Secondary: Clean Silver */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 0%;
 
-    /* Accent — cool steel blue hint */
-    --accent: 215 20% 90%;
-    --accent-foreground: 220 20% 10%;
+    /* Muted: Refined Grid Grays */
+    --muted: 0 0% 92%;
+    --muted-foreground: 0 0% 40%;
 
-    /* Status colors — restrained, functional */
-    --destructive: 0 55% 48%;
-    --destructive-foreground: 0 0% 100%;
-
-    --success: 160 45% 36%;
+    /* Success: Forest Green (Swiss Functional) */
+    --success: 158 53% 32%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 35 75% 50%;
-    --warning-foreground: 220 20% 10%;
+    /* Warning: Signal Orange (Swiss Functional) */
+    --warning: 28 92% 51%;
+    --warning-foreground: 0 0% 0%;
 
-    /* Borders — hairline, precise */
-    --border: 220 10% 88%;
-    --input: 220 10% 88%;
-    --ring: 220 16% 12%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    /* Tight radius — geometric precision */
-    --radius: 6px;
+    /* Hairline borders for Swiss precision */
+    --border: 0 0% 0% / 0.1;
+    --input: 0 0% 0% / 0.1;
+    --ring: 0 0% 0%;
 
-    /* Sidebar */
-    --sidebar-background: 220 12% 95%;
-    --sidebar-foreground: 220 20% 10%;
-    --sidebar-primary: 220 16% 12%;
-    --sidebar-primary-foreground: 220 14% 96%;
-    --sidebar-accent: 220 10% 92%;
-    --sidebar-accent-foreground: 220 20% 10%;
-    --sidebar-border: 220 10% 88%;
-    --sidebar-ring: 220 16% 12%;
+    /* Geometric corner radius */
+    --radius: 0px;
+
+    /* Sidebar - High Contrast */
+    --sidebar-background: 0 0% 0%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 100% / 0.1;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 100% / 0.1;
+    --sidebar-ring: 0 0% 100%;
   }
 
   .dark {
-    --background: 220 18% 7%;
-    --foreground: 220 10% 92%;
+    --background: 0 0% 4%;
+    --foreground: 0 0% 100%;
 
-    --card: 220 16% 11%;
-    --card-foreground: 220 10% 92%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 220 16% 11%;
-    --popover-foreground: 220 10% 92%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 220 10% 92%;
-    --primary-foreground: 220 18% 7%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 220 14% 16%;
-    --secondary-foreground: 220 10% 92%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 14% 16%;
-    --muted-foreground: 220 8% 52%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 220 14% 16%;
-    --accent-foreground: 220 10% 92%;
+    --accent: 0 100% 50%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 55% 42%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 160 45% 36%;
-    --success-foreground: 0 0% 100%;
+    --border: 0 0% 100% / 0.1;
+    --input: 0 0% 100% / 0.1;
+    --ring: 0 0% 100%;
 
-    --warning: 35 75% 50%;
-    --warning-foreground: 220 20% 10%;
-
-    --border: 220 14% 18%;
-    --input: 220 14% 18%;
-    --ring: 220 10% 92%;
-
-    --sidebar-background: 220 16% 9%;
-    --sidebar-foreground: 220 10% 92%;
-    --sidebar-primary: 220 10% 92%;
-    --sidebar-primary-foreground: 220 18% 7%;
-    --sidebar-accent: 220 14% 16%;
-    --sidebar-accent-foreground: 220 10% 92%;
-    --sidebar-border: 220 14% 18%;
-    --sidebar-ring: 220 10% 92%;
+    --sidebar-background: 0 0% 0%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 100% / 0.1;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 100% / 0.1;
+    --sidebar-ring: 0 0% 100%;
   }
 }
 
 @layer base {
   * {
     @apply border-border;
+    border-radius: 0 !important;
+    /* Force hard corners for Swiss International Style */
   }
 
   html {
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -129,84 +126,85 @@
   body {
     min-height: 100vh;
     -webkit-text-size-adjust: 100%;
-    -webkit-font-smoothing: antialiased;
-    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    font-family: "Inter", system-ui, sans-serif;
     @apply bg-background text-foreground;
-    letter-spacing: -0.011em;
+    letter-spacing: -0.01em;
     margin: 0;
   }
 
-  /* Swiss Typography — strict hierarchy */
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold;
-    letter-spacing: -0.03em;
+  /* Luxury Swiss Typography — strict hierarchy */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: "DM Serif Display", serif;
+    @apply font-normal;
+    letter-spacing: -0.015em;
   }
 
   h1 {
-    font-family: "DM Serif Display", "Inter", serif;
-    @apply text-3xl md:text-4xl font-normal;
-    letter-spacing: -0.02em;
+    @apply text-4xl md:text-5xl lg:text-6xl;
   }
 
   h2 {
-    @apply text-xl md:text-2xl;
-    letter-spacing: -0.025em;
+    @apply text-2xl md:text-3xl;
   }
 
   h3 {
-    @apply text-lg md:text-xl;
-    letter-spacing: -0.02em;
+    @apply text-xl;
+  }
+
+  /* Tabular figures for data components */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
 }
 
 @layer components {
-  /* Swiss Grid Container — generous margins */
-  .swiss-container {
-    @apply max-w-[1440px] mx-auto px-6 md:px-10 lg:px-16;
+
+  /* Swiss Grid Layout */
+  .swiss-grid-container {
+    @apply grid grid-cols-12 gap-0 border-t border-l border-border;
   }
 
-  /* Swiss Card — minimal, precise */
+  .swiss-grid-item {
+    @apply border-r border-b border-border p-6 md:p-8;
+  }
+
+  /* Luxury Labels */
+  .swiss-label {
+    @apply text-[9px] font-extrabold uppercase tracking-[0.2em] text-muted-foreground mb-3 block;
+  }
+
+  /* Swiss Card — Brutalist yet Premium */
   .swiss-card {
-    @apply bg-card rounded-md border border-border/60;
-    box-shadow: 0 1px 2px 0 hsl(220 20% 10% / 0.03);
+    @apply bg-card border border-border p-0;
   }
 
-  .swiss-card-elevated {
-    @apply bg-card rounded-md border border-border/50;
-    box-shadow:
-      0 1px 3px 0 hsl(220 20% 10% / 0.04),
-      0 8px 24px -4px hsl(220 20% 10% / 0.06);
+  .swiss-card-header {
+    @apply border-b border-border px-6 py-4;
   }
 
-  /* Swiss Divider */
-  .swiss-divider {
-    @apply h-px bg-border/50;
+  .swiss-card-content {
+    @apply px-6 py-8;
   }
 
-  /* Swiss Stat — large number, tiny label */
-  .swiss-stat-value {
-    @apply text-4xl md:text-5xl font-light tracking-tight;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .swiss-stat-label {
-    @apply text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground;
-  }
-
-  /* Button styling */
-  .button-squircle {
-    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.1);
+  /* Hairline Divider */
+  .hairline {
+    @apply h-[1px] w-full bg-border;
   }
 }
 
 @layer utilities {
-  .hover-lift {
-    @apply transition-all duration-300 ease-out;
+  .text-red {
+    color: hsl(var(--accent));
   }
-  .hover-lift:hover {
-    @apply -translate-y-px;
-    box-shadow:
-      0 2px 8px -2px hsl(220 20% 10% / 0.08),
-      0 4px 16px -4px hsl(220 20% 10% / 0.06);
+
+  .bg-red {
+    background-color: hsl(var(--accent));
+  }
+
+  .border-red {
+    border-color: hsl(var(--accent));
   }
 }

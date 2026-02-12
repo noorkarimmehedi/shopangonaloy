@@ -111,13 +111,13 @@ function FraudIndicator({ order }: { order: Order }) {
     return (
       <Tooltip>
         <TooltipTrigger>
-          <div className="flex items-center justify-center">
-            <HelpCircle className="h-5 w-5 text-muted-foreground/50" />
+          <div className="flex items-center justify-center opacity-20">
+            <HelpCircle className="h-4 w-4" />
           </div>
         </TooltipTrigger>
-        <TooltipContent side="right" className="bg-card border-border shadow-lg">
-          <p className="text-sm text-muted-foreground">
-            {!order.fraud_checked ? "Not checked yet" : "No data available"}
+        <TooltipContent side="right" className="bg-black text-white border-0 py-2">
+          <p className="text-[9px] font-black uppercase tracking-widest">
+            {!order.fraud_checked ? "No Verification" : "Data Missing"}
           </p>
         </TooltipContent>
       </Tooltip>
@@ -125,127 +125,65 @@ function FraudIndicator({ order }: { order: Order }) {
   }
 
   const { total_parcels, total_delivered, total_cancel } = order.fraud_data;
-  
-  // Calculate delivery rate from fraud_data directly (not from order.delivery_rate which is shipping cost)
-  const deliveryRate = total_parcels > 0 
-    ? (total_delivered / total_parcels) * 100 
-    : 0;
+  const deliveryRate = total_parcels > 0 ? (total_delivered / total_parcels) * 100 : 0;
 
-  // Determine risk level based on delivery rate
-  let RiskIcon: typeof ShieldCheck;
   let riskColor: string;
-  let riskBgColor: string;
   let riskLabel: string;
 
   if (total_parcels === 0) {
-    RiskIcon = HelpCircle;
     riskColor = "text-muted-foreground";
-    riskBgColor = "bg-muted/50";
-    riskLabel = "New Customer";
+    riskLabel = "New Entry";
   } else if (deliveryRate >= 70) {
-    RiskIcon = ShieldCheck;
-    riskColor = "text-emerald-600";
-    riskBgColor = "bg-emerald-50";
-    riskLabel = "Safe";
+    riskColor = "text-success";
+    riskLabel = "Validated";
   } else if (deliveryRate >= 50) {
-    RiskIcon = AlertTriangle;
-    riskColor = "text-amber-600";
-    riskBgColor = "bg-amber-50";
-    riskLabel = "Caution";
+    riskColor = "text-warning";
+    riskLabel = "Warning";
   } else {
-    RiskIcon = ShieldAlert;
-    riskColor = "text-red-600";
-    riskBgColor = "bg-red-50";
-    riskLabel = "High Risk";
+    riskColor = "text-red";
+    riskLabel = "Critical Risk";
   }
 
   return (
     <Tooltip delayDuration={0}>
       <TooltipTrigger>
-        <div className={`flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-md ${riskBgColor} transition-colors`}>
-          <RiskIcon className={`h-3.5 w-3.5 ${riskColor}`} />
-          <span className={`text-[10px] font-semibold tabular-nums ${riskColor}`}>
+        <div className="flex flex-col items-center">
+          <span className={`text-[11px] font-black tabular-nums tracking-tighter ${riskColor}`}>
             {total_parcels > 0 ? `${deliveryRate.toFixed(0)}%` : "N/A"}
           </span>
+          <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground/50">Rate</span>
         </div>
       </TooltipTrigger>
-      <TooltipContent 
-        side="right" 
-        align="start"
-        className="w-72 p-0 bg-card border-border shadow-xl rounded-xl overflow-hidden"
+      <TooltipContent
+        side="right"
+        className="w-64 p-0 bg-black text-white border-0"
       >
-        {/* Header */}
-        <div className={`px-4 py-3 ${riskBgColor} border-b border-border/50`}>
-          <div className="flex items-center gap-2">
-            <RiskIcon className={`h-5 w-5 ${riskColor}`} />
-            <span className={`font-semibold ${riskColor}`}>{riskLabel}</span>
-          </div>
-          {total_parcels > 0 && (
-            <p className="text-2xl font-bold mt-1 text-foreground">
-              {deliveryRate.toFixed(1)}% <span className="text-sm font-normal text-muted-foreground">delivery rate</span>
-            </p>
-          )}
+        <div className="p-4 border-b border-white/10">
+          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40 block mb-1">Security Audit</span>
+          <p className={`text-xl font-bold uppercase tracking-tight ${riskColor}`}>{riskLabel}</p>
         </div>
-        
-        {/* Stats */}
-        <div className="p-4 space-y-3">
-          <div className="grid grid-cols-3 gap-3">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-foreground">{total_parcels}</p>
-              <p className="text-xs text-muted-foreground">Total</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-emerald-600">{total_delivered}</p>
-              <p className="text-xs text-muted-foreground">Delivered</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-red-600">{total_cancel}</p>
-              <p className="text-xs text-muted-foreground">Cancelled</p>
-            </div>
+
+        <div className="p-4 grid grid-cols-3 gap-2 border-b border-white/10">
+          <div>
+            <p className="text-[14px] font-bold tabular-nums">{total_parcels}</p>
+            <p className="text-[7px] font-black uppercase tracking-widest text-white/30">Total</p>
           </div>
-
-          {/* Progress bar */}
-          {total_parcels > 0 && (
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Delivery Success</span>
-                <span>{total_delivered}/{total_parcels}</span>
-              </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-emerald-500 rounded-full transition-all"
-                  style={{ width: `${deliveryRate}%` }}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Courier breakdown */}
-          {order.fraud_data?.apis && Object.keys(order.fraud_data.apis).length > 0 && (
-            <div className="pt-3 border-t border-border/50">
-              <p className="text-xs font-medium text-muted-foreground mb-2">By Courier</p>
-              <div className="space-y-1.5">
-                {Object.entries(order.fraud_data.apis).map(([courier, data]) => {
-                  const courierData = data as { total_delivered_parcels: number; total_parcels: number };
-                  const courierRate = courierData.total_parcels > 0 
-                    ? (courierData.total_delivered_parcels / courierData.total_parcels) * 100 
-                    : 0;
-                  return (
-                    <div key={courier} className="flex items-center justify-between text-sm">
-                      <span className="text-foreground">{courier}</span>
-                      <span className="font-mono text-muted-foreground">
-                        {courierData.total_delivered_parcels}/{courierData.total_parcels}
-                        {courierData.total_parcels > 0 && (
-                          <span className="ml-1 text-xs">({courierRate.toFixed(0)}%)</span>
-                        )}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          <div>
+            <p className="text-[14px] font-bold tabular-nums text-success">{total_delivered}</p>
+            <p className="text-[7px] font-black uppercase tracking-widest text-white/30">Success</p>
+          </div>
+          <div>
+            <p className="text-[14px] font-bold tabular-nums text-red">{total_cancel}</p>
+            <p className="text-[7px] font-black uppercase tracking-widest text-white/30">Failure</p>
+          </div>
         </div>
+
+        {total_parcels > 0 && (
+          <div className="p-4 h-1 bg-white/10">
+            <div className="h-full bg-red transition-all" style={{ width: `${100 - deliveryRate}%`, float: 'right' }} />
+            <div className="h-full bg-success transition-all" style={{ width: `${deliveryRate}%` }} />
+          </div>
+        )}
       </TooltipContent>
     </Tooltip>
   );
@@ -259,70 +197,52 @@ function NotesPopover({ order, onOrderUpdate }: { order: Order; onOrderUpdate?: 
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("orders")
-        .update({ notes })
-        .eq("id", order.id);
-
+      const { error } = await supabase.functions.invoke("confirm-order", {
+        body: { orderId: order.id, notes }
+      });
       if (error) throw error;
-
-      if (onOrderUpdate) {
-        onOrderUpdate({ ...order, notes });
-      }
+      if (onOrderUpdate) onOrderUpdate({ ...order, notes });
       setOpen(false);
-      toast.success("Notes saved");
+      toast.success("Registry updated");
     } catch (error) {
-      console.error("Error saving notes:", error);
-      toast.error("Failed to save notes");
+      toast.error("Failed to update registry");
     } finally {
       setSaving(false);
     }
   };
 
-  const hasNotes = order.notes && order.notes.trim().length > 0;
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <Tooltip delayDuration={0}>
-        <TooltipTrigger asChild>
-          <PopoverTrigger asChild>
-            <button
-              className={`relative p-1.5 rounded-lg transition-all duration-200 ${
-                hasNotes 
-                  ? "bg-gradient-to-br from-primary/15 to-primary/5 text-primary shadow-sm ring-1 ring-primary/20 hover:ring-primary/40 hover:shadow-md" 
-                  : "text-muted-foreground/30 hover:bg-muted/50 hover:text-muted-foreground"
-              }`}
-            >
-              <NotebookPen className="h-3.5 w-3.5" />
-              {hasNotes && (
-                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary animate-pulse" />
-              )}
-            </button>
-          </PopoverTrigger>
-        </TooltipTrigger>
-        {!open && hasNotes && (
-          <TooltipContent side="top" className="max-w-[200px] text-sm">
-            {order.notes}
-          </TooltipContent>
-        )}
-      </Tooltip>
-      <PopoverContent className="w-64 p-3" align="end">
-        <div className="space-y-3">
-          <p className="text-xs font-medium text-muted-foreground">Order Notes</p>
+      <PopoverTrigger asChild>
+        <button
+          className={`p-1 transition-colors ${order.notes ? "text-red" : "text-muted-foreground/30 hover:text-black"}`}
+        >
+          <NotebookPen className="h-3.5 w-3.5" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-0 bg-black text-white border-0" align="end">
+        <div className="p-4 border-b border-white/10">
+          <span className="swiss-label text-white/40">Registry Note</span>
           <Textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Add notes..."
-            className="min-h-[80px] text-sm resize-none"
+            className="bg-white/5 border-white/10 text-xs text-white placeholder:text-white/20 min-h-[100px] mt-2 tracking-wide"
           />
-          <div className="flex justify-end gap-2">
-            <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button size="sm" onClick={handleSave} disabled={saving}>
-              {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
-            </Button>
-          </div>
+        </div>
+        <div className="flex">
+          <button
+            onClick={() => setOpen(false)}
+            className="flex-1 py-3 text-[10px] font-black uppercase tracking-widest hover:bg-white/5"
+          >
+            Abort
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex-1 py-3 text-[10px] font-black uppercase tracking-widest bg-red hover:bg-red/80"
+          >
+            {saving ? "..." : "Commit"}
+          </button>
         </div>
       </PopoverContent>
     </Popover>
@@ -336,10 +256,10 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
 
   const handleStatusToggle = async (order: Order) => {
     const newStatus = order.status === "confirmed" ? "pending" : "confirmed";
-    
+
     // Optimistic update - update UI immediately
     onStatusUpdate(order.id, newStatus);
-    
+
     try {
       const { error } = await supabase
         .from("orders")
@@ -359,7 +279,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
 
   const handleSendToCourier = async (order: Order) => {
     setSendingIds((prev) => new Set(prev).add(order.id));
-    
+
     try {
       const { data, error } = await supabase.functions.invoke("send-to-courier", {
         body: { orderId: order.id },
@@ -392,7 +312,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
 
   const handleCheckFraud = async (order: Order) => {
     setCheckingFraudIds((prev) => new Set(prev).add(order.id));
-    
+
     try {
       const { data, error } = await supabase.functions.invoke("check-fraud", {
         body: { orderId: order.id },
@@ -436,11 +356,11 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
     if (!order.sent_to_courier) {
       return null;
     }
-    
+
     const status = order.courier_status?.toLowerCase();
     let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
     let className = "";
-    
+
     switch (status) {
       case "delivered":
         variant = "default";
@@ -457,7 +377,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
       default:
         variant = "outline";
     }
-    
+
     return (
       <Badge variant={variant} className={className}>
         {order.courier_status || "Sent"}
@@ -485,20 +405,18 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
   }
 
   return (
-    <div className="overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow className="border-b border-border/40 hover:bg-transparent">
-            <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70 py-3 h-auto">Order</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70 py-3 h-auto">Customer</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70 py-3 h-auto">Phone</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70 py-3 h-auto text-center">Fraud</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70 py-3 h-auto">Address</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70 py-3 h-auto">Product</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70 py-3 h-auto text-right">Price</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70 py-3 h-auto text-center">Status</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70 py-3 h-auto text-center">Courier</TableHead>
-            <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70 py-3 h-auto text-center">Actions</TableHead>
+    <div className="overflow-x-auto">
+      <Table className="border-collapse border-spacing-0">
+        <TableHeader className="bg-black">
+          <TableRow className="border-b border-white/10 hover:bg-transparent">
+            <TableHead className="text-[9px] font-black uppercase tracking-[0.2em] text-white/50 py-4 h-auto pl-8">Order ID</TableHead>
+            <TableHead className="text-[9px] font-black uppercase tracking-[0.2em] text-white/50 py-4 h-auto">Customer</TableHead>
+            <TableHead className="text-[9px] font-black uppercase tracking-[0.2em] text-white/50 py-4 h-auto">Contact Info</TableHead>
+            <TableHead className="text-[9px] font-black uppercase tracking-[0.2em] text-white/50 py-4 h-auto text-center">Safety Rating</TableHead>
+            <TableHead className="text-[9px] font-black uppercase tracking-[0.2em] text-white/50 py-4 h-auto">Delivery Address</TableHead>
+            <TableHead className="text-[9px] font-black uppercase tracking-[0.2em] text-white/50 py-4 h-auto text-right pr-8">Valuation</TableHead>
+            <TableHead className="text-[9px] font-black uppercase tracking-[0.2em] text-white/50 py-4 h-auto text-center">Registry State</TableHead>
+            <TableHead className="text-[9px] font-black uppercase tracking-[0.2em] text-white/50 py-4 h-auto text-center pr-8">Logistics</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -506,172 +424,129 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
             const { primary, moreCount, lines } = productSummary(order);
 
             return (
-              <TableRow key={order.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors group">
-              <TableCell className="py-3">
-                <span className="font-medium text-[13px] tabular-nums block">{order.order_number}</span>
-                <span className="text-[11px] text-muted-foreground/60 tabular-nums">{format(new Date(order.created_at), "dd MMM yyyy")}</span>
-              </TableCell>
-              <TableCell className="py-3 text-[13px]">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-medium">{order.customer_name || "—"}</span>
-                  {order.fulfillment_status === "fulfilled" && (
-                    <span className="text-[9px] px-1.5 py-px rounded-full bg-success/10 text-success font-semibold uppercase tracking-wider shrink-0">
-                      Fulfilled
-                    </span>
-                  )}
-                  {order.fulfillment_status === "partial" && (
-                    <span className="text-[9px] px-1.5 py-px rounded-full bg-warning/10 text-warning font-semibold uppercase tracking-wider shrink-0">
-                      Partial
-                    </span>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell className="font-mono text-[13px] py-3 text-muted-foreground">{order.phone || "—"}</TableCell>
-              <TableCell className="text-center py-3">
-                <div className="flex items-center justify-center gap-1.5">
-                  <FraudIndicator order={order} />
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleCheckFraud(order)}
-                    disabled={checkingFraudIds.has(order.id)}
-                    className="h-6 w-6 p-0 hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="Check fraud status"
-                  >
-                    {checkingFraudIds.has(order.id) ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <Search className="h-3 w-3 text-muted-foreground" />
-                    )}
-                  </Button>
-                </div>
-              </TableCell>
-              <TableCell className="max-w-[180px] truncate py-3 text-[13px] text-muted-foreground" title={order.address || ""}>
-                {order.address || "—"}
-              </TableCell>
-                <TableCell className="max-w-[180px] py-3 text-[13px]">
-                  <Tooltip delayDuration={0}>
-                    <TooltipTrigger asChild>
-                      <span
-                        className="block truncate cursor-default"
-                        title={order.product || ""}
-                      >
-                        <span>{primary}</span>
-                        {moreCount > 0 && (
-                          <span className="ml-1.5 text-[10px] text-muted-foreground/60">+{moreCount}</span>
-                        )}
+              <TableRow key={order.id} className="border-b border-border hover:bg-secondary/20 transition-none group">
+                <TableCell className="py-6 pl-8">
+                  <span className="font-bold text-[12px] tabular-nums block uppercase tracking-wider">{order.order_number}</span>
+                  <span className="text-[9px] text-muted-foreground uppercase tracking-widest mt-1 block">{format(new Date(order.created_at), "dd / MM / yyyy")}</span>
+                </TableCell>
+                <TableCell className="py-6">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[12px] font-bold uppercase tracking-tight">{order.customer_name || "—"}</span>
+                    {order.fulfillment_status && (
+                      <span className={`text-[8px] font-black uppercase tracking-[0.2em] w-fit px-1 ${order.fulfillment_status === "fulfilled" ? "bg-success text-white" : "bg-warning text-black"
+                        }`}>
+                        {order.fulfillment_status}
                       </span>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-[360px]">
-                      {lines.length === 0 ? (
-                        <p className="text-sm">—</p>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell className="font-mono text-[11px] py-6 tabular-nums text-muted-foreground tracking-tighter">
+                  {order.phone || "—"}
+                </TableCell>
+                <TableCell className="text-center py-6">
+                  <div className="flex items-center justify-center gap-1.5">
+                    <FraudIndicator order={order} />
+                    <button
+                      onClick={() => handleCheckFraud(order)}
+                      disabled={checkingFraudIds.has(order.id)}
+                      className="p-1 hover:text-red transition-colors opacity-0 group-hover:opacity-100"
+                    >
+                      {checkingFraudIds.has(order.id) ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
                       ) : (
-                        <div className="space-y-1">
-                          {lines.map((line, index) => (
-                            <p key={index} className="text-sm">
-                              {lines.length === 1
-                                ? formatProductLine(line, order.quantity)
-                                : line}
+                        <Search className="h-3.2 w-3.2" />
+                      )}
+                    </button>
+                  </div>
+                </TableCell>
+                <TableCell className="py-6 text-[11px] leading-relaxed max-w-[200px]">
+                  <div className="flex flex-col gap-1">
+                    <Tooltip delayDuration={0}>
+                      <TooltipTrigger asChild>
+                        <span className="truncate block font-medium uppercase tracking-tight" title={order.product || ""}>
+                          {primary} {moreCount > 0 && <span className="text-red">+{moreCount}</span>}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-[360px] bg-black text-white border-0">
+                        <div className="p-2 space-y-1">
+                          {lines.map((line, idx) => (
+                            <p key={idx} className="text-[10px] uppercase font-bold tracking-widest leading-none">
+                              {lines.length === 1 ? formatProductLine(line, order.quantity) : line}
                             </p>
                           ))}
                         </div>
-                      )}
-                    </TooltipContent>
-                  </Tooltip>
+                      </TooltipContent>
+                    </Tooltip>
+                    <span className="text-[10px] text-muted-foreground truncate" title={order.address || ""}>
+                      {order.address || "—"}
+                    </span>
+                  </div>
                 </TableCell>
-              <TableCell className="text-right font-mono py-3 text-[13px] tabular-nums">
-                {formatPrice(order.price, order.delivery_rate)}
-              </TableCell>
-              <TableCell className="text-center py-3">
-                <div className="flex items-center justify-center gap-1.5">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button
-                        className={`h-7 w-[76px] text-[10px] font-semibold uppercase tracking-wider rounded-md transition-colors cursor-pointer ${
-                          order.status === "confirmed"
-                            ? "bg-success/10 text-success"
-                            : "bg-warning/10 text-warning"
+                <TableCell className="text-right py-6 font-bold text-[13px] tabular-nums pr-8 tracking-tighter">
+                  {formatPrice(order.price, order.delivery_rate)}
+                </TableCell>
+                <TableCell className="text-center py-6">
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => handleStatusToggle(order)}
+                      className={`h-6 px-3 text-[9px] font-black uppercase tracking-[0.2em] border ${order.status === "confirmed"
+                        ? "bg-transparent border-success text-success"
+                        : "bg-red border-red text-white"
                         }`}
+                    >
+                      {order.status === "confirmed" ? "Confirmed" : "Hold"}
+                    </button>
+                    <NotesPopover order={order} onOrderUpdate={onOrderUpdate} />
+                  </div>
+                </TableCell>
+                <TableCell className="text-center py-6 pr-8">
+                  <div className="flex flex-col items-center gap-2">
+                    {!order.sent_to_courier ? (
+                      <button
+                        onClick={() => handleSendToCourier(order)}
+                        disabled={sendingIds.has(order.id)}
+                        className="h-8 w-8 flex items-center justify-center bg-black text-white hover:bg-red transition-colors"
+                        title="Dispatch Order"
                       >
-                        {order.status === "confirmed" ? "Confirmed" : "Pending"}
+                        {sendingIds.has(order.id) ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Truck className="h-4 w-4" />
+                        )}
                       </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[96px] p-1" align="center">
-                      <div className="flex flex-col gap-0.5">
-                        <button
-                          onClick={() => {
-                            if (order.status !== "pending") handleStatusToggle(order);
-                          }}
-                          className={`h-7 w-full text-[10px] font-semibold uppercase tracking-wider rounded-md transition-colors ${
-                            order.status === "pending"
-                              ? "bg-warning/10 text-warning"
-                              : "hover:bg-muted text-foreground"
-                          }`}
-                        >
-                          Pending
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (order.status !== "confirmed") handleStatusToggle(order);
-                          }}
-                          className={`h-7 w-full text-[10px] font-semibold uppercase tracking-wider rounded-md transition-colors ${
-                            order.status === "confirmed"
-                              ? "bg-success/10 text-success"
-                              : "hover:bg-muted text-foreground"
-                          }`}
-                        >
-                          Confirmed
-                        </button>
+                    ) : (
+                      <div className="flex flex-col items-center">
+                        <span className="text-[10px] font-black tabular-nums tracking-widest">{order.consignment_id}</span>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <span className={`text-[8px] font-black uppercase tracking-widest px-1 mt-1 ${order.courier_status?.toLowerCase() === "delivered" ? "bg-success text-white" : "bg-black text-white"
+                              }`}>
+                              {order.courier_status || "DISPATCHED"}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-black text-white border-0">
+                            <p className="text-[10px] font-bold uppercase tracking-widest">
+                              Tracking: {order.tracking_code || "N/A"}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
                       </div>
-                    </PopoverContent>
-                  </Popover>
-                  <NotesPopover order={order} onOrderUpdate={onOrderUpdate} />
-                </div>
-              </TableCell>
-              <TableCell className="text-center py-3">
-                {order.sent_to_courier ? (
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <div className="flex flex-col items-center gap-0.5">
-                        <span className="font-mono text-[13px] font-medium tabular-nums">{order.consignment_id || "—"}</span>
-                        {getCourierStatusBadge(order)}
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <div className="text-sm space-y-1">
-                        <p><strong>Consignment ID:</strong> {order.consignment_id || "N/A"}</p>
-                        <p><strong>Tracking:</strong> {order.tracking_code || "N/A"}</p>
-                        {order.courier_message && <p>{order.courier_message}</p>}
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                ) : (
-                  <span className="text-muted-foreground/40 text-xs">—</span>
-                )}
-              </TableCell>
-              <TableCell className="text-center py-3">
-                {!order.sent_to_courier ? (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleSendToCourier(order)}
-                    disabled={sendingIds.has(order.id)}
-                    className="h-7 text-[10px] font-medium tracking-wide px-3 border-border/40 hover:bg-muted/60"
-                  >
-                    {sendingIds.has(order.id) ? (
-                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                    ) : null}
-                    {sendingIds.has(order.id) ? "Sending…" : "Send"}
-                  </Button>
-                ) : (
-                  <span className="text-[10px] text-muted-foreground/40 uppercase tracking-wider">Sent</span>
-                )}
-              </TableCell>
+                    )}
+                  </div>
+                </TableCell>
               </TableRow>
             );
           })}
         </TableBody>
       </Table>
     </div>
+  );
+}
+              </TableRow >
+            );
+          })}
+        </TableBody >
+      </Table >
+    </div >
   );
 }
