@@ -43,7 +43,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
         collapsed ? "w-[68px]" : "w-[240px]"
       }`}
     >
-      {/* Workspace header */}
+      {/* Workspace header with toggle */}
       <div className="flex items-center gap-3 px-4 py-5 border-b border-border/40">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-semibold shrink-0">
           A
@@ -54,13 +54,9 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
             <p className="text-[11px] text-muted-foreground truncate">Workspace</p>
           </div>
         )}
-      </div>
-
-      {/* Collapse toggle */}
-      <div className="px-3 pt-3">
         <button
           onClick={onToggle}
-          className="flex w-full items-center justify-center rounded-lg p-2 text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors"
+          className="p-1.5 rounded-md text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors shrink-0"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? (
