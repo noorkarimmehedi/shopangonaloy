@@ -16,7 +16,6 @@ import {
   Activity,
   DollarSign,
   Home,
-  Infinity,
   LinkIcon,
   Package2,
   Percent,
@@ -36,36 +35,14 @@ import { NotificationsPopover } from "./nav-notifications";
 import { TeamSwitcher } from "./team-switcher";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
-
-const sampleNotifications = [
-  {
-    id: "1",
-    avatar: "/avatars/01.png",
-    fallback: "OM",
-    text: "New order received.",
-    time: "10m ago",
-  },
-  {
-    id: "2",
-    avatar: "/avatars/02.png",
-    fallback: "JL",
-    text: "Server upgrade completed.",
-    time: "1h ago",
-  },
-  {
-    id: "3",
-    avatar: "/avatars/03.png",
-    fallback: "HH",
-    text: "New user signed up.",
-    time: "2h ago",
-  },
-];
+import { useNotifications } from "@/hooks/useNotifications";
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
   const { user } = useAuth();
   const { isAdmin, loading: roleLoading } = useUserRole();
+  const { notifications, hasUnread, markAsRead } = useNotifications();
 
   const dashboardRoutes = useMemo((): Route[] => [
     {
@@ -119,7 +96,11 @@ export function AppSidebar() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
         >
-          <NotificationsPopover notifications={sampleNotifications} />
+          <NotificationsPopover
+            notifications={notifications}
+            hasUnread={hasUnread}
+            onMarkAsRead={markAsRead}
+          />
           <SidebarTrigger />
         </motion.div>
       </SidebarHeader>
