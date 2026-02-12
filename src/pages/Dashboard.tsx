@@ -46,6 +46,7 @@ export default function Dashboard() {
   const [syncing, setSyncing] = useState(false);
   const [checkingFraud, setCheckingFraud] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
