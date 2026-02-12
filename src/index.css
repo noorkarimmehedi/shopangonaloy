@@ -13,54 +13,60 @@
 
 @layer base {
   :root {
-    /* Pure Swiss Palette — minimal and high contrast */
-    --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
+    /* Cool off-white — pure Swiss neutrality */
+    --background: 220 14% 96%;
+    --foreground: 220 20% 10%;
 
-    /* Crisp white cards with hairline borders */
+    /* Cards: crisp white */
     --card: 0 0% 100%;
     --card-foreground: 220 20% 10%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 10%;
 
-    /* Primary — Pure black */
-    --primary: 0 0% 0%;
-    --primary-foreground: 0 0% 100%;
+    /* Primary — deep charcoal */
+    --primary: 220 16% 12%;
+    --primary-foreground: 220 14% 96%;
 
-    /* Secondary — Soft neutral */
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 0%;
+    /* Secondary — cool gray */
+    --secondary: 220 10% 92%;
+    --secondary-foreground: 220 20% 10%;
 
-    /* Muted — subtle gray */
-    --muted: 0 0% 98%;
-    --muted-foreground: 0 0% 45%;
+    /* Muted — refined neutral */
+    --muted: 220 10% 93%;
+    --muted-foreground: 220 8% 46%;
 
-    /* Accent — Swiss Red for subtle highlights */
-    --accent: 0 100% 50%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent — cool steel blue hint */
+    --accent: 215 20% 90%;
+    --accent-foreground: 220 20% 10%;
 
-    /* Neutral accents */
-    --accent-neutral: 0 0% 92%;
-    --accent-neutral-foreground: 0 0% 0%;
+    /* Status colors — restrained, functional */
+    --destructive: 0 55% 48%;
+    --destructive-foreground: 0 0% 100%;
 
-    /* Borders — Hairline, sharp */
-    --border: 0 0% 88%;
-    --input: 0 0% 88%;
-    --ring: 0 0% 0%;
+    --success: 160 45% 36%;
+    --success-foreground: 0 0% 100%;
 
-    /* Zero radius for sharp grid look */
-    --radius: 0px;
+    --warning: 35 75% 50%;
+    --warning-foreground: 220 20% 10%;
 
-    /* Sidebar — Stark white with minimal separator */
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 0%;
-    --sidebar-primary: 0 0% 0%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 96%;
-    --sidebar-accent-foreground: 0 0% 0%;
-    --sidebar-border: 0 0% 88%;
-    --sidebar-ring: 0 0% 0%;
+    /* Borders — hairline, precise */
+    --border: 220 10% 88%;
+    --input: 220 10% 88%;
+    --ring: 220 16% 12%;
+
+    /* Tight radius — geometric precision */
+    --radius: 6px;
+
+    /* Sidebar */
+    --sidebar-background: 220 12% 95%;
+    --sidebar-foreground: 220 20% 10%;
+    --sidebar-primary: 220 16% 12%;
+    --sidebar-primary-foreground: 220 14% 96%;
+    --sidebar-accent: 220 10% 92%;
+    --sidebar-accent-foreground: 220 20% 10%;
+    --sidebar-border: 220 10% 88%;
+    --sidebar-ring: 220 16% 12%;
   }
 
   .dark {
@@ -126,59 +132,50 @@
     -webkit-font-smoothing: antialiased;
     font-family: "Inter", system-ui, -apple-system, sans-serif;
     @apply bg-background text-foreground;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.011em;
     margin: 0;
   }
 
-  /* Swiss Typography — strict geometric hierarchy */
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    @apply font-bold uppercase;
-    letter-spacing: -0.04em;
+  /* Swiss Typography — strict hierarchy */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+    letter-spacing: -0.03em;
   }
 
   h1 {
-    @apply text-5xl md:text-7xl leading-[0.9];
+    font-family: "DM Serif Display", "Inter", serif;
+    @apply text-3xl md:text-4xl font-normal;
+    letter-spacing: -0.02em;
   }
 
   h2 {
-    @apply text-3xl md:text-4xl leading-[0.95];
+    @apply text-xl md:text-2xl;
+    letter-spacing: -0.025em;
   }
 
   h3 {
-    @apply text-xl md:text-2xl leading-[1];
-  }
-
-  p {
-    @apply leading-tight;
-    letter-spacing: -0.01em;
+    @apply text-lg md:text-xl;
+    letter-spacing: -0.02em;
   }
 }
 
 @layer components {
-
   /* Swiss Grid Container — generous margins */
-  /* Swiss Grid — rigid cell-based layouts */
-  .swiss-grid-cell {
-    @apply border-r border-b border-border p-8;
+  .swiss-container {
+    @apply max-w-[1440px] mx-auto px-6 md:px-10 lg:px-16;
   }
 
-  .swiss-grid-container {
-    @apply border-l border-t border-border grid grid-cols-12;
-  }
-
-  /* Swiss Card — no padding by default, let cells handle it */
+  /* Swiss Card — minimal, precise */
   .swiss-card {
-    @apply bg-card border border-border overflow-hidden;
-    box-shadow: none;
+    @apply bg-card rounded-md border border-border/60;
+    box-shadow: 0 1px 2px 0 hsl(220 20% 10% / 0.03);
   }
 
   .swiss-card-elevated {
-    @apply bg-card border border-border shadow-none;
+    @apply bg-card rounded-md border border-border/50;
+    box-shadow:
+      0 1px 3px 0 hsl(220 20% 10% / 0.04),
+      0 8px 24px -4px hsl(220 20% 10% / 0.06);
   }
 
   /* Swiss Divider */
@@ -206,7 +203,6 @@
   .hover-lift {
     @apply transition-all duration-300 ease-out;
   }
-
   .hover-lift:hover {
     @apply -translate-y-px;
     box-shadow:

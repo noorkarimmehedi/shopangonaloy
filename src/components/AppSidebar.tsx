@@ -39,88 +39,90 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 
   return (
     <aside
-      className={`relative z-20 flex flex-col bg-sidebar transition-all duration-300 ease-in-out ${collapsed ? "w-[80px]" : "w-[280px]"
-        }`}
+      className={`fixed inset-y-0 left-0 z-20 flex flex-col border-r border-border/60 bg-card transition-all duration-300 ease-in-out ${
+        collapsed ? "w-[68px]" : "w-[240px]"
+      }`}
     >
-      {/* Workspace header — Geometric & Minimal */}
-      <div className="border-b border-border flex items-center justify-between h-[80px] px-6">
-        <div className="flex items-center gap-4">
-          <div className="flex h-10 w-10 items-center justify-center bg-primary text-primary-foreground text-lg font-bold">
+      {/* Workspace header with toggle */}
+      <div className={`flex flex-col border-b border-border/40 ${collapsed ? "items-center py-4 gap-3" : ""}`}>
+        <div className={`flex items-center gap-3 ${collapsed ? "px-0" : "px-4 py-5"}`}>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-semibold shrink-0">
             A
           </div>
           {!collapsed && (
-            <div className="animate-fade-in">
-              <p className="text-sm font-bold uppercase tracking-tight">Angonaloy</p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Office</p>
-            </div>
+            <>
+              <div className="flex-1 min-w-0 animate-fade-in">
+                <p className="text-sm font-semibold truncate leading-tight">Angonaloy</p>
+                <p className="text-[11px] text-muted-foreground truncate">Workspace</p>
+              </div>
+              <button
+                onClick={onToggle}
+                className="p-1.5 rounded-md text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors shrink-0"
+                title="Collapse sidebar"
+              >
+                <PanelLeftClose className="h-4 w-4" />
+              </button>
+            </>
           )}
         </div>
+        {collapsed && (
+          <button
+            onClick={onToggle}
+            className="p-1.5 rounded-md text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors"
+            title="Expand sidebar"
+          >
+            <PanelLeft className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
-      {/* Nav items — Typographic focus */}
-      <nav className="flex-1 py-10">
-        <div className={`space-y-1 ${collapsed ? "px-2" : "px-0"}`}>
-          {allItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <button
-                key={item.path}
-                onClick={() => navigate(item.path)}
-                title={collapsed ? item.label : undefined}
-                className={`flex w-full items-center gap-4 px-6 py-4 transition-all duration-200 ${collapsed ? "justify-center" : ""
-                  } ${isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                  }`}
-              >
-                {!collapsed && (
-                  <span className="text-xs font-bold uppercase tracking-[0.1em] truncate">
-                    {item.label}
-                  </span>
-                )}
-                {collapsed && <span className="text-[10px] font-bold uppercase leading-none">{item.label.charAt(0)}</span>}
-              </button>
-            );
-          })}
-        </div>
+      {/* Nav items */}
+      <nav className="flex-1 px-3 py-2 space-y-0.5">
+        {allItems.map((item) => {
+          const isActive = location.pathname === item.path;
+          return (
+            <button
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              title={collapsed ? item.label : undefined}
+              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                collapsed ? "justify-center" : ""
+              } ${
+                isActive
+                  ? "bg-accent text-foreground"
+                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+              }`}
+            >
+              <item.icon className="h-4 w-4 shrink-0" />
+              {!collapsed && <span className="truncate">{item.label}</span>}
+            </button>
+          );
+        })}
       </nav>
 
-      {/* Toggle button — Floating Swiss precision */}
-      <div className="p-4 flex justify-center border-t border-border">
-        <button
-          onClick={onToggle}
-          className="w-full py-4 border border-border hover:bg-primary hover:text-primary-foreground transition-colors flex items-center justify-center gap-2"
-        >
-          {collapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-          {!collapsed && <span className="text-[10px] font-bold uppercase tracking-widest">Toggle View</span>}
-        </button>
-      </div>
-
       {/* User footer */}
-      <div className="border-t border-border px-6 py-8">
-        <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"}`}>
-          <div className="flex items-center gap-4">
-            <div className="flex h-10 w-10 items-center justify-center bg-secondary text-xs font-bold shrink-0">
-              {user?.email?.charAt(0).toUpperCase() || "U"}
-            </div>
-            {!collapsed && (
-              <div className="animate-fade-in overflow-hidden">
-                <p className="text-xs font-bold truncate uppercase tracking-tight">
-                  {user?.email?.split("@")[0] || "User"}
-                </p>
-                <p className="text-[10px] text-muted-foreground truncate uppercase tracking-tighter">
-                  {user?.email || ""}
-                </p>
-              </div>
-            )}
+      <div className="border-t border-border/40 px-3 py-4">
+        <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground shrink-0">
+            {user?.email?.charAt(0).toUpperCase() || "U"}
           </div>
+          {!collapsed && (
+            <div className="flex-1 min-w-0 animate-fade-in">
+              <p className="text-sm font-medium truncate leading-tight">
+                {user?.email?.split("@")[0] || "User"}
+              </p>
+              <p className="text-[11px] text-muted-foreground truncate">
+                {user?.email || ""}
+              </p>
+            </div>
+          )}
           {!collapsed && (
             <button
               onClick={handleSignOut}
-              className="p-2 border border-border hover:bg-destructive hover:text-destructive-foreground transition-colors"
-              title="Logout"
+              className="p-1.5 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+              title="Sign out"
             >
-              <LogOut className="h-3 w-3" />
+              <LogOut className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
