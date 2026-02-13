@@ -60,13 +60,13 @@ export const generateInvoice = (orders: Order[]) => {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(8);
         // Letter spacing simulation by adding spaces (PDF js doesn't support tracking natively well without plugin)
-        doc.text("SHOP  ANGONALOY", width - margin, logoY + logoSize + 6, { align: "right" });
+        doc.text("Angonaloy", width - margin, logoY + logoSize + 6, { align: "right" });
 
         doc.setFont("helvetica", "normal");
         doc.setTextColor(darkGrey[0], darkGrey[1], darkGrey[2]);
         doc.text("Dhaka, Bangladesh", width - margin, logoY + logoSize + 10, { align: "right" });
-        doc.text("shopangonaloy.com", width - margin, logoY + logoSize + 14, { align: "right" });
-        doc.text("+880 1XXX-XXXXXX", width - margin, logoY + logoSize + 18, { align: "right" });
+        doc.text("https://angonaloy.shop/", width - margin, logoY + logoSize + 14, { align: "right" });
+        doc.text("+8801819502705", width - margin, logoY + logoSize + 18, { align: "right" });
 
 
         // --- 2. MASSIVE TITLE (Top Left) ---
@@ -133,29 +133,7 @@ export const generateInvoice = (orders: Order[]) => {
             drawParagraph(order.address, col2, row1 + 15, 50);
         }
 
-        // Col 3: Status / Payment (Optional filler)
-        drawLabel("STATUS", col3, row1);
 
-        // Draw a status badge
-        let statusColor = [0, 0, 0] as [number, number, number];
-        let statusBg = [240, 240, 240] as [number, number, number];
-        let statusText = order.status.toUpperCase();
-
-        if (order.status === 'confirmed') {
-            statusColor = [22, 101, 52]; // Green-800
-            statusBg = [220, 252, 231]; // Green-100
-        } else if (order.status === 'pending') {
-            statusColor = [146, 64, 14]; // Amber-800
-            statusBg = [254, 243, 199]; // Amber-100
-        }
-
-        doc.setFillColor(statusBg[0], statusBg[1], statusBg[2]);
-        doc.roundedRect(col3, row1 + 2, 25, 6, 1, 1, "F");
-
-        doc.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
-        doc.setFontSize(7);
-        doc.setFont("helvetica", "bold");
-        doc.text(statusText, col3 + 12.5, row1 + 6, { align: "center" });
 
 
         // --- 4. ITEM TABLE ---
@@ -288,7 +266,7 @@ export const generateInvoice = (orders: Order[]) => {
 
         // Draw "QR" text inside
         doc.setFontSize(8);
-        doc.text("SCAN ME", qrX + (qrSize / 2), qrY + (qrSize / 2), { align: "center" });
+        // QR code placeholder - no text needed
 
     });
 
