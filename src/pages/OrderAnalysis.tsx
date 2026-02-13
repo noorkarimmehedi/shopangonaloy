@@ -12,6 +12,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import ReactMarkdown from "react-markdown";
+import type { DateRange } from "react-day-picker";
 
 interface ItemSummary {
   item: string;
@@ -21,15 +22,15 @@ interface ItemSummary {
 }
 
 export default function OrderAnalysis() {
-  const [date, setDate] = useState<Date>();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [summary, setSummary] = useState<ItemSummary[]>([]);
   const [totalOrders, setTotalOrders] = useState(0);
 
   const handleAnalyze = async () => {
-    if (!date) {
-      toast.error("Please select a date first");
+    if (!dateRange?.from) {
+      toast.error("Please select a date range first");
       return;
     }
 
@@ -37,9 +38,12 @@ export default function OrderAnalysis() {
     setAnalysis(null);
     setSummary([]);
 
+    const from = format(dateRange.from, "yyyy-MM-dd");
+    const to = dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : from;
+
     try {
       const { data, error } = await supabase.functions.invoke("analyze-orders", {
-        body: { date: format(date, "yyyy-MM-dd") },
+        body: { startDate: from, endDate: to },
       });
 
       if (error) throw error;
@@ -55,6 +59,12 @@ export default function OrderAnalysis() {
     }
   };
 
+  const rangeLabel = () => {
+    if (!dateRange?.from) return "Pick a date range";
+    if (!dateRange.to) return format(dateRange.from, "PPP");
+    return `${format(dateRange.from, "MMM d, yyyy")} – ${format(dateRange.to, "MMM d, yyyy")}`;
+  };
+
   return (
     <>
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border/40 bg-card/90 backdrop-blur-md px-8 h-14">
@@ -68,7 +78,7 @@ export default function OrderAnalysis() {
         <div>
           <h1 className="!text-2xl !font-semibold tracking-tight">Order Analysis</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            AI-powered daily order breakdown and item summary
+            AI-powered order breakdown and item summary
           </p>
         </div>
 
@@ -76,25 +86,26 @@ export default function OrderAnalysis() {
         <div className="swiss-card p-6">
           <div className="flex items-end gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Select Date</label>
+              <label className="text-sm font-medium text-foreground">Date Range</label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-[240px] justify-start text-left font-normal",
-                      !date && "text-muted-foreground"
+                      "w-[300px] justify-start text-left font-normal",
+                      !dateRange?.from && "text-muted-foreground"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : "Pick a date"}
+                    {rangeLabel()}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
+                    mode="range"
+                    selected={dateRange}
+                    onSelect={setDateRange}
+                    numberOfMonths={2}
                     disabled={(d) => d > new Date()}
                     initialFocus
                     className={cn("p-3 pointer-events-auto")}
@@ -102,7 +113,7 @@ export default function OrderAnalysis() {
                 </PopoverContent>
               </Popover>
             </div>
-            <Button onClick={handleAnalyze} disabled={!date || loading}>
+            <Button onClick={handleAnalyze} disabled={!dateRange?.from || loading}>
               {loading ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
