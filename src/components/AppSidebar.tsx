@@ -13,7 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
-  BrainCircuit,
+  Sparkles,
   PackageSearch,
   Settings,
 } from "lucide-react";
@@ -44,7 +44,7 @@ export function AppSidebar() {
       {
         id: "order-analysis",
         title: "AI Analysis",
-        icon: <BrainCircuit className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />,
+        icon: <Sparkles className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />,
         link: "/order-analysis",
       },
       {
