@@ -156,7 +156,7 @@ export const generateInvoice = (orders: Order[]) => {
 
         autoTable(doc, {
             startY: 120,
-            head: [["", "", ""]],
+            head: [["DESCRIPTION", "QTY", "AMOUNT"]],
             body: tableData,
             theme: 'grid',
             styles: {
