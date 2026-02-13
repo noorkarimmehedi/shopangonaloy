@@ -79,7 +79,7 @@ export default function Auth() {
           <div className="h-8 w-8 bg-white/10 backdrop-blur-md rounded-lg flex items-center justify-center border border-white/20">
             <div className="h-4 w-4 bg-white rounded-sm" />
           </div>
-          <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/90">Angonaloy</span>
+          <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/90">Arc Lab Technology</span>
         </div>
 
         <div className="relative z-10 max-w-lg space-y-8">
@@ -92,8 +92,7 @@ export default function Auth() {
           </p>
         </div>
 
-        <div className="relative z-10 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-white/40">
-          <span>Swiss Grid System</span>
+        <div className="relative z-10 flex items-center justify-end text-[10px] font-bold uppercase tracking-widest text-white/40">
           <span>v2.0.0</span>
         </div>
       </div>
@@ -106,7 +105,7 @@ export default function Auth() {
             <div className="h-12 w-12 bg-black rounded-xl flex items-center justify-center border border-black/5">
               <div className="h-6 w-6 bg-white rounded-sm" />
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-black/60">Angonaloy</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-black/60">Arc Lab Technology</span>
           </div>
 
           {/* Header - Centered */}
