@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, BrainCircuit, Loader2, Package } from "lucide-react";
+import { CalendarIcon, Sparkles, Loader2, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import ReactMarkdown from "react-markdown";
 import type { DateRange } from "react-day-picker";
 
@@ -22,24 +27,37 @@ interface ItemSummary {
 }
 
 export default function OrderAnalysis() {
+  const [mode, setMode] = useState<"single" | "range">("single");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [singleDate, setSingleDate] = useState<Date | undefined>(new Date());
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [summary, setSummary] = useState<ItemSummary[]>([]);
   const [totalOrders, setTotalOrders] = useState(0);
 
   const handleAnalyze = async () => {
-    if (!dateRange?.from) {
-      toast.error("Please select a date range first");
-      return;
+    let from: string;
+    let to: string;
+
+    if (mode === "single") {
+      if (!singleDate) {
+        toast.error("Please select a date first");
+        return;
+      }
+      from = format(singleDate, "yyyy-MM-dd");
+      to = from;
+    } else {
+      if (!dateRange?.from) {
+        toast.error("Please select a date range first");
+        return;
+      }
+      from = format(dateRange.from, "yyyy-MM-dd");
+      to = dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : from;
     }
 
     setLoading(true);
     setAnalysis(null);
     setSummary([]);
-
-    const from = format(dateRange.from, "yyyy-MM-dd");
-    const to = dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : from;
 
     try {
       const { data, error } = await supabase.functions.invoke("analyze-orders", {
@@ -59,7 +77,10 @@ export default function OrderAnalysis() {
     }
   };
 
-  const rangeLabel = () => {
+  const getLabel = () => {
+    if (mode === "single") {
+      return singleDate ? format(singleDate, "PPP") : "Pick a date";
+    }
     if (!dateRange?.from) return "Pick a date range";
     if (!dateRange.to) return format(dateRange.from, "PPP");
     return `${format(dateRange.from, "MMM d, yyyy")} – ${format(dateRange.to, "MMM d, yyyy")}`;
@@ -69,7 +90,7 @@ export default function OrderAnalysis() {
     <>
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border/40 bg-card/90 backdrop-blur-md px-8 h-14">
         <div className="flex items-center gap-2">
-          <BrainCircuit className="h-4 w-4 text-muted-foreground" />
+          <Sparkles className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium text-muted-foreground">AI Analysis</span>
         </div>
       </header>
@@ -84,43 +105,65 @@ export default function OrderAnalysis() {
 
         {/* Controls */}
         <div className="swiss-card p-6">
-          <div className="flex items-end gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Date Range</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-[300px] justify-start text-left font-normal",
-                      !dateRange?.from && "text-muted-foreground"
+          <div className="flex flex-col gap-6">
+            <Tabs value={mode} onValueChange={(v) => setMode(v as "single" | "range")} className="w-full">
+              <TabsList className="grid w-full max-w-[400px] grid-cols-2">
+                <TabsTrigger value="single">Single Day</TabsTrigger>
+                <TabsTrigger value="range">Date Range</TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            <div className="flex items-end gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  {mode === "single" ? "Select Day" : "Date Range"}
+                </label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[300px] justify-start text-left font-normal",
+                        mode === "single" ? !singleDate && "text-muted-foreground" : !dateRange?.from && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {getLabel()}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    {mode === "single" ? (
+                      <Calendar
+                        mode="single"
+                        selected={singleDate}
+                        onSelect={setSingleDate}
+                        disabled={(d) => d > new Date()}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    ) : (
+                      <Calendar
+                        mode="range"
+                        selected={dateRange}
+                        onSelect={setDateRange}
+                        numberOfMonths={2}
+                        disabled={(d) => d > new Date()}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
                     )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {rangeLabel()}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="range"
-                    selected={dateRange}
-                    onSelect={setDateRange}
-                    numberOfMonths={2}
-                    disabled={(d) => d > new Date()}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <Button onClick={handleAnalyze} disabled={(mode === "single" ? !singleDate : !dateRange?.from) || loading}>
+                {loading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4 mr-2" />
+                )}
+                {loading ? "Analyzing…" : "Analyze"}
+              </Button>
             </div>
-            <Button onClick={handleAnalyze} disabled={!dateRange?.from || loading}>
-              {loading ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <BrainCircuit className="h-4 w-4 mr-2" />
-              )}
-              {loading ? "Analyzing…" : "Analyze"}
-            </Button>
           </div>
         </div>
 
@@ -165,7 +208,7 @@ export default function OrderAnalysis() {
         {analysis && (
           <div className="swiss-card-elevated overflow-hidden">
             <div className="px-6 py-4 border-b border-border/50 flex items-center gap-2">
-              <BrainCircuit className="h-4 w-4 text-primary" />
+              <Sparkles className="h-4 w-4 text-primary" />
               <h2 className="text-base font-semibold tracking-tight">AI Analysis</h2>
             </div>
             <div className="px-6 py-5 prose prose-sm dark:prose-invert max-w-none">
