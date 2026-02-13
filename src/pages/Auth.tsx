@@ -63,32 +63,36 @@ export default function Auth() {
     <div className="min-h-screen w-full grid lg:grid-cols-2 bg-[#FDFDFD]">
       {/* Brand Section - Desktop Only */}
       <div className="hidden lg:flex flex-col justify-between p-12 bg-black text-white relative overflow-hidden">
-        {/* Abstract Grid Background */}
-        <div className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: "linear-gradient(#333 1px, transparent 1px), linear-gradient(90deg, #333 1px, transparent 1px)",
-            backgroundSize: "40px 40px"
-          }}
-        />
+        {/* Retro Background Image */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/imgi_51_BG copy.jpg"
+            alt="Background"
+            className="w-full h-full object-cover opacity-60 grayscale contrast-125 hover:scale-105 transition-transform duration-[20s]"
+          />
+          <div className="absolute inset-0 bg-black/40 mix-blend-multiply" />
+          {/* Noise Overlay for Retro Feel */}
+          <div className="absolute inset-0 opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
+        </div>
 
         <div className="relative z-10 flex items-center gap-3">
-          <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center">
-            <div className="h-4 w-4 bg-black rounded-sm" />
+          <div className="h-8 w-8 bg-white/10 backdrop-blur-md rounded-lg flex items-center justify-center border border-white/20">
+            <div className="h-4 w-4 bg-white rounded-sm" />
           </div>
-          <span className="text-xs font-bold uppercase tracking-[0.2em]">Angonaloy</span>
+          <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/90">Angonaloy</span>
         </div>
 
         <div className="relative z-10 max-w-lg space-y-8">
-          <h1 className="text-6xl font-normal leading-[1.1]">
+          <h1 className="text-6xl font-normal leading-[1.1] tracking-tight">
             Master your <br />
-            <span className="italic font-light text-white/50">operations</span> logistics.
+            <span className="italic font-light text-white/60">operations</span> logistics.
           </h1>
-          <p className="text-lg text-white/60 font-light leading-relaxed">
+          <p className="text-lg text-white/70 font-light leading-relaxed max-w-md">
             Advanced order synchronization, fraud detection, and courier integration in one unified dashboard.
           </p>
         </div>
 
-        <div className="relative z-10 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-white/30">
+        <div className="relative z-10 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-white/40">
           <span>Swiss Grid System</span>
           <span>v2.0.0</span>
         </div>
