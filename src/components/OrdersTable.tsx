@@ -357,7 +357,18 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
       }
     } catch (error) {
       console.error("Error updating order status:", error);
-      toast.error("Failed to update order status");
+      console.error("Error updating order status:", error);
+      toast.custom((t) => (
+        <div className="bg-white border border-black/5 shadow-2xl rounded-2xl p-4 flex items-center gap-4 min-w-[300px]">
+          <div className="h-10 w-10 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-5 h-5 text-red-500" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Update Failed</span>
+            <span className="text-sm font-bold text-black">Could not save status</span>
+          </div>
+        </div>
+      ));
     }
   };
 
@@ -381,10 +392,34 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
       if (data?.order && onOrderUpdate) {
         onOrderUpdate(data.order);
       }
-      toast.success(`Order ${order.order_number} sent to Steadfast courier`);
+      toast.custom((t) => (
+        <div className="bg-white border border-black/5 shadow-2xl rounded-2xl p-4 flex items-center gap-4 min-w-[300px]">
+          <div className="h-10 w-10 rounded-xl bg-black flex items-center justify-center shrink-0">
+            <Truck className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Courier Dispatched</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-sm font-bold text-black">Order {order.order_number}</span>
+              <span className="text-xs text-black/50 font-medium">Sent to Steadfast</span>
+            </div>
+          </div>
+        </div>
+      ));
     } catch (error) {
       console.error("Error sending to courier:", error);
-      toast.error("Failed to send order to courier");
+      console.error("Error sending to courier:", error);
+      toast.custom((t) => (
+        <div className="bg-white border border-black/5 shadow-2xl rounded-2xl p-4 flex items-center gap-4 min-w-[300px]">
+          <div className="h-10 w-10 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-5 h-5 text-red-500" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Courier Error</span>
+            <span className="text-sm font-bold text-black">Failed to send order</span>
+          </div>
+        </div>
+      ));
     } finally {
       setSendingIds((prev) => {
         const next = new Set(prev);
@@ -414,10 +449,33 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
       if (data?.order && onOrderUpdate) {
         onOrderUpdate(data.order);
       }
-      toast.success(`Fraud check completed for ${order.order_number}`);
+      toast.custom((t) => (
+        <div className="bg-white border border-black/5 shadow-2xl rounded-2xl p-4 flex items-center gap-4 min-w-[300px]">
+          <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0">
+            <ShieldCheck className="w-5 h-5 text-blue-500" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Fraud Analysis</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-sm font-bold text-black">Order {order.order_number}</span>
+              <span className="text-xs text-black/50 font-medium">Verified</span>
+            </div>
+          </div>
+        </div>
+      ));
     } catch (error) {
       console.error("Error checking fraud:", error);
-      toast.error("Failed to check fraud status");
+      toast.custom((t) => (
+        <div className="bg-white border border-black/5 shadow-2xl rounded-2xl p-4 flex items-center gap-4 min-w-[300px]">
+          <div className="h-10 w-10 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-5 h-5 text-red-500" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Analysis Failed</span>
+            <span className="text-sm font-bold text-black">Check fraud status failed</span>
+          </div>
+        </div>
+      ));
     } finally {
       setCheckingFraudIds((prev) => {
         const next = new Set(prev);
@@ -458,7 +516,20 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
       }
 
       if (successCount > 0) {
-        toast.success(`Completed fraud check for ${successCount} orders`);
+        toast.custom((t) => (
+          <div className="bg-white border border-black/5 shadow-2xl rounded-2xl p-4 flex items-center gap-4 min-w-[300px]">
+            <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-5 h-5 text-blue-500" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Bulk Analysis</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-sm font-bold text-black">{successCount} Orders</span>
+                <span className="text-xs text-black/50 font-medium">Verified Successfully</span>
+              </div>
+            </div>
+          </div>
+        ));
       }
       setSelectedIds(new Set());
     } finally {
