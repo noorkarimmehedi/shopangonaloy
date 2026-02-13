@@ -516,7 +516,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                   className="border-b border-black/[0.02] hover:bg-black/[0.01] transition-colors group relative"
                 >
                   <TableCell className="py-5 pl-10">
-                    <span className="font-bold text-[13px] tracking-tight block">#{order.order_number}</span>
+                    <span className="font-bold text-[13px] tracking-tight block">{order.order_number}</span>
                     <span className="text-[10px] text-black/20 font-medium uppercase tracking-wider">{format(new Date(order.created_at), "MMM dd, yyyy")}</span>
                   </TableCell>
                   <TableCell className="py-5">

@@ -173,10 +173,11 @@ export default function Dashboard() {
             size="sm"
             onClick={syncOrders}
             disabled={syncing || checkingFraud}
-            className="text-[10px] font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-all rounded-full px-4"
+            className="text-[10px] font-bold uppercase tracking-widest bg-white text-black border border-black/10 hover:bg-black hover:text-white transition-all rounded-full px-6 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.07),0_1px_4px_-1px_rgba(0,0,0,0.03),inset_0_1px_0_0_rgba(255,255,255,1)] relative overflow-hidden group active:scale-[0.98]"
           >
-            <RefreshCw className={cn("h-3 w-3 mr-2", syncing && "animate-spin")} />
-            {syncing ? "Syncing…" : "Sync Shopify"}
+            <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <RefreshCw className={cn("h-3 w-3 mr-2 relative z-10", syncing && "animate-spin")} />
+            <span className="relative z-10">{syncing ? "Syncing…" : "Sync Shopify"}</span>
           </Button>
           <Button
             variant="ghost"
