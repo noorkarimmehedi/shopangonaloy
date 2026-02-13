@@ -239,24 +239,7 @@ export default function Dashboard() {
           </div>
           <span className="text-xs font-bold uppercase tracking-widest text-black/40">Operations Hub</span>
         </div>
-        <div className="flex items-center gap-4 hidden">
-          <PlasticButton
-            text="Sync Shopify"
-            loadingText="Syncing…"
-            loading={syncing}
-            disabled={checkingFraud}
-            onClick={syncOrders}
-            className="h-10 px-6 text-[10px] uppercase font-bold tracking-widest"
-          />
-          <PlasticButton
-            text="Fraud Check"
-            loadingText="Checking…"
-            loading={checkingFraud}
-            disabled={syncing}
-            onClick={checkFraud}
-            className="h-10 px-6 text-[10px] uppercase font-bold tracking-widest bg-gradient-to-b from-black to-zinc-800"
-          />
-        </div>
+
       </header>
 
       <main className="max-w-[1400px] mx-auto px-10 py-16 space-y-16">
