@@ -4,18 +4,8 @@ import { AppSidebar } from "./AppSidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
 export function DashboardLayout() {
-    const [open, setOpen] = useState(() => {
-        const saved = localStorage.getItem("sidebar-open");
-        return saved !== null ? saved === "true" : true;
-    });
-
-    const handleOpenChange = (newOpen: boolean) => {
-        setOpen(newOpen);
-        localStorage.setItem("sidebar-open", String(newOpen));
-    };
-
     return (
-        <SidebarProvider open={open} onOpenChange={handleOpenChange}>
+        <SidebarProvider open={false} onOpenChange={() => {}}>
             <div className="flex min-h-screen w-full bg-background">
                 <AppSidebar />
                 <SidebarInset className="flex flex-col border-l">

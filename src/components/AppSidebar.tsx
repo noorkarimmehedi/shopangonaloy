@@ -7,7 +7,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -132,7 +131,6 @@ export function AppSidebar() {
             hasUnread={hasUnread}
             onMarkAsRead={markAsRead}
           />
-          <SidebarTrigger />
         </motion.div>
       </SidebarHeader>
       <SidebarContent className={cn("gap-4 py-4", isCollapsed ? "px-0" : "px-2")}>
