@@ -177,7 +177,7 @@ export const generateInvoice = (orders: Order[]) => {
             columnStyles: {
                 0: { cellWidth: "auto" }, // Description gets auto width
                 1: { cellWidth: 30, valign: "top" }, // Qty aligned to top
-                2: { cellWidth: 40, valign: "top" },   // Amount aligned to top
+                2: { cellWidth: 40, valign: "top", halign: "right" },   // Amount aligned to top and right
             },
             margin: { left: margin, right: margin },
 
