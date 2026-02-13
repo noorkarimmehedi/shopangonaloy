@@ -100,61 +100,83 @@ export default function Auth() {
 
       {/* Auth Form Section */}
       <div className="flex items-center justify-center p-8 lg:p-24">
-        <div className="w-full max-w-sm space-y-12">
-          {/* Mobile Header */}
-          <div className="lg:hidden flex items-center gap-3 mb-10">
-            <div className="h-8 w-8 bg-black rounded-lg flex items-center justify-center">
-              <div className="h-4 w-4 bg-white rounded-sm" />
+        <div className="w-full max-w-md">
+          {/* Mobile Header - Centered */}
+          <div className="lg:hidden flex flex-col items-center gap-4 mb-16">
+            <div className="h-12 w-12 bg-black rounded-xl flex items-center justify-center border border-black/5">
+              <div className="h-6 w-6 bg-white rounded-sm" />
             </div>
-            <span className="text-xs font-bold uppercase tracking-[0.2em]">Angonaloy</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-black/60">Angonaloy</span>
           </div>
 
-          <div className="space-y-2">
-            <h2 className="text-3xl font-normal text-black">Welcome back</h2>
-            <p className="text-black/40">Enter your credentials to access the dashboard.</p>
+          {/* Header - Centered */}
+          <div className="text-center space-y-3 mb-16">
+            <h2 className="text-4xl font-light text-black tracking-tight">Welcome back</h2>
+            <p className="text-sm text-black/40 font-light tracking-wide">Enter your credentials to access the dashboard.</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-black/40">Email Address</label>
-                <Input
-                  type="email"
-                  placeholder="name@company.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="h-12 bg-transparent border-black/10 focus-visible:ring-black rounded-xl"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-black/40">Password</label>
-                <div className="relative">
+          {/* Form Container with Subtle Border */}
+          <div className="border border-black/5 rounded-2xl p-10 bg-white/50 backdrop-blur-sm">
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="space-y-6">
+                {/* Email Field */}
+                <div className="space-y-3">
+                  <label className="block text-center text-[9px] font-bold uppercase tracking-[0.25em] text-black/30">
+                    Email Address
+                  </label>
                   <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="h-12 bg-transparent border-black/10 focus-visible:ring-black rounded-xl pr-10"
+                    type="email"
+                    placeholder="name@company.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="h-14 text-center bg-white border-black/10 focus-visible:ring-1 focus-visible:ring-black focus-visible:border-black rounded-xl text-sm placeholder:text-black/20 transition-all"
                     required
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-black/20 hover:text-black transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+                </div>
+
+                {/* Password Field */}
+                <div className="space-y-3">
+                  <label className="block text-center text-[9px] font-bold uppercase tracking-[0.25em] text-black/30">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="h-14 text-center bg-white border-black/10 focus-visible:ring-1 focus-visible:ring-black focus-visible:border-black rounded-xl pr-12 text-sm placeholder:text-black/20 transition-all"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-black/20 hover:text-black/60 transition-colors duration-200"
+                      aria-label="Toggle password visibility"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <PlasticButton
-              text="Sign In"
-              loading={loading}
-              className="w-full h-12 text-xs font-bold uppercase tracking-widest bg-black text-white hover:bg-black/90 shadow-xl shadow-black/10"
-            />
-          </form>
+              {/* Sign In Button */}
+              <div className="pt-4">
+                <PlasticButton
+                  text="Sign In"
+                  loading={loading}
+                  className="w-full h-14 text-[10px] font-bold uppercase tracking-[0.3em] bg-black text-white hover:bg-black/90 shadow-2xl shadow-black/5 transition-all duration-300 hover:shadow-black/10"
+                />
+              </div>
+            </form>
+          </div>
+
+          {/* Footer Text - Centered */}
+          <div className="mt-12 text-center">
+            <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-black/20">
+              Secure Authentication
+            </p>
+          </div>
         </div>
       </div>
     </div>
