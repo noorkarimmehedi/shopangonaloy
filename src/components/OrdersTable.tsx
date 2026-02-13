@@ -639,7 +639,6 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
       case "cancelled":
         variant = "destructive";
         break;
-      case "in_review":
       case "pending":
         variant = "secondary";
         className = "bg-warning text-warning-foreground";
@@ -649,7 +648,10 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
     }
 
     return (
-      <Badge variant={variant} className={className}>
+      <Badge 
+        variant={variant} 
+        className={cn("h-7 px-3 text-[9px] font-bold uppercase tracking-widest whitespace-nowrap", className)}
+      >
         {order.courier_status || "Sent"}
       </Badge>
     );
@@ -845,7 +847,6 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                             <span className="text-[7px] font-bold uppercase tracking-[0.2em] text-black/30">REF</span>
                             <span className="text-[11px] font-mono text-black font-semibold tracking-tight">{order.consignment_id}</span>
                           </div>
-                          {getCourierStatusBadge(order)}
                         </div>
                       )}
                     </div>
