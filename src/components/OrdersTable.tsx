@@ -710,7 +710,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                           loadingText="Syncing..."
                           loading={sendingIds.has(order.id)}
                           onClick={() => handleSendToCourier(order)}
-                          className="h-7 px-3 text-[7px] font-bold uppercase tracking-widest bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-lg shadow-blue-500/20"
+                          className="h-7 px-3 text-[6px] font-bold uppercase tracking-widest bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-lg shadow-blue-500/20"
                         />
                       ) : (
                         <div className="flex flex-col items-center gap-2">
