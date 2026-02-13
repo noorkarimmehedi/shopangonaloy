@@ -2,6 +2,13 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 
+// Note: jsPDF has limited support for Bangla (Bengali) script.
+// For full Bangla support, you would need to:
+// 1. Download a Bangla font (e.g., Noto Sans Bengali from Google Fonts)
+// 2. Convert it using: https://rawgit.com/MrRio/jsPDF/master/fontconverter/fontconverter.html
+// 3. Import the generated font file and use doc.addFont() and doc.setFont()
+// Currently using default fonts which support basic Latin characters.
+
 // Define Order interface based on what's used in Dashboard
 interface Order {
     id: string;
@@ -254,19 +261,7 @@ export const generateInvoice = (orders: Order[]) => {
         doc.setTextColor(darkGrey[0], darkGrey[1], darkGrey[2]);
         doc.text(`Page 1/1`, width - margin, height - 10, { align: "right" });
 
-        // QR Code Placeholder (Mock visual)
-        const qrSize = 25;
-        const qrX = width - margin - qrSize;
-        const qrY = footerY - 15;
 
-        // Draw a border for QR
-        doc.setDrawColor(black[0], black[1], black[2]);
-        doc.setLineWidth(0.1);
-        doc.rect(qrX, qrY, qrSize, qrSize);
-
-        // Draw "QR" text inside
-        doc.setFontSize(8);
-        // QR code placeholder - no text needed
 
     });
 
