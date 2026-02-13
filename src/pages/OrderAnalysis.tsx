@@ -78,9 +78,10 @@ export default function OrderAnalysis() {
       setAnalysis(data.analysis);
       setSummary(data.summary || []);
       setTotalOrders(data.totalOrders || 0);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Analysis error:", error);
-      toast.error("Failed to analyze orders");
+      const message = error?.message || "Failed to analyze orders";
+      toast.error(message);
     } finally {
       setLoading(false);
     }

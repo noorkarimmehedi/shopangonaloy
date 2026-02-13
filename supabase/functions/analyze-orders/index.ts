@@ -27,28 +27,48 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const { data: claims, error: claimsError } = await supabase.auth.getClaims(
-      authHeader.replace("Bearer ", "")
-    );
-    if (claimsError || !claims?.claims) {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
+
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const { date, startDate, endDate, startOrder, endOrder } = await req.json();
+    // Optional: Check if user is admin
+    const { data: roleData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!roleData || roleData.role !== "admin") {
+      return new Response(JSON.stringify({ error: "Access denied. Admin only." }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    let { date, startDate, endDate, startOrder, endOrder } = await req.json();
 
     let orders;
     let ordersError;
     let dateLabel;
 
     if (startOrder && endOrder) {
-      dateLabel = `Orders #${startOrder} to #${endOrder}`;
+      // Clean order numbers (remove leading #)
+      const cleanStart = startOrder.toString().trim().replace(/^#/, "");
+      const cleanEnd = endOrder.toString().trim().replace(/^#/, "");
+
+      dateLabel = `Orders #${cleanStart} to #${cleanEnd}`;
       const { data, error } = await supabase
         .from("orders")
-        .gte("order_number", startOrder)
-        .lte("order_number", endOrder)
+        .gte("order_number", cleanStart)
+        .lte("order_number", cleanEnd)
         .order("order_number", { ascending: true });
       orders = data;
       ordersError = error;
