@@ -232,7 +232,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#FDFDFD] text-[#1A1A1A]">
       {/* Header */}
-      <header className="sticky top-0 z-50 flex items-center justify-between border-b border-black/5 bg-white/80 backdrop-blur-xl px-10 h-16">
+      <header className="sticky top-0 z-50 flex items-center justify-between border-b border-black/5 bg-white/80 backdrop-blur-xl px-6 h-16">
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-lg bg-black flex items-center justify-center">
             <LayoutDashboard className="h-4 w-4 text-white" />
@@ -242,7 +242,7 @@ export default function Dashboard() {
 
       </header>
 
-      <main className="max-w-[1400px] mx-auto px-10 py-16 space-y-16">
+      <main className="max-w-[1800px] mx-auto px-6 py-16 space-y-16">
         {/* Hero Section */}
         <section className="space-y-4">
           <motion.div
