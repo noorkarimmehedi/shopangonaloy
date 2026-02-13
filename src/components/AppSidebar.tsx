@@ -44,7 +44,18 @@ export function AppSidebar() {
       {
         id: "order-analysis",
         title: "AI Analysis",
-        icon: <Sparkles className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />,
+        icon: (
+          <svg
+            viewBox="0 0 324 323"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors dark:invert"
+            aria-hidden="true"
+          >
+            <rect x="0.5" width="323" height="323" rx="161.5" fill="currentColor"></rect>
+            <circle cx="162" cy="161.5" r="60" fill="white"></circle>
+          </svg>
+        ),
         link: "/order-analysis",
       },
       {
