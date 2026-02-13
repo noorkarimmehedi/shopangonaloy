@@ -158,7 +158,7 @@ export const generateInvoice = (orders: Order[]) => {
             startY: 120,
             head: [["DESCRIPTION", "QTY", "AMOUNT (BDT)"]],
             body: tableData,
-            theme: "plain",
+            theme: 'grid',
             styles: {
                 font: "helvetica",
                 fontSize: 10,
@@ -194,12 +194,19 @@ export const generateInvoice = (orders: Order[]) => {
                 doc.line(margin, headerBottom, width - margin, headerBottom);
             },
             didDrawCell: (data) => {
-                // Thin Line BELOW each body row
+                // Thick Line BELOW each body row
                 if (data.section === 'body' && data.column.index === 2) {
                     const y = data.cell.y + data.cell.height;
                     doc.setDrawColor(lightGrey[0], lightGrey[1], lightGrey[2]);
                     doc.setLineWidth(0.1);
                     doc.line(margin, y, width - margin, y);
+                }
+                // Handle valign for AMOUNT column
+                if (data.section === 'body' && data.column.index === 2) {
+                    const text = data.cell.raw;
+                    const textHeight = doc.getTextDimensions(text).h;
+                    const yPos = data.cell.y + (data.cell.height - textHeight) / 2;
+                    doc.text(text, data.cell.x, yPos);
                 }
             }
         });
