@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { RefreshCw, ShieldCheck, Search, LayoutDashboard, TrendingUp, ArrowRight, Package } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { PlasticButton } from "@/components/ui/plastic-button";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -168,17 +169,14 @@ export default function Dashboard() {
           <span className="text-xs font-bold uppercase tracking-widest text-black/40">Operations Hub</span>
         </div>
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
+          <PlasticButton
+            text="Sync Shopify"
+            loadingText="Syncing…"
+            loading={syncing}
+            disabled={checkingFraud}
             onClick={syncOrders}
-            disabled={syncing || checkingFraud}
-            className="text-[10px] font-bold uppercase tracking-widest bg-white text-black border border-black/10 hover:bg-black hover:text-white transition-all rounded-full px-6 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.07),0_1px_4px_-1px_rgba(0,0,0,0.03),inset_0_1px_0_0_rgba(255,255,255,1)] relative overflow-hidden group active:scale-[0.98]"
-          >
-            <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <RefreshCw className={cn("h-3 w-3 mr-2 relative z-10", syncing && "animate-spin")} />
-            <span className="relative z-10">{syncing ? "Syncing…" : "Sync Shopify"}</span>
-          </Button>
+            className="h-10 px-6 text-[10px] uppercase font-bold tracking-widest"
+          />
           <Button
             variant="ghost"
             size="sm"
