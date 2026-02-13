@@ -8,9 +8,10 @@ interface PlasticButtonProps {
     loading?: boolean;
     loadingText?: string;
     className?: string;
+    icon?: React.ElementType;
 }
 
-export function PlasticButton({ text, onClick, disabled, loading, loadingText, className }: PlasticButtonProps) {
+export function PlasticButton({ text, onClick, disabled, loading, loadingText, className, icon: Icon }: PlasticButtonProps) {
     return (
         <button
             onClick={onClick}
@@ -28,6 +29,7 @@ export function PlasticButton({ text, onClick, disabled, loading, loadingText, c
             }}
         >
             {loading && <Loader2 className="h-4 w-4 animate-spin relative z-10" />}
+            {!loading && Icon && <Icon className="h-4 w-4 relative z-10" />}
             <span className="relative z-10">{loading ? (loadingText || "Analyzing…") : text}</span>
             <span
                 className="absolute left-1/2 top-0 z-20 w-[80%] h-2/5 -translate-x-1/2 rounded-t-full pointer-events-none"

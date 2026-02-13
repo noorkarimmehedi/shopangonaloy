@@ -25,10 +25,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truck, Loader2, Search, NotebookPen, Package, Check } from "lucide-react";
+import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truck, Loader2, Search, NotebookPen, Package, Check, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { generateInvoice } from "@/utils/invoiceGenerator";
 
 function splitProductLines(product: string | null): string[] {
   if (!product) return [];
@@ -557,6 +558,21 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
     });
   };
 
+  const handleGenerateInvoice = () => {
+    const selectedOrders = orders.filter((o) => selectedIds.has(o.id));
+    if (selectedOrders.length === 0) return;
+
+    toast.promise(Promise.resolve(generateInvoice(selectedOrders)), {
+      loading: "Generating invoices...",
+      success: `Generated ${selectedOrders.length} invoice(s)`,
+      error: "Failed to generate invoices",
+    });
+
+    // Optional: Clear selection after generation? 
+    // setSelectedIds(new Set()); 
+    // Keeping selection might be better if user wants to do other actions.
+  };
+
   const formatPrice = (price: number | null, deliveryRate: number | null = null) => {
     if (price === null) return "-";
     const total = price + (deliveryRate ?? 0);
@@ -830,6 +846,12 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                   loadingText="Checking..."
                   onClick={handleBulkFraudCheck}
                   className="h-10 px-6 text-[10px] font-bold uppercase tracking-widest bg-gradient-to-b from-white to-zinc-300 !text-black shadow-[0_4px_20px_-4px_rgba(255,255,255,0.2)]"
+                />
+                <PlasticButton
+                  text="Generate Invoice"
+                  icon={FileText}
+                  onClick={handleGenerateInvoice}
+                  className="h-10 px-6 text-[10px] font-bold uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 border border-white/10"
                 />
               </div>
             </div>
