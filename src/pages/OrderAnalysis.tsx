@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Sparkles, Loader2, Package } from "lucide-react";
+import { CalendarIcon, Sparkles, Loader2, Package, ArrowRight, TrendingUp, BarChart3, ClipboardList } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -11,15 +11,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { PlasticButton } from "@/components/ui/plastic-button";
 import ReactMarkdown from "react-markdown";
 import type { DateRange } from "react-day-picker";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ItemSummary {
   item: string;
@@ -90,169 +86,249 @@ export default function OrderAnalysis() {
 
   const getLabel = () => {
     if (mode === "single") {
-      return singleDate ? format(singleDate, "PPP") : "Pick a date";
+      return singleDate ? format(singleDate, "PPP") : "Select date";
     }
     if (mode === "range") {
-      if (!dateRange?.from) return "Pick a date range";
+      if (!dateRange?.from) return "Select date range";
       if (!dateRange.to) return format(dateRange.from, "PPP");
-      return `${format(dateRange.from, "MMM d, yyyy")} – ${format(dateRange.to, "MMM d, yyyy")}`;
+      return `${format(dateRange.from, "MMM d")} — ${format(dateRange.to, "MMM d")}`;
     }
     return "";
   };
 
   return (
-    <>
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border/40 bg-card/90 backdrop-blur-md px-8 h-14">
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium text-muted-foreground">AI Analysis</span>
+    <div className="min-h-screen bg-[#FDFDFD] text-[#1A1A1A]">
+      {/* Header */}
+      <header className="sticky top-0 z-50 flex items-center justify-between border-b border-black/5 bg-white/80 backdrop-blur-xl px-10 h-16">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-lg bg-black flex items-center justify-center">
+            <Sparkles className="h-4 w-4 text-white" />
+          </div>
+          <span className="text-xs font-bold uppercase tracking-widest text-black/40">Intelligence Hub</span>
         </div>
       </header>
 
-      <div className="px-8 py-8 space-y-8">
-        <div>
-          <h1 className="!text-2xl !font-semibold tracking-tight">Order Analysis</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            AI-powered order breakdown and item summary
+      <main className="max-w-[1200px] mx-auto px-10 py-16 space-y-16">
+        {/* Hero Section */}
+        <section className="space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-wider">
+            <TrendingUp className="w-3 h-3" />
+            Live Insights
+          </div>
+          <h1 className="text-5xl lg:text-6xl font-normal leading-tight">
+            Order <span className="italic text-black/30 underline decoration-black/10 transition-colors hover:text-black/60">Intelligence</span> Analysis
+          </h1>
+          <p className="text-lg text-black/50 max-w-2xl font-light">
+            Deep dive into your sales performance with AI-driven summaries and precise itemized breakdowns.
           </p>
-        </div>
+        </section>
 
-        {/* Controls */}
-        <div className="swiss-card p-6">
-          <div className="flex flex-col gap-6">
-            <Tabs value={mode} onValueChange={(v) => setMode(v as "single" | "range" | "order")} className="w-full">
-              <TabsList className="grid w-full max-w-[600px] grid-cols-3">
-                <TabsTrigger value="single">Single Day</TabsTrigger>
-                <TabsTrigger value="range">Date Range</TabsTrigger>
-                <TabsTrigger value="order">Order Range</TabsTrigger>
-              </TabsList>
-            </Tabs>
+        {/* Action Grid */}
+        <section className="grid lg:grid-cols-12 gap-10 items-start">
+          {/* Mode Selection */}
+          <div className="lg:col-span-4 space-y-8">
+            <div className="space-y-4">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-black/30">Analysis Window</span>
+              <div className="flex flex-col gap-2">
+                {[
+                  { id: "single", label: "Single Day", icon: ClipboardList },
+                  { id: "range", label: "Date Range", icon: BarChart3 },
+                  { id: "order", label: "Order Range", icon: Package },
+                ].map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => setMode(m.id as any)}
+                    className={cn(
+                      "flex items-center justify-between px-5 py-4 rounded-xl border transition-all duration-300 text-left",
+                      mode === m.id
+                        ? "bg-black text-white border-black shadow-xl translate-x-2"
+                        : "bg-white text-black/60 border-black/5 hover:border-black/20 hover:bg-black/[0.02]"
+                    )}
+                  >
+                    <div className="flex items-center gap-4">
+                      <m.icon className={cn("w-4 h-4", mode === m.id ? "text-white" : "text-black/30")} />
+                      <span className="font-medium tracking-tight">{m.label}</span>
+                    </div>
+                    {mode === m.id && <ArrowRight className="w-4 h-4" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
 
-            <div className="flex items-end gap-4">
-              {mode === "order" ? (
-                <>
-                  <div className="space-y-2 flex-1 max-w-[200px]">
-                    <label className="text-sm font-medium text-foreground">From Order #</label>
-                    <Input
-                      placeholder="e.g. 1001"
-                      value={startOrder}
-                      onChange={(e) => setStartOrder(e.target.value)}
-                      className="h-10"
-                    />
-                  </div>
-                  <div className="space-y-2 flex-1 max-w-[200px]">
-                    <label className="text-sm font-medium text-foreground">To Order #</label>
-                    <Input
-                      placeholder="e.g. 1020"
-                      value={endOrder}
-                      onChange={(e) => setEndOrder(e.target.value)}
-                      className="h-10"
-                    />
-                  </div>
-                </>
-              ) : (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">
-                    {mode === "single" ? "Select Day" : "Date Range"}
-                  </label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-[300px] justify-start text-left font-normal",
-                          mode === "single" ? !singleDate && "text-muted-foreground" : !dateRange?.from && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {getLabel()}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      {mode === "single" ? (
-                        <Calendar
-                          mode="single"
-                          selected={singleDate}
-                          onSelect={setSingleDate}
-                          disabled={(d) => d > new Date()}
-                          initialFocus
-                          className={cn("p-3 pointer-events-auto")}
-                        />
-                      ) : (
-                        <Calendar
-                          mode="range"
-                          selected={dateRange}
-                          onSelect={setDateRange}
-                          numberOfMonths={2}
-                          disabled={(d) => d > new Date()}
-                          initialFocus
-                          className={cn("p-3 pointer-events-auto")}
-                        />
-                      )}
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              )}
+          {/* Configuration */}
+          <div className="lg:col-span-8 flex flex-col justify-between min-h-[300px] p-10 rounded-[2rem] bg-white border border-black/5 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.05)]">
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-black/30">Configuration</span>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={mode}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {mode === "order" ? (
+                      <div className="flex gap-4">
+                        <div className="space-y-2 flex-1">
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-black/40">From Order</label>
+                          <Input
+                            placeholder="#1001"
+                            value={startOrder}
+                            onChange={(e) => setStartOrder(e.target.value)}
+                            className="h-14 bg-[#F8F8F8] border-none rounded-xl px-6 text-lg focus-visible:ring-1 focus-visible:ring-black"
+                          />
+                        </div>
+                        <div className="space-y-2 flex-1">
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-black/40">To Order</label>
+                          <Input
+                            placeholder="#1020"
+                            value={endOrder}
+                            onChange={(e) => setEndOrder(e.target.value)}
+                            className="h-14 bg-[#F8F8F8] border-none rounded-xl px-6 text-lg focus-visible:ring-1 focus-visible:ring-black"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-black/40">Select Period</label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button className="w-full flex items-center justify-between h-14 bg-[#F8F8F8] hover:bg-[#F2F2F2] transition-colors rounded-xl px-6 text-lg tracking-tight group">
+                              <div className="flex items-center gap-3">
+                                <CalendarIcon className="w-5 h-5 text-black/30 group-hover:text-black/60 transition-colors" />
+                                <span>{getLabel()}</span>
+                              </div>
+                              <ArrowRight className="w-5 h-5 text-black/10 group-hover:translate-x-1 group-hover:text-black/30 transition-all" />
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0 border-none shadow-2xl rounded-2xl overflow-hidden" align="start">
+                            {mode === "single" ? (
+                              <Calendar
+                                mode="single"
+                                selected={singleDate}
+                                onSelect={setSingleDate}
+                                disabled={(d) => d > new Date()}
+                                initialFocus
+                                className="p-4"
+                              />
+                            ) : (
+                              <Calendar
+                                mode="range"
+                                selected={dateRange}
+                                onSelect={setDateRange}
+                                numberOfMonths={2}
+                                disabled={(d) => d > new Date()}
+                                initialFocus
+                                className="p-4"
+                              />
+                            )}
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </div>
+
+            <div className="pt-10 flex justify-end">
               <PlasticButton
-                text="Analyze"
+                text="Generate Deep Analysis"
                 onClick={handleAnalyze}
                 loading={loading}
                 disabled={(mode === "single" ? !singleDate : mode === "range" ? !dateRange?.from : (!startOrder || !endOrder))}
+                className="w-full sm:w-auto h-14 !text-base"
               />
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Item Summary Table */}
-        {summary.length > 0 && (
-          <div className="swiss-card-elevated overflow-hidden">
-            <div className="px-6 py-4 border-b border-border/50">
-              <h2 className="text-base font-semibold tracking-tight">Item Summary</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {totalOrders} orders · {summary.length} unique items
-              </p>
+        {/* Results Area */}
+        <AnimatePresence>
+          {summary.length > 0 && (
+            <motion.section
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="space-y-16"
+            >
+              {/* Stats Bar */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-1 border-y border-black/5 py-10">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Total Orders</span>
+                  <p className="text-4xl font-light tracking-tighter">{totalOrders}</p>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Unique Items</span>
+                  <p className="text-4xl font-light tracking-tighter">{summary.length}</p>
+                </div>
+                <div className="space-y-1 col-span-2 text-right">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Total Revenue Identified</span>
+                  <p className="text-4xl font-light tracking-tighter">৳{summary.reduce((acc, curr) => acc + curr.revenue, 0).toLocaleString()}</p>
+                </div>
+              </div>
+
+              {/* Data Display */}
+              <div className="grid lg:grid-cols-2 gap-16">
+                {/* Table */}
+                <div className="space-y-8">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-black"></div>
+                    <h3 className="text-sm font-bold uppercase tracking-widest">Inventory Breakdown</h3>
+                  </div>
+                  <div className="divide-y divide-black/[0.03]">
+                    {summary.map((s, i) => (
+                      <div key={i} className="flex items-center justify-between py-5 group">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full border border-black/5 flex items-center justify-center bg-white group-hover:bg-black group-hover:text-white transition-all duration-300">
+                            <Package className="w-4 h-4 opacity-70" />
+                          </div>
+                          <div>
+                            <p className="font-medium tracking-tight transition-all group-hover:translate-x-1">{s.item}</p>
+                            <p className="text-[10px] text-black/30 uppercase font-bold">{s.orderCount} Orders</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-light tracking-tight">x{s.quantity}</p>
+                          <p className="text-xs text-black/40">৳{s.revenue.toLocaleString()}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* AI Text */}
+                <div className="space-y-8">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-blue-600" />
+                    <h3 className="text-sm font-bold uppercase tracking-widest">AI Synthesis</h3>
+                  </div>
+                  <div className="prose prose-sm max-w-none text-black/70 leading-relaxed font-light bg-black/[0.01] p-10 rounded-[2.5rem] border border-black/5">
+                    <ReactMarkdown>{analysis || ""}</ReactMarkdown>
+                  </div>
+                </div>
+              </div>
+            </motion.section>
+          )}
+        </AnimatePresence>
+
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-20 space-y-6">
+            <div className="relative">
+              <div className="h-20 w-20 rounded-full border border-black/5 bg-white flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-black/20" />
+              </div>
+              <div className="absolute inset-0 h-20 w-20 rounded-full border-t-2 border-black animate-[spin_1.5s_linear_infinite]" />
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border/40 bg-muted/30">
-                    <th className="text-left px-6 py-3 font-medium text-muted-foreground">Item</th>
-                    <th className="text-center px-6 py-3 font-medium text-muted-foreground">Quantity</th>
-                    <th className="text-center px-6 py-3 font-medium text-muted-foreground">Orders</th>
-                    <th className="text-right px-6 py-3 font-medium text-muted-foreground">Revenue</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {summary.map((s, i) => (
-                    <tr key={i} className="border-b border-border/20 hover:bg-muted/20 transition-colors">
-                      <td className="px-6 py-3 flex items-center gap-2">
-                        <Package className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="font-medium">{s.item}</span>
-                      </td>
-                      <td className="text-center px-6 py-3 tabular-nums font-semibold">{s.quantity}</td>
-                      <td className="text-center px-6 py-3 tabular-nums text-muted-foreground">{s.orderCount}</td>
-                      <td className="text-right px-6 py-3 tabular-nums">৳{s.revenue.toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="text-center space-y-2">
+              <p className="text-sm font-bold uppercase tracking-[0.3em] text-black">Processing Data</p>
+              <p className="text-xs text-black/30 font-light">Analyzing trends and summarizing metrics...</p>
             </div>
           </div>
         )}
-
-        {/* AI Analysis */}
-        {analysis && (
-          <div className="swiss-card-elevated overflow-hidden">
-            <div className="px-6 py-4 border-b border-border/50 flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <h2 className="text-base font-semibold tracking-tight">AI Analysis</h2>
-            </div>
-            <div className="px-6 py-5 prose prose-sm dark:prose-invert max-w-none">
-              <ReactMarkdown>{analysis}</ReactMarkdown>
-            </div>
-          </div>
-        )}
-      </div>
-    </>
+      </main>
+    </div>
   );
 }
