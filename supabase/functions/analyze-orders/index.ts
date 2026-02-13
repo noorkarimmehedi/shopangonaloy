@@ -37,23 +37,25 @@ serve(async (req) => {
       });
     }
 
-    const { date } = await req.json();
-    if (!date) {
+    const { date, startDate, endDate } = await req.json();
+    const from = startDate || date;
+    const to = endDate || from;
+    if (!from) {
       return new Response(JSON.stringify({ error: "Date is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Fetch orders for the given date
-    const startOfDay = `${date}T00:00:00.000Z`;
-    const endOfDay = `${date}T23:59:59.999Z`;
+    // Fetch orders for the given date range
+    const rangeStart = `${from}T00:00:00.000Z`;
+    const rangeEnd = `${to}T23:59:59.999Z`;
 
     const { data: orders, error: ordersError } = await supabase
       .from("orders")
       .select("*")
-      .gte("created_at", startOfDay)
-      .lte("created_at", endOfDay)
+      .gte("created_at", rangeStart)
+      .lte("created_at", rangeEnd)
       .order("created_at", { ascending: true });
 
     if (ordersError) throw ordersError;
@@ -61,7 +63,7 @@ serve(async (req) => {
     if (!orders || orders.length === 0) {
       return new Response(
         JSON.stringify({
-          analysis: "No orders found for this date.",
+          analysis: `No orders found for ${from === to ? from : `${from} to ${to}`}.`,
           orders: [],
           summary: [],
         }),
@@ -105,7 +107,8 @@ serve(async (req) => {
       );
     }
 
-    const prompt = `You are an order analysis assistant. Analyze the following order data for ${date}.
+    const dateLabel = from === to ? from : `${from} to ${to}`;
+    const prompt = `You are an order analysis assistant. Analyze the following order data for ${dateLabel}.
 
 Total orders: ${orders.length}
 Item breakdown:
