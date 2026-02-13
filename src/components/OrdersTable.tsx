@@ -522,7 +522,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                   <TableCell className="py-5">
                     <div className="flex flex-col gap-1">
                       <span className="font-medium text-sm tracking-tight">{order.customer_name || "Guest User"}</span>
-                      <span className="font-mono text-[11px] text-black/30">{order.phone || "No Phone"}</span>
+                      <span className="font-mono text-[11px] text-black">{order.phone || "No Phone"}</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-center py-5">
@@ -621,9 +621,9 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                         <button
                           onClick={() => handleSendToCourier(order)}
                           disabled={sendingIds.has(order.id)}
-                          className="h-8 px-4 bg-black text-white rounded-full text-[9px] font-bold uppercase tracking-widest hover:bg-black/80 transition-all shadow-lg shadow-black/10 disabled:opacity-50"
+                          className="h-8 px-4 bg-black text-white rounded-full text-[8px] font-bold uppercase tracking-widest hover:bg-black/80 transition-all shadow-lg shadow-black/10 disabled:opacity-50"
                         >
-                          {sendingIds.has(order.id) ? "Syncing..." : "Release to Courier"}
+                          {sendingIds.has(order.id) ? "Syncing..." : "Send to steadfast"}
                         </button>
                       ) : (
                         <div className="flex flex-col items-center gap-1">
