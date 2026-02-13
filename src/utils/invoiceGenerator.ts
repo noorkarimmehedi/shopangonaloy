@@ -176,7 +176,7 @@ export const generateInvoice = (orders: Order[]) => {
             },
             columnStyles: {
                 0: { cellWidth: "auto" }, // Description gets auto width
-                1: { cellWidth: 30, halign: "center" }, // Qty centered
+                1: { cellWidth: 30, halign: "right" }, // Qty right aligned
                 2: { cellWidth: 40, halign: "right" },   // Price right aligned
             },
             margin: { left: margin, right: margin },
