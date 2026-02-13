@@ -1,12 +1,13 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { OrdersTable } from "@/components/OrdersTable";
-import { AppSidebar } from "@/components/AppSidebar";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { RefreshCw, ShieldCheck, Search } from "lucide-react";
+import { RefreshCw, ShieldCheck, Search, LayoutDashboard, TrendingUp, ArrowRight, Package } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface FraudData {
   mobile_number: string;
@@ -157,92 +158,125 @@ export default function Dashboard() {
     : orders;
 
   return (
-    <>
-      {/* Top bar with actions */}
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border/40 bg-card/90 backdrop-blur-md px-8 h-14">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+    <div className="min-h-screen bg-[#FDFDFD] text-[#1A1A1A]">
+      {/* Header */}
+      <header className="sticky top-0 z-50 flex items-center justify-between border-b border-black/5 bg-white/80 backdrop-blur-xl px-10 h-16">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-lg bg-black flex items-center justify-center">
+            <LayoutDashboard className="h-4 w-4 text-white" />
+          </div>
+          <span className="text-xs font-bold uppercase tracking-widest text-black/40">Operations Hub</span>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={syncOrders}
             disabled={syncing || checkingFraud}
-            className="h-8 px-3 text-xs font-medium text-muted-foreground hover:text-foreground"
+            className="text-[10px] font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-all rounded-full px-4"
           >
-            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${syncing ? "animate-spin" : ""}`} />
-            {syncing ? "Syncing…" : "Sync"}
+            <RefreshCw className={cn("h-3 w-3 mr-2", syncing && "animate-spin")} />
+            {syncing ? "Syncing…" : "Sync Shopify"}
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={checkFraud}
             disabled={syncing || checkingFraud}
-            className="h-8 px-3 text-xs font-medium text-muted-foreground hover:text-foreground"
+            className="text-[10px] font-bold uppercase tracking-widest bg-black text-white hover:bg-black/80 transition-all rounded-full px-4"
           >
-            <ShieldCheck className={`h-3.5 w-3.5 mr-1.5 ${checkingFraud ? "animate-spin" : ""}`} />
+            <ShieldCheck className={cn("h-3 w-3 mr-2", checkingFraud && "animate-spin")} />
             {checkingFraud ? "Checking…" : "Fraud Check"}
           </Button>
         </div>
       </header>
 
-      <div className="px-8 py-8 space-y-8">
-        {/* Page heading */}
-        <div>
-          <h1 className="!text-2xl !font-semibold tracking-tight">Orders</h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage and verify your orders</p>
-        </div>
+      <main className="max-w-[1400px] mx-auto px-10 py-16 space-y-16">
+        {/* Hero Section */}
+        <section className="space-y-4">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/5 text-black/60 text-[10px] font-bold uppercase tracking-wider"
+          >
+            <TrendingUp className="w-3 h-3" />
+            Workspace Overview
+          </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-5xl lg:text-6xl font-normal leading-tight"
+          >
+            Order <span className="italic text-black/30 underline decoration-black/10 transition-colors hover:text-black/60">Logistics</span> Management
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-lg text-black/50 max-w-2xl font-light"
+          >
+            Monitor real-time fulfillment, verify customer delivery rates, and synchronize your ecommerce inventory.
+          </motion.p>
+        </section>
 
-        {/* Stats row — divided cells like reference */}
-        <div className="swiss-card overflow-hidden">
-          <div className="grid grid-cols-4 divide-x divide-border/60">
-            <div className="px-6 py-5 text-center">
-              <p className="swiss-stat-label mb-2">Total</p>
-              <p className="text-3xl font-semibold tracking-tight tabular-nums">{orders.length}</p>
+        {/* Stats Row */}
+        <motion.section
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="grid grid-cols-2 md:grid-cols-4 gap-1 border-y border-black/5 py-10"
+        >
+          <div className="space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Total Inventory</span>
+            <p className="text-4xl font-light tracking-tighter">{orders.length}</p>
+          </div>
+          <div className="space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Confirmed</span>
+            <p className="text-4xl font-light tracking-tighter text-blue-600">{confirmedCount}</p>
+          </div>
+          <div className="space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Pending Verification</span>
+            <p className="text-4xl font-light tracking-tighter text-amber-500">{pendingCount}</p>
+          </div>
+          <div className="space-y-1 text-right">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Verified Accuracy</span>
+            <p className="text-4xl font-light tracking-tighter">
+              {orders.length > 0 ? Math.round((orders.filter(o => o.fraud_checked).length / orders.length) * 100) : 0}%
+            </p>
+          </div>
+        </motion.section>
+
+        {/* Orders Card */}
+        <motion.section
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="space-y-8"
+        >
+          {/* Section Header with Search */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-black/5">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-black"></div>
+                <h3 className="text-sm font-bold uppercase tracking-widest">Master Order Log</h3>
+              </div>
+              <p className="text-xs text-black/30 font-light">Global record of all synchronized Shopify transactions</p>
             </div>
-            <div className="px-6 py-5 text-center">
-              <p className="swiss-stat-label mb-2">Confirmed</p>
-              <p className="text-3xl font-semibold tracking-tight tabular-nums text-success">{confirmedCount}</p>
-            </div>
-            <div className="px-6 py-5 text-center">
-              <p className="swiss-stat-label mb-2">Pending</p>
-              <p className="text-3xl font-semibold tracking-tight tabular-nums text-warning">{pendingCount}</p>
-            </div>
-            <div className="px-6 py-5 text-center">
-              <p className="swiss-stat-label mb-2">Fraud Checked</p>
-              <p className="text-3xl font-semibold tracking-tight tabular-nums">
-                {orders.filter((o) => o.fraud_checked).length}
-              </p>
+
+            <div className="relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-black/20 transition-colors group-focus-within:text-black" />
+              <Input
+                placeholder="Search orders, customers, or phones..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-12 pl-12 pr-6 bg-[#F8F8F8] border-none rounded-xl text-sm w-full md:w-[400px] transition-all focus-visible:ring-1 focus-visible:ring-black/10"
+              />
             </div>
           </div>
-        </div>
 
-        {/* Orders card */}
-        <div className="swiss-card-elevated overflow-hidden">
-          {/* Section header with search */}
-          <div className="px-6 py-4 border-b border-border/50">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h2 className="text-base font-semibold tracking-tight">All Orders</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {orders.length} orders in your workspace
-                </p>
-              </div>
-              <div className="relative w-56 shrink-0">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60" />
-                <Input
-                  placeholder="Search orders..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8 h-8 text-xs bg-muted/40 border-border/60 focus:border-border focus:bg-card placeholder:text-muted-foreground/40"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Table */}
-          <div className="pb-1">
+          {/* Table Container */}
+          <div className="rounded-[2.5rem] bg-white border border-black/5 overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.04)]">
             <OrdersTable
               orders={filteredOrders}
               loading={loading}
@@ -250,8 +284,8 @@ export default function Dashboard() {
               onOrderUpdate={handleOrderUpdate}
             />
           </div>
-        </div>
-      </div>
-    </>
+        </motion.section>
+      </main>
+    </div>
   );
 }
