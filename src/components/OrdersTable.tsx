@@ -788,7 +788,24 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                     </Tooltip>
                   </TableCell>
                   <TableCell className="text-right py-5 pr-4 tabular-nums">
-                    <span className="font-medium text-sm">৳{order.price?.toLocaleString()}</span>
+                    <div className="flex flex-col items-end gap-1">
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="text-black/60">Product:</span>
+                        <span className="font-medium">৳{order.price?.toLocaleString() || "0"}</span>
+                      </div>
+                      {order.delivery_rate !== null && order.delivery_rate > 0 && (
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="text-black/60">Delivery:</span>
+                          <span className="font-medium">৳{order.delivery_rate.toLocaleString()}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 pt-1 border-t border-black/10">
+                        <span className="text-[10px] font-bold text-black/40">Total:</span>
+                        <span className="font-bold text-sm">
+                          ৳{((order.price || 0) + (order.delivery_rate || 0)).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
                   </TableCell>
                   <TableCell className="text-center py-5">
                     <div className="flex items-center justify-center gap-3">
