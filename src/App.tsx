@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import Settings from "./pages/Settings";
 import OrderAnalysis from "./pages/OrderAnalysis";
+import OrderExtraction from "./pages/OrderExtraction";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -61,6 +62,7 @@ const AppRoutes = () => (
     >
       <Route path="/" element={<Dashboard />} />
       <Route path="/order-analysis" element={<OrderAnalysis />} />
+      <Route path="/order-extraction" element={<OrderExtraction />} />
       <Route path="/settings" element={<Settings />} />
     </Route>
     <Route

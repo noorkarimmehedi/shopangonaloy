@@ -16,6 +16,7 @@ import {
   Sparkles,
   PackageSearch,
   Settings,
+  MessageSquare,
 } from "lucide-react";
 import { Logo } from "./logo";
 import type { Route } from "./nav-main";
@@ -39,6 +40,12 @@ export function AppSidebar() {
       title: "Orders",
       icon: <PackageSearch className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />,
       link: "/",
+    },
+    {
+      id: "order-extraction",
+      title: "Order Extraction",
+      icon: <MessageSquare className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />,
+      link: "/order-extraction",
     },
     ...(!roleLoading && isAdmin ? [
       {
