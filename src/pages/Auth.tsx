@@ -12,8 +12,7 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const { signIn, signUp } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -22,9 +21,7 @@ export default function Auth() {
 
     setLoading(true);
     try {
-      const { error } = mode === "signin"
-        ? await signIn(email, password)
-        : await signUp(email, password);
+      const { error } = await signIn(email, password);
 
       if (error) {
         toast.custom((t) => (
@@ -41,32 +38,18 @@ export default function Auth() {
           </div>
         ));
       } else {
-        if (mode === "signin") {
-          toast.custom((t) => (
-            <div className="bg-white border border-black/5 shadow-2xl rounded-2xl p-4 flex items-center gap-4 min-w-[300px]">
-              <div className="h-10 w-10 rounded-xl bg-black flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Welcome Back</span>
-                <span className="text-sm font-bold text-black">Successfully signed in</span>
-              </div>
+        toast.custom((t) => (
+          <div className="bg-white border border-black/5 shadow-2xl rounded-2xl p-4 flex items-center gap-4 min-w-[300px]">
+            <div className="h-10 w-10 rounded-xl bg-black flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-5 h-5 text-white" />
             </div>
-          ));
-          navigate("/");
-        } else {
-          toast.custom((t) => (
-            <div className="bg-white border border-black/5 shadow-2xl rounded-2xl p-4 flex items-center gap-4 min-w-[300px]">
-              <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-5 h-5 text-blue-500" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Account Created</span>
-                <span className="text-sm font-bold text-black">Check email to confirm</span>
-              </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Welcome Back</span>
+              <span className="text-sm font-bold text-black">Successfully signed in</span>
             </div>
-          ));
-        }
+          </div>
+        ));
+        navigate("/");
       }
     } catch (error) {
       console.error(error);
@@ -123,14 +106,8 @@ export default function Auth() {
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-3xl font-normal text-black">
-              {mode === "signin" ? "Welcome back" : "Create account"}
-            </h2>
-            <p className="text-black/40">
-              {mode === "signin"
-                ? "Enter your credentials to access the dashboard."
-                : "Sign up to start managing your orders."}
-            </p>
+            <h2 className="text-3xl font-normal text-black">Welcome back</h2>
+            <p className="text-black/40">Enter your credentials to access the dashboard.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -168,27 +145,11 @@ export default function Auth() {
               </div>
             </div>
 
-            <div className="space-y-4">
-              <PlasticButton
-                type="submit"
-                text={mode === "signin" ? "Sign In" : "Create Account"}
-                loading={loading}
-                className="w-full h-12 text-xs font-bold uppercase tracking-widest bg-black text-white hover:bg-black/90 shadow-xl shadow-black/10"
-              />
-
-              <div className="relative flex justify-center text-xs uppercase tracking-widest">
-                <span className="bg-[#FDFDFD] px-2 text-black/20">or</span>
-                <div className="absolute inset-x-0 top-1/2 border-t border-black/5 -z-10" />
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-                className="w-full text-xs font-bold uppercase tracking-widest text-black/40 hover:text-black transition-colors py-2"
-              >
-                {mode === "signin" ? "Create an account" : "Sign in to existing account"}
-              </button>
-            </div>
+            <PlasticButton
+              text="Sign In"
+              loading={loading}
+              className="w-full h-12 text-xs font-bold uppercase tracking-widest bg-black text-white hover:bg-black/90 shadow-xl shadow-black/10"
+            />
           </form>
         </div>
       </div>
