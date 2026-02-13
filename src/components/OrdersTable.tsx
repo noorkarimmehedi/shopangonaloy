@@ -558,19 +558,59 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
     });
   };
 
-  const handleGenerateInvoice = () => {
+  const handleGenerateInvoice = async () => {
     const selectedOrders = orders.filter((o) => selectedIds.has(o.id));
     if (selectedOrders.length === 0) return;
 
-    toast.promise(Promise.resolve(generateInvoice(selectedOrders)), {
-      loading: "Generating invoices...",
-      success: `Generated ${selectedOrders.length} invoice(s)`,
-      error: "Failed to generate invoices",
-    });
+    // Show loading toast
+    const toastId = toast.custom((t) => (
+      <div className="bg-white border border-black/5 shadow-2xl rounded-2xl p-4 flex items-center gap-4 min-w-[300px]">
+        <div className="h-10 w-10 rounded-xl bg-black/[0.03] flex items-center justify-center shrink-0">
+          <Loader2 className="w-5 h-5 text-black animate-spin" />
+        </div>
+        <div className="flex flex-col">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Processing</span>
+          <span className="text-sm font-bold text-black">Generating Invoices...</span>
+        </div>
+      </div>
+    ), { duration: Infinity }); // Keep open until done
 
-    // Optional: Clear selection after generation? 
-    // setSelectedIds(new Set()); 
-    // Keeping selection might be better if user wants to do other actions.
+    try {
+      // Small delay to ensure UI renders before heavy PDF gen blocks thread
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      generateInvoice(selectedOrders);
+
+      toast.dismiss(toastId);
+      toast.custom((t) => (
+        <div className="bg-white border border-black/5 shadow-2xl rounded-2xl p-4 flex items-center gap-4 min-w-[300px]">
+          <div className="h-10 w-10 rounded-xl bg-black flex items-center justify-center shrink-0">
+            <FileText className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Complete</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-sm font-bold text-black">{selectedOrders.length} Invoices</span>
+              <span className="text-xs text-black/50 font-medium">Generated</span>
+            </div>
+          </div>
+        </div>
+      ));
+    } catch (error) {
+      console.error("Invoice generation failed:", error);
+      toast.dismiss(toastId);
+      toast.custom((t) => (
+        <div className="bg-white border border-black/5 shadow-2xl rounded-2xl p-4 flex items-center gap-4 min-w-[300px]">
+          <div className="h-10 w-10 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-5 h-5 text-red-500" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Error</span>
+            <span className="text-sm font-bold text-black">Failed to generate PDF</span>
+          </div>
+        </div>
+      ));
+    }
   };
 
   const formatPrice = (price: number | null, deliveryRate: number | null = null) => {
