@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { RefreshCw, ShieldCheck, Search, LayoutDashboard, TrendingUp, ArrowRight, Package } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { PlasticButton } from "@/components/ui/plastic-button";
+import SyncOrderLiquidButton from "@/components/SyncOrderLiquidButton";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -269,22 +270,29 @@ export default function Dashboard() {
             <TrendingUp className="w-3 h-3" />
             Workspace Overview
           </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-5xl lg:text-6xl font-normal leading-tight"
-          >
-            Order <span className="italic text-black/30 underline decoration-black/10 transition-colors hover:text-black/60">Logistics</span> Management
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-lg text-black/50 max-w-2xl font-light"
-          >
-            Monitor real-time fulfillment, verify customer delivery rates, and synchronize your ecommerce inventory.
-          </motion.p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-4">
+              <motion.h1
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="text-5xl lg:text-6xl font-normal leading-tight"
+              >
+                Order <span className="italic text-black/30 underline decoration-black/10 transition-colors hover:text-black/60">Logistics</span> Management
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-lg text-black/50 max-w-2xl font-light"
+              >
+                Monitor real-time fulfillment, verify customer delivery rates, and synchronize your ecommerce inventory.
+              </motion.p>
+            </div>
+            <div className="shrink-0">
+              <SyncOrderLiquidButton onClick={syncOrders} loading={syncing} disabled={checkingFraud} />
+            </div>
+          </div>
         </section>
 
         {/* Stats Row */}
