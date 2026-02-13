@@ -239,7 +239,7 @@ export default function Dashboard() {
           </div>
           <span className="text-xs font-bold uppercase tracking-widest text-black/40">Operations Hub</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 hidden">
           <PlasticButton
             text="Sync Shopify"
             loadingText="Syncing…"
