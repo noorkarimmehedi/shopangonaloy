@@ -151,12 +151,12 @@ export const generateInvoice = (orders: Order[]) => {
         const total = subtotal + shipping;
 
         const tableData = [
-            [productString, order.quantity || 1, subtotal.toLocaleString()]
+            [productString, order.quantity || 1]
         ];
 
         autoTable(doc, {
             startY: 120,
-            head: [["DESCRIPTION", "QTY", "AMOUNT"]],
+            head: [["DESCRIPTION", "QTY"]],
             body: tableData,
             theme: 'grid',
             styles: {
@@ -177,7 +177,6 @@ export const generateInvoice = (orders: Order[]) => {
             columnStyles: {
                 0: { cellWidth: "auto" }, // Description gets auto width
                 1: { cellWidth: 30, valign: "top" }, // Qty aligned to top
-                2: { cellWidth: 40, valign: "top", halign: "right" },   // Amount aligned to top and right
             },
             margin: { left: margin, right: margin },
 
@@ -195,18 +194,11 @@ export const generateInvoice = (orders: Order[]) => {
             },
             didDrawCell: (data) => {
                 // Thick Line BELOW each body row
-                if (data.section === 'body' && data.column.index === 2) {
+                if (data.section === 'body' && data.column.index === 1) {
                     const y = data.cell.y + data.cell.height;
                     doc.setDrawColor(lightGrey[0], lightGrey[1], lightGrey[2]);
                     doc.setLineWidth(0.1);
                     doc.line(margin, y, width - margin, y);
-                }
-                // Handle valign for AMOUNT column
-                if (data.section === 'body' && data.column.index === 2) {
-                    const text = String(data.cell.raw ?? "");
-                    const textHeight = doc.getTextDimensions(text).h;
-                    const yPos = data.cell.y + (data.cell.height - textHeight) / 2;
-                    doc.text(text, data.cell.x, yPos);
                 }
             }
         });
