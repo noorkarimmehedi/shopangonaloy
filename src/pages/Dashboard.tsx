@@ -103,7 +103,22 @@ export default function Dashboard() {
       if (error) throw error;
       if (data?.orders) {
         setOrders(data.orders);
-        toast.success(`Synced ${data.synced} orders from Shopify`);
+        toast.custom((t) => (
+          <div className="bg-white border border-black/5 shadow-2xl rounded-2xl p-4 flex items-center gap-4 min-w-[300px]">
+            <div className="h-10 w-10 rounded-xl bg-[#95BF47]/10 flex items-center justify-center shrink-0">
+              <svg viewBox="0 0 24 24" className="w-5 h-5 text-[#95BF47] fill-current">
+                <path d="M21.2 8.35c-1.35 0-2.45 1.1-2.45 2.45 0 .25.05.5.1.7L15 15.35c-.2-.05-.45-.1-.7-.1-.25 0-.5.05-.7.1L9.8 11.55c.05-.2.1-.45.1-.7 0-1.35-1.1-2.45-2.45-2.45-1.35 0-2.45 1.1-2.45 2.45 0 .25.05.5.1.7L2.85 15.65c-.2-.05-.45-.1-.7-.1-1.35 0-2.45 1.1-2.45 2.45 0 1.35 1.1 2.45 2.45 2.45 1.35 0 2.45-1.1 2.45-2.45 0-.25-.05-.5-.1-.7L6.3 13.25c.2.05.45.1.7.1.25 0 .5-.05.7-.1l3.8 3.8c-.05.2-.1.45-.1.7 0 1.35 1.1 2.45 2.45 2.45 1.35 0 2.45-1.1 2.45-2.45 0-.25-.05-.5-.1-.7l3.8-3.8c.2.05.45.1.7.1.25 0 .5-.05.7-.1l3.85 3.85c-.05.2-.1.45-.1.7 0 1.35 1.1 2.45 2.45 2.45 1.35 0 2.45-1.1 2.45-2.45 0-.25-.05-.5-.1-.7l3.85-3.85c.2.05.45.1.7.1.25 0 .5-.05.7-.1 1.35 0 2.45-1.1 2.45-2.45 0-1.35-1.1-2.45-2.45-2.45z" />
+              </svg>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Synchronization</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-sm font-bold text-black">{data.synced} Orders</span>
+                <span className="text-xs text-black/50 font-medium">from Shopify</span>
+              </div>
+            </div>
+          </div>
+        ));
       }
     } catch (error) {
       console.error("Error syncing orders:", error);
