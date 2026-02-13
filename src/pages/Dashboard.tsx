@@ -177,16 +177,14 @@ export default function Dashboard() {
             onClick={syncOrders}
             className="h-10 px-6 text-[10px] uppercase font-bold tracking-widest"
           />
-          <Button
-            variant="ghost"
-            size="sm"
+          <PlasticButton
+            text="Fraud Check"
+            loadingText="Checking…"
+            loading={checkingFraud}
+            disabled={syncing}
             onClick={checkFraud}
-            disabled={syncing || checkingFraud}
-            className="text-[10px] font-bold uppercase tracking-widest bg-black text-white hover:bg-black/80 transition-all rounded-full px-4"
-          >
-            <ShieldCheck className={cn("h-3 w-3 mr-2", checkingFraud && "animate-spin")} />
-            {checkingFraud ? "Checking…" : "Fraud Check"}
-          </Button>
+            className="h-10 px-6 text-[10px] uppercase font-bold tracking-widest bg-gradient-to-b from-black to-zinc-800"
+          />
         </div>
       </header>
 
