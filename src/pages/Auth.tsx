@@ -66,7 +66,7 @@ export default function Auth() {
         {/* Retro Background Image */}
         <div className="absolute inset-0 z-0">
           <img
-            src="/imgi_51_BG copy.jpg"
+            src="/auth-bg.jpg"
             alt="Background"
             className="w-full h-full object-cover opacity-60 grayscale contrast-125 hover:scale-105 transition-transform duration-[20s]"
           />
