@@ -247,7 +247,7 @@ export default function OrderAnalysis() {
 
         {/* Results Area */}
         <AnimatePresence>
-          {summary.length > 0 && (
+          {analysis && (
             <motion.section
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
@@ -272,31 +272,37 @@ export default function OrderAnalysis() {
 
               {/* Data Display */}
               <div className="grid lg:grid-cols-2 gap-16">
-                {/* Table */}
+                {/* Table - Only show if we have items */}
                 <div className="space-y-8">
                   <div className="flex items-center gap-2">
                     <div className="h-2 w-2 rounded-full bg-black"></div>
                     <h3 className="text-sm font-bold uppercase tracking-widest">Inventory Breakdown</h3>
                   </div>
-                  <div className="divide-y divide-black/[0.03]">
-                    {summary.map((s, i) => (
-                      <div key={i} className="flex items-center justify-between py-5 group">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-full border border-black/5 flex items-center justify-center bg-white group-hover:bg-black group-hover:text-white transition-all duration-300">
-                            <Package className="w-4 h-4 opacity-70" />
+                  {summary.length > 0 ? (
+                    <div className="divide-y divide-black/[0.03]">
+                      {summary.map((s, i) => (
+                        <div key={i} className="flex items-center justify-between py-5 group">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full border border-black/5 flex items-center justify-center bg-white group-hover:bg-black group-hover:text-white transition-all duration-300">
+                              <Package className="w-4 h-4 opacity-70" />
+                            </div>
+                            <div>
+                              <p className="font-medium tracking-tight transition-all group-hover:translate-x-1">{s.item}</p>
+                              <p className="text-[10px] text-black/30 uppercase font-bold">{s.orderCount} Orders</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium tracking-tight transition-all group-hover:translate-x-1">{s.item}</p>
-                            <p className="text-[10px] text-black/30 uppercase font-bold">{s.orderCount} Orders</p>
+                          <div className="text-right">
+                            <p className="text-lg font-light tracking-tight">x{s.quantity}</p>
+                            <p className="text-xs text-black/40">৳{s.revenue.toLocaleString()}</p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-lg font-light tracking-tight">x{s.quantity}</p>
-                          <p className="text-xs text-black/40">৳{s.revenue.toLocaleString()}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-10 text-center border rounded-2xl border-dashed border-black/10">
+                      <p className="text-sm text-black/30">No items to display for this period.</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* AI Text */}
@@ -306,7 +312,7 @@ export default function OrderAnalysis() {
                     <h3 className="text-sm font-bold uppercase tracking-widest">AI Synthesis</h3>
                   </div>
                   <div className="prose prose-sm max-w-none text-black/70 leading-relaxed font-light bg-black/[0.01] p-10 rounded-[2.5rem] border border-black/5">
-                    <ReactMarkdown>{analysis || ""}</ReactMarkdown>
+                    <ReactMarkdown>{analysis}</ReactMarkdown>
                   </div>
                 </div>
               </div>
