@@ -845,7 +845,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                         <div className="flex flex-col items-center gap-2">
                           <div className="inline-flex items-center gap-2 px-3 py-2 mx-0.5 rounded-lg bg-black/[0.03] border border-black/5 group-hover:border-black/10 transition-all whitespace-nowrap">
                             <span className="text-[7px] font-bold uppercase tracking-[0.2em] text-black/30">REF</span>
-                            <span className="text-[11px] font-mono font-bold text-black tracking-tight">{order.consignment_id}</span>
+                            <span className="text-[13px] font-mono font-bold text-black tracking-tight">{order.consignment_id}</span>
                           </div>
                         </div>
                       )}
