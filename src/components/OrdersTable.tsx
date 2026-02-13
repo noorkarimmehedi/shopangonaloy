@@ -11,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { PlasticButton } from "@/components/ui/plastic-button";
 import {
   Tooltip,
   TooltipContent,
@@ -24,7 +25,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truck, Loader2, Search, NotebookPen, Package } from "lucide-react";
+import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truck, Loader2, Search, NotebookPen, Package, Check } from "lucide-react";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -334,6 +335,8 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
   const [sendingIds, setSendingIds] = useState<Set<string>>(new Set());
   const [checkingFraudIds, setCheckingFraudIds] = useState<Set<string>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkChecking, setIsBulkChecking] = useState(false);
 
   const handleStatusToggle = async (order: Order) => {
     const newStatus = order.status === "confirmed" ? "pending" : "confirmed";
@@ -424,6 +427,65 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
     }
   };
 
+  const handleBulkFraudCheck = async () => {
+    if (selectedIds.size === 0 || isBulkChecking) return;
+
+    setIsBulkChecking(true);
+    const ids = Array.from(selectedIds);
+    let successCount = 0;
+
+    try {
+      for (const id of ids) {
+        setCheckingFraudIds(prev => new Set(prev).add(id));
+        try {
+          const { data, error } = await supabase.functions.invoke("check-fraud", {
+            body: { orderId: id },
+          });
+
+          if (!error && !data?.error && data?.order && onOrderUpdate) {
+            onOrderUpdate(data.order);
+            successCount++;
+          }
+        } catch (err) {
+          console.error(`Fraud check failed for order ${id}:`, err);
+        } finally {
+          setCheckingFraudIds(prev => {
+            const next = new Set(prev);
+            next.delete(id);
+            return next;
+          });
+        }
+      }
+
+      if (successCount > 0) {
+        toast.success(`Completed fraud check for ${successCount} orders`);
+      }
+      setSelectedIds(new Set());
+    } finally {
+      setIsBulkChecking(false);
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === orders.length && orders.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(orders.map(o => o.id)));
+    }
+  };
+
+  const toggleSelectOrder = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
   const formatPrice = (price: number | null, deliveryRate: number | null = null) => {
     if (price === null) return "-";
     const total = price + (deliveryRate ?? 0);
@@ -492,7 +554,18 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
       <Table>
         <TableHeader>
           <TableRow className="border-b border-black/[0.03] hover:bg-transparent">
-            <TableHead className="text-[10px] font-bold uppercase tracking-[0.15em] text-black/30 py-5 pl-10 h-auto">Ref</TableHead>
+            <TableHead className="w-12 py-5 pl-10 h-auto">
+              <div
+                onClick={toggleSelectAll}
+                className={cn(
+                  "w-4 h-4 rounded border border-black/10 flex items-center justify-center cursor-pointer transition-all",
+                  selectedIds.size === orders.length && orders.length > 0 ? "bg-black border-black" : "bg-white hover:border-black/30"
+                )}
+              >
+                {selectedIds.size === orders.length && orders.length > 0 && <Check className="w-3 h-3 text-white" />}
+              </div>
+            </TableHead>
+            <TableHead className="text-[10px] font-bold uppercase tracking-[0.15em] text-black/30 py-5 h-auto">Ref</TableHead>
             <TableHead className="text-[10px] font-bold uppercase tracking-[0.15em] text-black/30 py-5 h-auto">Customer</TableHead>
             <TableHead className="text-[10px] font-bold uppercase tracking-[0.15em] text-black/30 py-5 h-auto text-center">Trust</TableHead>
             <TableHead className="text-[10px] font-bold uppercase tracking-[0.15em] text-black/30 py-5 h-auto">Destination</TableHead>
@@ -513,9 +586,23 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: Math.min(idx * 0.05, 0.5) }}
-                  className="border-b border-black/[0.02] hover:bg-black/[0.01] transition-colors group relative"
+                  className={cn(
+                    "border-b border-black/[0.02] hover:bg-black/[0.01] transition-colors group relative",
+                    selectedIds.has(order.id) && "bg-black/[0.015]"
+                  )}
                 >
-                  <TableCell className="py-5 pl-10">
+                  <TableCell className="w-12 py-5 pl-10">
+                    <div
+                      onClick={() => toggleSelectOrder(order.id)}
+                      className={cn(
+                        "w-4 h-4 rounded border border-black/10 flex items-center justify-center cursor-pointer transition-all",
+                        selectedIds.has(order.id) ? "bg-black border-black shadow-sm" : "bg-white group-hover:border-black/30"
+                      )}
+                    >
+                      {selectedIds.has(order.id) && <Check className="w-3 h-3 text-white" />}
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-5">
                     <span className="font-bold text-[13px] tracking-tight block">{order.order_number}</span>
                     <span className="text-[10px] text-black/20 font-medium uppercase tracking-wider">{format(new Date(order.created_at), "MMM dd, yyyy")}</span>
                   </TableCell>
@@ -642,6 +729,42 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
           </AnimatePresence>
         </TableBody>
       </Table>
+
+      <AnimatePresence>
+        {selectedIds.size > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 100 }}
+            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100]"
+          >
+            <div className="bg-black text-white px-8 py-4 rounded-3xl shadow-2xl flex items-center gap-8 backdrop-blur-xl border border-white/10">
+              <div className="flex flex-col">
+                <span className="text-[10px] uppercase font-bold tracking-widest text-white/40">Selection</span>
+                <span className="text-sm font-medium">{selectedIds.size} Orders Selected</span>
+              </div>
+
+              <div className="h-8 w-px bg-white/10" />
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setSelectedIds(new Set())}
+                  className="px-4 py-2 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <PlasticButton
+                  text="Bulk Fraud Check"
+                  loading={isBulkChecking}
+                  loadingText="Checking..."
+                  onClick={handleBulkFraudCheck}
+                  className="h-10 px-6 text-[10px] font-bold uppercase tracking-widest bg-gradient-to-b from-white to-zinc-300 !text-black shadow-[0_4px_20px_-4px_rgba(255,255,255,0.2)]"
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
