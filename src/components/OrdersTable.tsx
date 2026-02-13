@@ -705,13 +705,13 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                   <TableCell className="text-center py-5 pr-10">
                     <div className="flex items-center justify-center gap-2">
                       {!order.sent_to_courier ? (
-                        <button
+                        <PlasticButton
+                          text="Send to steadfast"
+                          loadingText="Syncing..."
+                          loading={sendingIds.has(order.id)}
                           onClick={() => handleSendToCourier(order)}
-                          disabled={sendingIds.has(order.id)}
-                          className="h-8 px-4 bg-black text-white rounded-full text-[8px] font-bold uppercase tracking-widest hover:bg-black/80 transition-all shadow-lg shadow-black/10 disabled:opacity-50"
-                        >
-                          {sendingIds.has(order.id) ? "Syncing..." : "Send to steadfast"}
-                        </button>
+                          className="h-7 px-3 text-[7px] font-bold uppercase tracking-widest bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-lg shadow-blue-500/20"
+                        />
                       ) : (
                         <div className="flex flex-col items-center gap-2">
                           <div className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-black/[0.03] border border-black/5 group-hover:border-black/10 transition-all">
