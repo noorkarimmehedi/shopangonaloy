@@ -15,196 +15,281 @@ interface Order {
     status: string;
     created_at: string;
     delivery_rate: number | null;
+    courier_status?: string | null;
 }
 
 export const generateInvoice = (orders: Order[]) => {
-    const doc = new jsPDF();
-    const width = doc.internal.pageSize.getWidth();
-    const height = doc.internal.pageSize.getHeight();
+    // Use A4 dimensions
+    const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4"
+    });
+
+    const width = doc.internal.pageSize.getWidth(); // ~210mm
+    const height = doc.internal.pageSize.getHeight(); // ~297mm
     const margin = 20;
+
+    // Swiss Design Colors (RGB)
+    const black = [10, 10, 10] as [number, number, number]; // #0A0A0A
+    const darkGrey = [60, 60, 60] as [number, number, number]; // #3C3C3C
+    const lightGrey = [230, 230, 230] as [number, number, number]; // #E6E6E6
+    const white = [255, 255, 255] as [number, number, number];
 
     orders.forEach((order, index) => {
         if (index > 0) {
             doc.addPage();
         }
 
-        // --- Styling Constants ---
-        const primaryColor = [20, 20, 20] as [number, number, number]; // #141414
-        const secondaryColor = [100, 100, 100] as [number, number, number]; // Grey
-        const lineColor = [230, 230, 230] as [number, number, number]; // Light grey border
-        const hairline = 0.1;
+        // --- 1. BRAND HEADER (Top Right) ---
+        // Draw Logo: Black Rounded Square with White "A"
+        const logoSize = 16;
+        const logoX = width - margin - logoSize;
+        const logoY = margin;
 
-        // --- Helper: Horizontal Line ---
-        const drawLine = (y: number) => {
-            doc.setDrawColor(lineColor[0], lineColor[1], lineColor[2]);
-            doc.setLineWidth(hairline);
-            doc.line(margin, y, width - margin, y);
+        doc.setFillColor(black[0], black[1], black[2]);
+        doc.roundedRect(logoX, logoY, logoSize, logoSize, 2, 2, "F");
+
+        doc.setTextColor(white[0], white[1], white[2]);
+        doc.setFont("helvetica", "bolditalic"); // Match logo.tsx italic style
+        doc.setFontSize(26);
+        doc.text("A", logoX + (logoSize / 2), logoY + (logoSize / 1.4), { align: "center" });
+
+        // Brand Name & Details below logo
+        doc.setTextColor(black[0], black[1], black[2]);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8);
+        // Letter spacing simulation by adding spaces (PDF js doesn't support tracking natively well without plugin)
+        doc.text("SHOP  ANGONALOY", width - margin, logoY + logoSize + 6, { align: "right" });
+
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(darkGrey[0], darkGrey[1], darkGrey[2]);
+        doc.text("Dhaka, Bangladesh", width - margin, logoY + logoSize + 10, { align: "right" });
+        doc.text("shopangonaloy.com", width - margin, logoY + logoSize + 14, { align: "right" });
+        doc.text("+880 1XXX-XXXXXX", width - margin, logoY + logoSize + 18, { align: "right" });
+
+
+        // --- 2. MASSIVE TITLE (Top Left) ---
+        doc.setTextColor(black[0], black[1], black[2]);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(60); // Massive display text
+        doc.text("INVOICE", margin - 2, 50); // slight offset for optical alignment with margin
+
+
+        // --- 3. DETAILS GRID ---
+        const gridY = 70;
+
+        // Horizontal Separator - Thick
+        doc.setDrawColor(black[0], black[1], black[2]);
+        doc.setLineWidth(0.7);
+        doc.line(margin, gridY, width - margin, gridY);
+
+        // Grid Content
+        const col1 = margin;
+        const col2 = margin + 60;
+        const col3 = margin + 120;
+        const row1 = gridY + 8;
+        const row2 = gridY + 20;
+
+        // Label Style
+        const drawLabel = (text: string, x: number, y: number) => {
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(7);
+            doc.setTextColor(darkGrey[0], darkGrey[1], darkGrey[2]);
+            doc.text(text.toUpperCase(), x, y);
         };
 
-        // --- Header ---
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(32);
-        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text("INVOICE", margin, 35);
+        // Value Style
+        const drawValue = (text: string, x: number, y: number) => {
+            doc.setFont("helvetica", "bold"); // Bold for high contrast
+            doc.setFontSize(10);
+            doc.setTextColor(black[0], black[1], black[2]);
+            doc.text(text, x, y);
+        };
 
-        doc.setFontSize(8);
-        doc.setFont("helvetica", "bold"); // Bold for brand name
-        doc.text("SHOP ANGONALOY", width - margin, 30, { align: "right" });
+        // Value Paragraph Style
+        const drawParagraph = (text: string, x: number, y: number, maxWidth: number) => {
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(10);
+            doc.setTextColor(black[0], black[1], black[2]);
+            doc.text(text, x, y, { maxWidth });
+        };
 
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-        doc.text("Dhaka, Bangladesh", width - margin, 34, { align: "right" });
-        doc.text("shopangonaloy.com", width - margin, 38, { align: "right" });
+        // Col 1: Invoice Details
+        drawLabel("INVOICE NO", col1, row1);
+        drawValue(`#${order.order_number}`, col1, row1 + 5);
 
-        drawLine(50);
+        drawLabel("DATE ISSUED", col1, row2);
+        drawValue(format(new Date(order.created_at), "dd.MM.yyyy"), col1, row2 + 5);
 
-        // --- Meta Data Grid (Order Info & Date) ---
-        // Left Col: Invoice No
-        doc.setFontSize(7);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-        doc.text("REFERENCE NO", margin, 60);
-
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "normal"); // Number tends to look better normal or slightly bold
-        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text(`#${order.order_number}`, margin, 66);
-
-        // Right Col: Date
-        doc.setFontSize(7);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-        doc.text("DATE ISSUED", width - margin, 60, { align: "right" });
-
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text(format(new Date(order.created_at), "MMMM dd, yyyy"), width - margin, 66, { align: "right" });
-
-        drawLine(80);
-
-        // --- Bill To ---
-        doc.setFontSize(7);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-        doc.text("BILLED TO", margin, 90);
-
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text(order.customer_name || "Guest Customer", margin, 98);
-
-        doc.setFontSize(9);
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-        if (order.phone) doc.text(order.phone, margin, 104);
-
+        // Col 2: Bill To
+        drawLabel("BILLED TO", col2, row1);
+        drawValue(order.customer_name || "Guest Customer", col2, row1 + 5);
+        if (order.phone) {
+            doc.setFont("helvetica", "normal");
+            doc.text(order.phone, col2, row1 + 10);
+        }
         if (order.address) {
-            const addressLines = doc.splitTextToSize(order.address, width / 2);
-            doc.text(addressLines, margin, 110);
+            drawParagraph(order.address, col2, row1 + 15, 50);
         }
 
-        // --- Product Table ---
+        // Col 3: Status / Payment (Optional filler)
+        drawLabel("STATUS", col3, row1);
+
+        // Draw a status badge
+        let statusColor = [0, 0, 0] as [number, number, number];
+        let statusBg = [240, 240, 240] as [number, number, number];
+        let statusText = order.status.toUpperCase();
+
+        if (order.status === 'confirmed') {
+            statusColor = [22, 101, 52]; // Green-800
+            statusBg = [220, 252, 231]; // Green-100
+        } else if (order.status === 'pending') {
+            statusColor = [146, 64, 14]; // Amber-800
+            statusBg = [254, 243, 199]; // Amber-100
+        }
+
+        doc.setFillColor(statusBg[0], statusBg[1], statusBg[2]);
+        doc.roundedRect(col3, row1 + 2, 25, 6, 1, 1, "F");
+
+        doc.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
+        doc.setFontSize(7);
+        doc.setFont("helvetica", "bold");
+        doc.text(statusText, col3 + 12.5, row1 + 6, { align: "center" });
+
+
+        // --- 4. ITEM TABLE ---
+        // Prepare Data
         const productString = order.product || "Item";
         const subtotal = order.price || 0;
         const shipping = order.delivery_rate || 0;
+        const total = subtotal + shipping;
 
-        // Simplification: Price is treated as amount for the item
         const tableData = [
             [productString, order.quantity || 1, subtotal.toLocaleString()]
         ];
 
         autoTable(doc, {
-            startY: 140,
-            head: [["ITEM", "QUANTITY", "PRICE (BDT)"]],
+            startY: 120,
+            head: [["DESCRIPTION", "QTY", "AMOUNT (BDT)"]],
             body: tableData,
             theme: "plain",
             styles: {
                 font: "helvetica",
-                fontSize: 9,
-                cellPadding: { top: 10, bottom: 10, left: 0, right: 0 },
-                lineColor: lineColor,
-                lineWidth: 0, // No borders on cells
-                textColor: primaryColor,
+                fontSize: 10,
+                cellPadding: { top: 12, bottom: 12, left: 0, right: 0 },
+                lineColor: black,
+                lineWidth: 0,
+                textColor: black,
             },
             headStyles: {
-                fillColor: [255, 255, 255],
-                textColor: secondaryColor,
+                fillColor: white,
+                textColor: darkGrey,
                 fontStyle: "bold",
-                fontSize: 7,
+                fontSize: 8,
+                halign: "left",
             },
             columnStyles: {
-                0: { cellWidth: "auto" },
-                1: { cellWidth: 40, halign: "center" },
-                2: { cellWidth: 40, halign: "right" },
+                0: { cellWidth: "auto" }, // Description gets auto width
+                1: { cellWidth: 30, halign: "center" }, // Qty centered
+                2: { cellWidth: 40, halign: "right" },   // Price right aligned
             },
             margin: { left: margin, right: margin },
+
+            // Custom Drawing for Borders
             didDrawPage: (data) => {
-                // Draw line under header
-                doc.setDrawColor(lineColor[0], lineColor[1], lineColor[2]);
-                doc.setLineWidth(hairline);
-                const headerY = data.settings.startY + 8; // Approx header height
-                doc.line(margin, headerY, width - margin, headerY);
+                // Thick Line ABOVE Header
+                doc.setDrawColor(black[0], black[1], black[2]);
+                doc.setLineWidth(0.7);
+                doc.line(margin, data.settings.startY, width - margin, data.settings.startY);
+
+                // Thin Line BELOW Header
+                const headerBottom = data.settings.startY + 8; // approx
+                doc.setLineWidth(0.1);
+                doc.line(margin, headerBottom, width - margin, headerBottom);
             },
             didDrawCell: (data) => {
-                // Draw line after each row
+                // Thin Line BELOW each body row
                 if (data.section === 'body' && data.column.index === 2) {
                     const y = data.cell.y + data.cell.height;
-                    doc.setDrawColor(lineColor[0], lineColor[1], lineColor[2]);
-                    doc.setLineWidth(hairline);
+                    doc.setDrawColor(lightGrey[0], lightGrey[1], lightGrey[2]);
+                    doc.setLineWidth(0.1);
                     doc.line(margin, y, width - margin, y);
                 }
             }
         });
 
-        // --- Totals ---
+        // --- 5. TOTALS SECTION ---
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const finalY = (doc as any).lastAutoTable.finalY + 15;
+        const totalsWidth = 80;
+        const totalsX = width - margin - totalsWidth;
 
         // Subtotal
-        doc.setFontSize(8);
+        doc.setFontSize(9);
         doc.setFont("helvetica", "normal");
-        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-        doc.text("SUBTOTAL", width - 80, finalY);
+        doc.setTextColor(darkGrey[0], darkGrey[1], darkGrey[2]);
+        doc.text("Subtotal", totalsX, finalY);
 
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.setTextColor(black[0], black[1], black[2]);
         doc.text(subtotal.toLocaleString(), width - margin, finalY, { align: "right" });
 
         // Shipping
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-        doc.text("SHIPPING", width - 80, finalY + 8);
+        doc.setTextColor(darkGrey[0], darkGrey[1], darkGrey[2]);
+        doc.text("Shipping", totalsX, finalY + 8);
 
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.setTextColor(black[0], black[1], black[2]);
         doc.text(shipping.toLocaleString(), width - margin, finalY + 8, { align: "right" });
 
-        // Divider for Total
-        doc.setDrawColor(lineColor[0], lineColor[1], lineColor[2]);
-        doc.line(width - 80, finalY + 14, width - margin, finalY + 14);
+        // Total Line
+        doc.setDrawColor(black[0], black[1], black[2]);
+        doc.setLineWidth(0.5);
+        doc.line(totalsX, finalY + 14, width - margin, finalY + 14);
 
-        // Total
+        // GRAND TOTAL
         doc.setFontSize(10);
         doc.setFont("helvetica", "bold");
-        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text("TOTAL DUE", width - 80, finalY + 22);
+        doc.text("TOTAL", totalsX, finalY + 22);
 
-        doc.setFontSize(14);
-        doc.text(`BDT ${(subtotal + shipping).toLocaleString()}`, width - margin, finalY + 22, { align: "right" });
+        doc.setFontSize(16); // Large total
+        doc.text(`BDT ${total.toLocaleString()}`, width - margin, finalY + 22, { align: "right" });
 
-        // --- Footer ---
-        const footerY = height - 20;
 
-        doc.setDrawColor(lineColor[0], lineColor[1], lineColor[2]);
-        doc.line(margin, footerY - 10, width - margin, footerY - 10);
+        // --- 6. FOOTER & THANK YOU ---
+        const footerY = height - 30;
 
+        // Aesthetic "Block" footer or large text
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(7);
-        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-        doc.text("SHOP ANGONALOY © " + new Date().getFullYear(), margin, footerY);
+        doc.setFontSize(30);
+        doc.setTextColor(240, 240, 240); // Very light grey text
+        doc.text("THANK YOU", margin, footerY);
 
-        doc.text("Page " + doc.getCurrentPageInfo().pageNumber, width - margin, footerY, { align: "right" });
+        // Notes or Payment Info
+        doc.setFontSize(8);
+        doc.setTextColor(darkGrey[0], darkGrey[1], darkGrey[2]);
+        doc.text("Payment due upon receipt.", margin, footerY + 8);
+        doc.text("Please include invoice number on your check.", margin, footerY + 12);
+
+        // Page Number
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(darkGrey[0], darkGrey[1], darkGrey[2]);
+        doc.text(`Page 1/1`, width - margin, height - 10, { align: "right" });
+
+        // QR Code Placeholder (Mock visual)
+        const qrSize = 25;
+        const qrX = width - margin - qrSize;
+        const qrY = footerY - 15;
+
+        // Draw a border for QR
+        doc.setDrawColor(black[0], black[1], black[2]);
+        doc.setLineWidth(0.1);
+        doc.rect(qrX, qrY, qrSize, qrSize);
+
+        // Draw "QR" text inside
+        doc.setFontSize(8);
+        doc.text("SCAN ME", qrX + (qrSize / 2), qrY + (qrSize / 2), { align: "center" });
+
     });
 
     const filename = orders.length > 1
