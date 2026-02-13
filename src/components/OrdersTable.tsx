@@ -582,7 +582,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                         <PopoverTrigger asChild>
                           <button
                             className={cn(
-                              "h-8 px-4 text-[9px] font-bold uppercase tracking-widest rounded-full transition-all border shadow-sm",
+                              "h-8 w-24 text-[9px] font-bold uppercase tracking-widest rounded-full transition-all border shadow-sm",
                               order.status === "confirmed"
                                 ? "bg-blue-50 border-blue-100 text-blue-600 shadow-blue-900/5"
                                 : "bg-amber-50 border-amber-100 text-amber-600 shadow-amber-900/5"
