@@ -17,6 +17,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { PlasticButton } from "@/components/ui/plastic-button";
 import ReactMarkdown from "react-markdown";
 import type { DateRange } from "react-day-picker";
 
@@ -192,14 +193,12 @@ export default function OrderAnalysis() {
                   </Popover>
                 </div>
               )}
-              <Button onClick={handleAnalyze} disabled={(mode === "single" ? !singleDate : mode === "range" ? !dateRange?.from : (!startOrder || !endOrder)) || loading}>
-                {loading ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4 mr-2" />
-                )}
-                {loading ? "Analyzing…" : "Analyze"}
-              </Button>
+              <PlasticButton
+                text="Analyze"
+                onClick={handleAnalyze}
+                loading={loading}
+                disabled={(mode === "single" ? !singleDate : mode === "range" ? !dateRange?.from : (!startOrder || !endOrder))}
+              />
             </div>
           </div>
         </div>
