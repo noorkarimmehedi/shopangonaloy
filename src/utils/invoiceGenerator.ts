@@ -156,7 +156,7 @@ export const generateInvoice = (orders: Order[]) => {
 
         autoTable(doc, {
             startY: 120,
-            head: [["DESCRIPTION", "QTY", "AMOUNT (BDT)"]],
+            head: [["", "", ""]],
             body: tableData,
             theme: 'grid',
             styles: {
@@ -203,7 +203,7 @@ export const generateInvoice = (orders: Order[]) => {
                 }
                 // Handle valign for AMOUNT column
                 if (data.section === 'body' && data.column.index === 2) {
-                    const text = data.cell.raw;
+                    const text = String(data.cell.raw ?? "");
                     const textHeight = doc.getTextDimensions(text).h;
                     const yPos = data.cell.y + (data.cell.height - textHeight) / 2;
                     doc.text(text, data.cell.x, yPos);
