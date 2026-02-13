@@ -627,7 +627,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                         </button>
                       ) : (
                         <div className="flex flex-col items-center gap-1">
-                          <span className="text-[10px] font-mono text-black/30">ID: {order.consignment_id}</span>
+                          <span className="text-[11px] font-mono text-black font-medium">ID: {order.consignment_id}</span>
                           {getCourierStatusBadge(order)}
                         </div>
                       )}
