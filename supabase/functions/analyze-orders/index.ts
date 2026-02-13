@@ -37,33 +37,50 @@ serve(async (req) => {
       });
     }
 
-    const { date, startDate, endDate } = await req.json();
-    const from = startDate || date;
-    const to = endDate || from;
-    if (!from) {
-      return new Response(JSON.stringify({ error: "Date is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const { date, startDate, endDate, startOrder, endOrder } = await req.json();
+
+    let orders;
+    let ordersError;
+    let dateLabel;
+
+    if (startOrder && endOrder) {
+      dateLabel = `Orders #${startOrder} to #${endOrder}`;
+      const { data, error } = await supabase
+        .from("orders")
+        .gte("order_number", startOrder)
+        .lte("order_number", endOrder)
+        .order("order_number", { ascending: true });
+      orders = data;
+      ordersError = error;
+    } else {
+      const from = startDate || date;
+      const to = endDate || from;
+      if (!from) {
+        return new Response(JSON.stringify({ error: "Date or Order Range is required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      dateLabel = from === to ? from : `${from} to ${to}`;
+      const rangeStart = `${from}T00:00:00.000Z`;
+      const rangeEnd = `${to}T23:59:59.999Z`;
+
+      const { data, error } = await supabase
+        .from("orders")
+        .gte("created_at", rangeStart)
+        .lte("created_at", rangeEnd)
+        .order("created_at", { ascending: true });
+      orders = data;
+      ordersError = error;
     }
-
-    // Fetch orders for the given date range
-    const rangeStart = `${from}T00:00:00.000Z`;
-    const rangeEnd = `${to}T23:59:59.999Z`;
-
-    const { data: orders, error: ordersError } = await supabase
-      .from("orders")
-      .select("*")
-      .gte("created_at", rangeStart)
-      .lte("created_at", rangeEnd)
-      .order("created_at", { ascending: true });
 
     if (ordersError) throw ordersError;
 
     if (!orders || orders.length === 0) {
       return new Response(
         JSON.stringify({
-          analysis: `No orders found for ${from === to ? from : `${from} to ${to}`}.`,
+          analysis: `No orders found for ${dateLabel}.`,
           orders: [],
           summary: [],
         }),
@@ -107,15 +124,14 @@ serve(async (req) => {
       );
     }
 
-    const dateLabel = from === to ? from : `${from} to ${to}`;
     const prompt = `You are an order analysis assistant. Analyze the following order data for ${dateLabel}.
 
 Total orders: ${orders.length}
 Item breakdown:
-${summary.map((s) => `- ${s.item}: ${s.quantity} units ordered across ${s.orderCount} orders (Revenue: ৳${s.revenue.toFixed(2)})`).join("\n")}
+${summary.map((s: any) => `- ${s.item}: ${s.quantity} units ordered across ${s.orderCount} orders (Revenue: ৳${s.revenue.toFixed(2)})`).join("\n")}
 
 Orders with statuses:
-${orders.map((o) => `- Order #${o.order_number}: ${o.product || "Unknown"} x${o.quantity || 1} — Status: ${o.status}, Fulfillment: ${o.fulfillment_status || "N/A"}`).join("\n")}
+${orders.map((o: any) => `- Order #${o.order_number}: ${o.product || "Unknown"} x${o.quantity || 1} — Status: ${o.status}, Fulfillment: ${o.fulfillment_status || "N/A"}`).join("\n")}
 
 Provide a concise summary of:
 1. Which items were ordered and in what quantities
