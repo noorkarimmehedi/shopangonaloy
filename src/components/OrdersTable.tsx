@@ -626,8 +626,11 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                           {sendingIds.has(order.id) ? "Syncing..." : "Send to steadfast"}
                         </button>
                       ) : (
-                        <div className="flex flex-col items-center gap-1">
-                          <span className="text-[11px] font-mono text-black font-medium">ID: {order.consignment_id}</span>
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-black/[0.03] border border-black/5 group-hover:border-black/10 transition-all">
+                            <span className="text-[7px] font-bold uppercase tracking-[0.2em] text-black/30">REF</span>
+                            <span className="text-[11px] font-mono text-black font-semibold tracking-tight">{order.consignment_id}</span>
+                          </div>
                           {getCourierStatusBadge(order)}
                         </div>
                       )}
