@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { PlasticButton } from "@/components/ui/plastic-button";
 import { Input } from "@/components/ui/input";
+import { Combobox } from "@/components/ui/combobox";
 import {
   Select,
   SelectContent,
@@ -25,6 +26,9 @@ import {
   Edit2,
   Save,
   X,
+  Search,
+  Filter,
+  ArrowUpDown,
 } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 
@@ -43,6 +47,7 @@ interface Product {
   id: string;
   name: string;
   price: number;
+  created_at: string;
 }
 
 export default function OrderExtraction() {
@@ -55,6 +60,7 @@ export default function OrderExtraction() {
 
   // Products state
   const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [newProductName, setNewProductName] = useState("");
@@ -62,10 +68,18 @@ export default function OrderExtraction() {
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editPrice, setEditPrice] = useState("");
+  const [productSearch, setProductSearch] = useState("");
+  const [sortBy, setSortBy] = useState<"name" | "price" | "created">("name");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [selectedProductId, setSelectedProductId] = useState<string>("");
 
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    filterAndSortProducts();
+  }, [products, productSearch, sortBy, sortOrder]);
 
   const fetchProducts = async () => {
     try {
@@ -137,6 +151,40 @@ export default function OrderExtraction() {
       product: product.name,
       price: product.price,
     });
+    setSelectedProductId(productId);
+  };
+
+  const filterAndSortProducts = () => {
+    let filtered = products.filter((product) =>
+      product.name.toLowerCase().includes(productSearch.toLowerCase())
+    );
+
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      switch (sortBy) {
+        case "name":
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case "price":
+          comparison = a.price - b.price;
+          break;
+        case "created":
+          comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          break;
+      }
+      return sortOrder === "asc" ? comparison : -comparison;
+    });
+
+    setFilteredProducts(filtered);
+  };
+
+  const toggleSort = (field: "name" | "price" | "created") => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(field);
+      setSortOrder("asc");
+    }
   };
 
   const extractOrderFromText = async () => {
@@ -327,7 +375,7 @@ export default function OrderExtraction() {
               />
             </div>
 
-            {/* Products Management */}
+            {/* Enhanced Products Management */}
             {isAdmin && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -338,7 +386,7 @@ export default function OrderExtraction() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="h-2 w-2 rounded-full bg-black"></div>
-                    <h3 className="text-sm font-bold uppercase tracking-widest">Saved Products</h3>
+                    <h3 className="text-sm font-bold uppercase tracking-widest">Product Management</h3>
                   </div>
                   <Button
                     variant="ghost"
@@ -381,18 +429,53 @@ export default function OrderExtraction() {
                   )}
                 </AnimatePresence>
 
-                <div className="bg-white rounded-2xl border border-black/5 divide-y divide-black/5 max-h-[280px] overflow-y-auto">
+                {/* Search and Filter Controls */}
+                <div className="flex gap-2 items-center">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-black/30" />
+                    <Input
+                      placeholder="Search products..."
+                      value={productSearch}
+                      onChange={(e) => setProductSearch(e.target.value)}
+                      className="pl-10 h-10 bg-[#F8F8F8] border-none rounded-xl text-sm"
+                    />
+                  </div>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleSort("name")}
+                      className={`h-10 px-3 text-xs ${sortBy === "name" ? "bg-black/10 text-black" : "text-black/40 hover:text-black"}`}
+                    >
+                      Name
+                      <ArrowUpDown className="w-3 h-3 ml-1" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleSort("price")}
+                      className={`h-10 px-3 text-xs ${sortBy === "price" ? "bg-black/10 text-black" : "text-black/40 hover:text-black"}`}
+                    >
+                      Price
+                      <ArrowUpDown className="w-3 h-3 ml-1" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-black/5 divide-y divide-black/5 max-h-[320px] overflow-y-auto">
                   {loadingProducts ? (
                     <div className="flex items-center justify-center py-8">
                       <Loader2 className="w-4 h-4 animate-spin text-black/20" />
                     </div>
-                  ) : products.length === 0 ? (
+                  ) : filteredProducts.length === 0 ? (
                     <div className="text-center py-8">
                       <Package className="w-8 h-8 text-black/5 mx-auto mb-2" />
-                      <p className="text-xs text-black/20 font-medium">No products added yet</p>
+                      <p className="text-xs text-black/20 font-medium">
+                        {productSearch ? "No products found" : "No products added yet"}
+                      </p>
                     </div>
                   ) : (
-                    products.map((product) => (
+                    filteredProducts.map((product) => (
                       <div
                         key={product.id}
                         className="flex items-center justify-between px-4 py-3 hover:bg-black/[0.01] transition-colors group"
@@ -419,9 +502,11 @@ export default function OrderExtraction() {
                           </div>
                         ) : (
                           <>
-                            <div>
-                              <p className="text-sm font-medium text-black">{product.name}</p>
-                              <p className="text-xs text-black/30">৳{product.price}</p>
+                            <div className="flex items-center gap-3">
+                              <div>
+                                <p className="text-sm font-medium text-black">{product.name}</p>
+                                <p className="text-xs text-black/30">৳{product.price}</p>
+                              </div>
                             </div>
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <Button
@@ -471,22 +556,26 @@ export default function OrderExtraction() {
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-4"
               >
-                {/* Product Selector */}
+                {/* Enhanced Product Selector with Search */}
                 {products.length > 0 && (
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-black/40 uppercase tracking-wider">Select Product</label>
-                    <Select onValueChange={selectProduct}>
-                      <SelectTrigger className="h-14 bg-[#F8F8F8] border-none rounded-2xl">
-                        <SelectValue placeholder="Choose a saved product..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {products.map((p) => (
-                          <SelectItem key={p.id} value={p.id}>
-                            {p.name} — ৳{p.price}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Combobox
+                      items={products.map((p) => ({
+                        value: p.id,
+                        label: p.name,
+                        price: p.price,
+                      }))}
+                      value={selectedProductId}
+                      onValueChange={selectProduct}
+                      placeholder="Search and select a product..."
+                      emptyMessage="No products found."
+                      showPrice={true}
+                      className="w-full"
+                    />
+                    <p className="text-xs text-black/30 font-light">
+                      Start typing to search products, or select from the list to auto-fill name and price
+                    </p>
                   </div>
                 )}
 
