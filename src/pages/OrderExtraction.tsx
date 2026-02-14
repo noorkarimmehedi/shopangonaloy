@@ -1,22 +1,32 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { PlasticButton } from "@/components/ui/plastic-button";
 import { Input } from "@/components/ui/input";
-import { 
-  MessageSquare, 
-  MapPin, 
-  Phone, 
-  User, 
-  Truck, 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  MessageSquare,
+  Truck,
   CheckCircle2,
   Loader2,
   Sparkles,
-  Package
+  Package,
+  Plus,
+  Trash2,
+  Edit2,
+  Save,
+  X,
 } from "lucide-react";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface ExtractedOrder {
   customer_name: string;
@@ -29,12 +39,105 @@ interface ExtractedOrder {
   location_type: "inside_dhaka" | "outside_dhaka";
 }
 
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+}
+
 export default function OrderExtraction() {
+  const { isAdmin } = useUserRole();
   const [orderText, setOrderText] = useState("");
   const [extractedOrder, setExtractedOrder] = useState<ExtractedOrder | null>(null);
   const [extracting, setExtracting] = useState(false);
   const [creating, setCreating] = useState(false);
   const [manualEdit, setManualEdit] = useState(false);
+
+  // Products state
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [showAddProduct, setShowAddProduct] = useState(false);
+  const [newProductName, setNewProductName] = useState("");
+  const [newProductPrice, setNewProductPrice] = useState("");
+  const [editingProduct, setEditingProduct] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editPrice, setEditPrice] = useState("");
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  const addProduct = async () => {
+    if (!newProductName.trim()) return;
+    try {
+      const { error } = await supabase.from("products").insert({
+        name: newProductName.trim(),
+        price: parseFloat(newProductPrice) || 0,
+      });
+      if (error) throw error;
+      toast.success("Product added");
+      setNewProductName("");
+      setNewProductPrice("");
+      setShowAddProduct(false);
+      fetchProducts();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to add product");
+    }
+  };
+
+  const updateProduct = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("products")
+        .update({ name: editName.trim(), price: parseFloat(editPrice) || 0 })
+        .eq("id", id);
+      if (error) throw error;
+      toast.success("Product updated");
+      setEditingProduct(null);
+      fetchProducts();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update product");
+    }
+  };
+
+  const deleteProduct = async (id: string) => {
+    try {
+      const { error } = await supabase.from("products").delete().eq("id", id);
+      if (error) throw error;
+      toast.success("Product deleted");
+      fetchProducts();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete product");
+    }
+  };
+
+  const selectProduct = (productId: string) => {
+    const product = products.find((p) => p.id === productId);
+    if (!product || !extractedOrder) return;
+    setExtractedOrder({
+      ...extractedOrder,
+      product: product.name,
+      price: product.price,
+    });
+  };
 
   const extractOrderFromText = async () => {
     if (!orderText.trim()) {
@@ -45,7 +148,7 @@ export default function OrderExtraction() {
     setExtracting(true);
     try {
       const { data, error } = await supabase.functions.invoke("extract-order-from-text", {
-        body: { orderText }
+        body: { orderText },
       });
 
       if (error) throw error;
@@ -67,19 +170,17 @@ export default function OrderExtraction() {
     }
   };
 
-  const determineDeliveryCharge = (address: string): { charge: number; type: "inside_dhaka" | "outside_dhaka" } => {
+  const determineDeliveryCharge = (address: string) => {
     const lowerAddress = address.toLowerCase();
     const dhakaKeywords = [
       "dhaka", "dhanmondi", "gulshan", "banani", "mirpur", "mohammadpur",
       "uttara", "badda", "khilgaon", "motijheel", "paltan", "farmgate",
-      "shahbagh", "new market", "azampur", "kurmitola", "tejgaon"
+      "shahbagh", "new market", "azampur", "kurmitola", "tejgaon",
     ];
-    
-    const isInsideDhaka = dhakaKeywords.some(keyword => lowerAddress.includes(keyword));
-    
+    const isInsideDhaka = dhakaKeywords.some((k) => lowerAddress.includes(k));
     return {
       charge: isInsideDhaka ? 80 : 120,
-      type: isInsideDhaka ? "inside_dhaka" : "outside_dhaka"
+      type: (isInsideDhaka ? "inside_dhaka" : "outside_dhaka") as "inside_dhaka" | "outside_dhaka",
     };
   };
 
@@ -91,10 +192,10 @@ export default function OrderExtraction() {
 
     setCreating(true);
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("orders")
         .insert([{
-          shopify_order_id: Date.now(), // Temporary ID
+          shopify_order_id: Date.now(),
           order_number: `MAN-${Date.now()}`,
           customer_name: extractedOrder.customer_name,
           phone: extractedOrder.phone,
@@ -105,29 +206,23 @@ export default function OrderExtraction() {
           delivery_rate: extractedOrder.delivery_charge,
           status: "pending",
           fraud_checked: false,
-          fulfillment_status: "unfulfilled"
-        }])
-        .select()
-        .single();
+          fulfillment_status: "unfulfilled",
+        }]);
 
       if (error) throw error;
 
-      toast.custom((t) => (
-        <div className="bg-white border border-black/5 shadow-2xl rounded-2xl p-4 flex items-center gap-4 min-w-[300px]">
-          <div className="h-10 w-10 rounded-xl bg-green-500/10 flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-5 h-5 text-green-500" />
+      toast.custom(() => (
+        <div className="bg-card border border-border shadow-2xl rounded-xl p-4 flex items-center gap-4 min-w-[300px]">
+          <div className="h-10 w-10 rounded-lg bg-[hsl(var(--success)/0.1)] flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-5 h-5 text-[hsl(var(--success))]" />
           </div>
           <div className="flex flex-col">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Order Created</span>
-            <div className="flex items-baseline gap-1">
-              <span className="text-sm font-bold text-black">{extractedOrder.customer_name}</span>
-              <span className="text-xs text-black/50 font-medium">added to dashboard</span>
-            </div>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Order Created</span>
+            <span className="text-sm font-bold text-foreground">{extractedOrder.customer_name}</span>
           </div>
         </div>
       ));
 
-      // Reset form
       setOrderText("");
       setExtractedOrder(null);
       setManualEdit(false);
@@ -139,188 +234,277 @@ export default function OrderExtraction() {
     }
   };
 
-  const updateExtractedOrder = (field: keyof ExtractedOrder, value: any) => {
+  const updateExtractedOrder = (field: keyof ExtractedOrder, value: string | number) => {
     if (!extractedOrder) return;
-    
     const updated = { ...extractedOrder, [field]: value };
-    
-    // Recalculate delivery charge if address changed
     if (field === "address") {
-      const { charge, type } = determineDeliveryCharge(value);
+      const { charge, type } = determineDeliveryCharge(value as string);
       updated.delivery_charge = charge;
       updated.location_type = type;
     }
-    
     setExtractedOrder(updated);
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] text-[#1A1A1A]">
-      {/* Header */}
-      <header className="sticky top-0 z-50 flex items-center justify-between border-b border-black/5 bg-white/80 backdrop-blur-xl px-6 h-16">
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-black flex items-center justify-center">
-            <MessageSquare className="h-4 w-4 text-white" />
-          </div>
-          <span className="text-xs font-bold uppercase tracking-widest text-black/40">Order Extraction</span>
-        </div>
-      </header>
-
-      <main className="max-w-[1800px] mx-auto px-6 py-16 space-y-16">
-        {/* Hero Section */}
-        <section className="space-y-4">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/5 text-black/60 text-[10px] font-bold uppercase tracking-wider"
-          >
+    <div className="space-y-8">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
             <Sparkles className="w-3 h-3" />
-            AI-Powered Processing
-          </motion.div>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="space-y-4">
-              <motion.h1
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="text-5xl lg:text-6xl font-normal leading-tight"
-              >
-                Order <span className="italic text-black/30 underline decoration-black/10 transition-colors hover:text-black/60">Extraction</span>
-              </motion.h1>
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="text-lg text-black/50 max-w-2xl font-light"
-              >
-                Paste messenger or social media order text and let AI extract customer details, delivery location, and calculate charges automatically.
-              </motion.p>
-            </div>
+            AI-Powered
           </div>
-        </section>
+          <h1 className="text-2xl font-semibold text-foreground tracking-tight">Order Extraction</h1>
+          <p className="text-sm text-muted-foreground">
+            Paste messenger text and let AI extract order details automatically.
+          </p>
+        </div>
+      </div>
 
-        {/* Main Content */}
-        <motion.section
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="grid gap-8 lg:grid-cols-2"
-        >
-          {/* Input Section */}
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-black"></div>
-                <h3 className="text-sm font-bold uppercase tracking-widest">Order Text Input</h3>
-              </div>
-              <p className="text-xs text-black/30 font-light">Paste the complete order text from messenger or social media</p>
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Left Column: Text Input + Products */}
+        <div className="space-y-6">
+          {/* Text Input Card */}
+          <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-muted-foreground" />
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">Order Text</h3>
             </div>
-
-            <div className="space-y-4">
-              <Textarea
-                placeholder="Paste the order message here... Example: 'Hi, I want to order 2 t-shirts. My name is Rahim, phone: 01712345678, address: House 12, Road 5, Dhanmondi, Dhaka'"
-                value={orderText}
-                onChange={(e) => setOrderText(e.target.value)}
-                className="min-h-[200px] bg-[#F8F8F8] border-none rounded-2xl text-base placeholder:text-black/20 focus-visible:ring-1 focus-visible:ring-black/10 resize-none"
-              />
-
-              <PlasticButton
-                text="Extract Order Details"
-                onClick={extractOrderFromText}
-                loading={extracting}
-                loadingText="Extracting..."
-                className="w-full px-6 h-14"
-              />
-            </div>
+            <Textarea
+              placeholder="Paste the order message here..."
+              value={orderText}
+              onChange={(e) => setOrderText(e.target.value)}
+              className="min-h-[160px] bg-secondary/50 border-border rounded-lg text-sm placeholder:text-muted-foreground/50 resize-none"
+            />
+            <PlasticButton
+              text="Extract Order Details"
+              onClick={extractOrderFromText}
+              loading={extracting}
+              loadingText="Extracting..."
+              className="w-full h-12"
+            />
           </div>
 
-          {/* Extracted Details Section */}
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-black"></div>
-                <h3 className="text-sm font-bold uppercase tracking-widest">Extracted Details</h3>
+          {/* Products Management Card */}
+          {isAdmin && (
+            <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Package className="w-4 h-4 text-muted-foreground" />
+                  <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">Products</h3>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAddProduct(!showAddProduct)}
+                  className="text-xs"
+                >
+                  <Plus className="w-3.5 h-3.5 mr-1" />
+                  Add
+                </Button>
               </div>
-              <p className="text-xs text-black/30 font-light">Review and edit extracted information before creating order</p>
+
+              <AnimatePresence>
+                {showAddProduct && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="flex gap-2"
+                  >
+                    <Input
+                      placeholder="Product name"
+                      value={newProductName}
+                      onChange={(e) => setNewProductName(e.target.value)}
+                      className="flex-1 h-10 bg-secondary/50 border-border text-sm"
+                    />
+                    <Input
+                      type="number"
+                      placeholder="Price"
+                      value={newProductPrice}
+                      onChange={(e) => setNewProductPrice(e.target.value)}
+                      className="w-24 h-10 bg-secondary/50 border-border text-sm"
+                    />
+                    <Button size="sm" onClick={addProduct} className="h-10 px-3">
+                      <Save className="w-3.5 h-3.5" />
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="space-y-1 max-h-[240px] overflow-y-auto">
+                {loadingProducts ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                  </div>
+                ) : products.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-6">No products added yet</p>
+                ) : (
+                  products.map((product) => (
+                    <div
+                      key={product.id}
+                      className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-secondary/50 transition-colors group"
+                    >
+                      {editingProduct === product.id ? (
+                        <div className="flex items-center gap-2 flex-1">
+                          <Input
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            className="flex-1 h-8 text-xs bg-secondary/50 border-border"
+                          />
+                          <Input
+                            type="number"
+                            value={editPrice}
+                            onChange={(e) => setEditPrice(e.target.value)}
+                            className="w-20 h-8 text-xs bg-secondary/50 border-border"
+                          />
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => updateProduct(product.id)}>
+                            <Save className="w-3 h-3" />
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setEditingProduct(null)}>
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <>
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{product.name}</p>
+                            <p className="text-xs text-muted-foreground">৳{product.price}</p>
+                          </div>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 w-7 p-0"
+                              onClick={() => {
+                                setEditingProduct(product.id);
+                                setEditName(product.name);
+                                setEditPrice(String(product.price));
+                              }}
+                            >
+                              <Edit2 className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 w-7 p-0 text-destructive"
+                              onClick={() => deleteProduct(product.id)}
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Column: Extracted Details */}
+        <div className="space-y-6">
+          <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-foreground" />
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">Extracted Details</h3>
             </div>
 
             {extractedOrder ? (
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-4"
               >
+                {/* Product Selector */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Select Product</label>
+                  <Select onValueChange={selectProduct}>
+                    <SelectTrigger className="h-12 bg-secondary/50 border-border rounded-lg">
+                      <SelectValue placeholder="Choose a product..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {products.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name} — ৳{p.price}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-black/40 uppercase tracking-wider">Customer Name</label>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Customer Name</label>
                     <Input
                       value={extractedOrder.customer_name}
                       onChange={(e) => updateExtractedOrder("customer_name", e.target.value)}
-                      className="h-14 bg-[#F8F8F8] border-none rounded-2xl"
+                      className="h-12 bg-secondary/50 border-border rounded-lg"
                       disabled={!manualEdit}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-black/40 uppercase tracking-wider">Phone Number</label>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Phone Number</label>
                     <Input
                       value={extractedOrder.phone}
                       onChange={(e) => updateExtractedOrder("phone", e.target.value)}
-                      className="h-14 bg-[#F8F8F8] border-none rounded-2xl"
+                      className="h-12 bg-secondary/50 border-border rounded-lg"
                       disabled={!manualEdit}
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-black/40 uppercase tracking-wider">Delivery Address</label>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Delivery Address</label>
                   <Input
                     value={extractedOrder.address}
                     onChange={(e) => updateExtractedOrder("address", e.target.value)}
-                    className="h-14 bg-[#F8F8F8] border-none rounded-2xl"
+                    className="h-12 bg-secondary/50 border-border rounded-lg"
                     disabled={!manualEdit}
                   />
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-3">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-black/40 uppercase tracking-wider">Product</label>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Product</label>
                     <Input
                       value={extractedOrder.product}
                       onChange={(e) => updateExtractedOrder("product", e.target.value)}
-                      className="h-14 bg-[#F8F8F8] border-none rounded-2xl"
+                      className="h-12 bg-secondary/50 border-border rounded-lg"
                       disabled={!manualEdit}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-black/40 uppercase tracking-wider">Quantity</label>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Quantity</label>
                     <Input
                       type="number"
                       value={extractedOrder.quantity}
                       onChange={(e) => updateExtractedOrder("quantity", parseInt(e.target.value) || 1)}
-                      className="h-14 bg-[#F8F8F8] border-none rounded-2xl"
+                      className="h-12 bg-secondary/50 border-border rounded-lg"
                       disabled={!manualEdit}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-black/40 uppercase tracking-wider">Price (৳)</label>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Price (৳)</label>
                     <Input
                       type="number"
                       value={extractedOrder.price}
                       onChange={(e) => updateExtractedOrder("price", parseInt(e.target.value) || 0)}
-                      className="h-14 bg-[#F8F8F8] border-none rounded-2xl"
+                      className="h-12 bg-secondary/50 border-border rounded-lg"
                       disabled={!manualEdit}
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-black/[0.02] rounded-2xl">
+                <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg border border-border">
                   <div className="flex items-center gap-3">
-                    <Truck className="w-5 h-5 text-black/40" />
+                    <Truck className="w-5 h-5 text-muted-foreground" />
                     <div>
-                      <p className="text-xs font-medium text-black/60">Delivery Charge</p>
-                      <p className="text-lg font-bold text-black">
+                      <p className="text-xs font-medium text-muted-foreground">Delivery Charge</p>
+                      <p className="text-lg font-bold text-foreground">
                         ৳{extractedOrder.delivery_charge}
-                        <span className="text-xs text-black/40 ml-2">
+                        <span className="text-xs text-muted-foreground ml-2">
                           ({extractedOrder.location_type === "inside_dhaka" ? "Inside Dhaka" : "Outside Dhaka"})
                         </span>
                       </p>
@@ -332,7 +516,7 @@ export default function OrderExtraction() {
                   <Button
                     variant="ghost"
                     onClick={() => setManualEdit(!manualEdit)}
-                    className="flex-1 h-14 text-sm font-medium text-black/50 hover:text-black hover:bg-black/[0.03] rounded-2xl"
+                    className="flex-1 h-12 text-sm font-medium text-muted-foreground hover:text-foreground rounded-lg"
                   >
                     {manualEdit ? "Lock Editing" : "Enable Editing"}
                   </Button>
@@ -341,20 +525,20 @@ export default function OrderExtraction() {
                     onClick={createOrder}
                     loading={creating}
                     loadingText="Creating..."
-                    className="flex-1 px-6 h-14"
+                    className="flex-1 h-12"
                   />
                 </div>
               </motion.div>
             ) : (
-              <div className="text-center py-20 bg-white rounded-2xl border border-black/5">
-                <Package className="w-12 h-12 text-black/5 mx-auto mb-4" />
-                <p className="text-[10px] text-black/20 tracking-[0.2em] font-bold uppercase">No data extracted yet</p>
-                <p className="text-xs text-black/30 mt-2">Paste order text and click extract to begin</p>
+              <div className="text-center py-16 rounded-lg bg-secondary/30 border border-border">
+                <Package className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
+                <p className="text-[10px] text-muted-foreground/50 tracking-[0.2em] font-bold uppercase">No data extracted yet</p>
+                <p className="text-xs text-muted-foreground mt-1">Paste order text and click extract</p>
               </div>
             )}
           </div>
-        </motion.section>
-      </main>
+        </div>
+      </div>
     </div>
   );
 }
