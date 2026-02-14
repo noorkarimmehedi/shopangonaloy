@@ -64,9 +64,9 @@ function extractOrderDetails(orderText: string): ExtractedOrder {
   
   // Extract customer name
   const namePatterns = [
-    /(?:my name is|i am|i'm)\s+([a-z\s]+)/i,
-    /name[:\s]+([a-z\s]+)/i,
-    /^([a-z\s]+)\s+(?:want|order|need)/i
+    /(?:my name is|i am)\s+([a-zA-Z]+(?:\s+[a-zA-Z]+)?)(?:\s*(?:,|\.|\s+phone|\s+mobile|\s+address|\s+order|\s+want|\s+need))/i,
+    /name[:\s]+([a-zA-Z]+(?:\s+[a-zA-Z]+)?)(?:\s*(?:,|\.|\s+phone|\s+mobile|\s+address|\s+order|\s+want|\s+need))/i,
+    /(?:i'm|iam)\s+([a-zA-Z]+(?:\s+[a-zA-Z]+)?)(?:\s*(?:,|\.|\s+and|\s+phone|\s+mobile|\s+address|\s+order|\s+want|\s+need))/i
   ]
   
   let customerName = 'Unknown Customer'
@@ -97,15 +97,23 @@ function extractOrderDetails(orderText: string): ExtractedOrder {
 
   // Extract address
   const addressPatterns = [
-    /(?:address|delivery|location)[:\s]+([^,.]+(?:\s+(?:road|street|house|block|sector|dhaka|dhanmondi|gulshan|banani|mirpur|uttara|badda|khilgaon|motijheel|paltan|farmgate|shahbagh))*)/i,
-    /(?:house|road|street|block|sector)\s+[^,.]+/i
+    /(?:address|delivery|location)[:\s]+([^.!?]+?)(?:\s+(?:phone|mobile|order|want|need)|$)/i,
+    /(?:house|road|street|block|sector|apartment|flat)\s+[^.!?]+?(?:\s+(?:phone|mobile|order|want|need)|$)/i,
+    /(?:dhaka|dhanmondi|gulshan|banani|mirpur|uttara|badda|khilgaon|motijheel|paltan|farmgate|shahbagh)[^.!?]*/i,
+    /([^.!?]*(?:road|street|house|block|sector|dhaka|dhanmondi|gulshan|banani|mirpur|uttara|badda|khilgaon|motijheel|paltan|farmgate|shahbagh)[^.!?]*)/i
   ]
   
   let address = 'No address provided'
   for (const pattern of addressPatterns) {
     const match = text.match(pattern)
-    if (match && match[1]) {
-      address = match[1].trim()
+    if (match) {
+      // Use match[1] if available, otherwise use match[0]
+      let matchedText = match[1] || match[0]
+      // Clean up and capitalize address
+      matchedText = matchedText.trim().split(' ').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' ')
+      address = matchedText
       break
     }
   }
