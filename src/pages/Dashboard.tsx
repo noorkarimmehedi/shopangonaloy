@@ -85,7 +85,7 @@ export default function Dashboard() {
       const { data, error } = await supabase
         .from("orders")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("order_number", { ascending: false });
 
       if (error) throw error;
       setOrders((data as Order[]) || []);
