@@ -67,17 +67,19 @@ serve(async (req) => {
     let dateLabel;
 
     if (startOrder && endOrder) {
-      // Clean order numbers (remove leading #)
+      // Ensure order numbers have the # prefix to match DB format
       const cleanStart = startOrder.toString().trim().replace(/^#/, "");
       const cleanEnd = endOrder.toString().trim().replace(/^#/, "");
+      const dbStart = `#${cleanStart}`;
+      const dbEnd = `#${cleanEnd}`;
 
       dateLabel = `Orders #${cleanStart} to #${cleanEnd}`;
-      console.log(`Querying by order range: ${cleanStart} to ${cleanEnd}`);
+      console.log(`Querying by order range: ${dbStart} to ${dbEnd}`);
       const { data, error } = await supabase
         .from("orders")
         .select("*")
-        .gte("order_number", cleanStart)
-        .lte("order_number", cleanEnd)
+        .gte("order_number", dbStart)
+        .lte("order_number", dbEnd)
         .order("order_number", { ascending: true });
       orders = data;
       ordersError = error;
