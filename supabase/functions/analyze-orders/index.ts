@@ -80,6 +80,7 @@ serve(async (req) => {
         .select("*")
         .gte("order_number", dbStart)
         .lte("order_number", dbEnd)
+        .or("sent_to_courier.is.null,sent_to_courier.eq.false,consignment_id.is.null")
         .order("order_number", { ascending: true });
       orders = data;
       ordersError = error;
@@ -104,6 +105,7 @@ serve(async (req) => {
         .select("*")
         .gte("created_at", rangeStart)
         .lte("created_at", rangeEnd)
+        .or("sent_to_courier.is.null,sent_to_courier.eq.false,consignment_id.is.null")
         .order("created_at", { ascending: true });
       orders = data;
       ordersError = error;
