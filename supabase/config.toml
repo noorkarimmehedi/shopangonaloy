@@ -2,3 +2,6 @@ project_id = "hcsijvsfvwiozfruogzt"
 
 [functions.analyze-orders]
 verify_jwt = false
+
+[functions.extract-order-from-text]
+verify_jwt = false

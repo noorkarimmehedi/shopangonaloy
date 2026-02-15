@@ -5,171 +5,129 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 }
 
-interface OrderExtractionRequest {
-  orderText: string;
-}
-
-interface ExtractedOrder {
-  customer_name: string;
-  phone: string;
-  address: string;
-  product: string;
-  quantity: number;
-  price: number;
-  delivery_charge: number;
-  location_type: "inside_dhaka" | "outside_dhaka";
-}
-
 serve(async (req: Request) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const { orderText }: OrderExtractionRequest = await req.json()
+    const { orderText } = await req.json()
 
     if (!orderText) {
       return new Response(
         JSON.stringify({ error: 'Order text is required' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // AI-powered order extraction logic
-    const extractedOrder = extractOrderDetails(orderText)
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured")
+    }
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [
+          {
+            role: "system",
+            content: `You are an order extraction assistant for a Bangladeshi e-commerce business. Extract customer details from unstructured text (which may be in Bangla, English, or mixed). You MUST extract:
+- customer_name: The customer's full name
+- phone: Phone number (Bangladeshi format, e.g. 01XXXXXXXXX)
+- address: Full delivery address
+- product: Product name/description
+- quantity: Number of items (default 1)
+- price: Price in BDT (number only, 0 if not found)
+- location_type: "inside_dhaka" or "outside_dhaka" based on the address
+
+Dhaka areas include: Dhaka, Dhanmondi, Gulshan, Banani, Mirpur, Mohammadpur, Uttara, Badda, Khilgaon, Motijheel, Paltan, Farmgate, Shahbagh, Tejgaon, Azampur, Kurmitola, New Market, Rampura, Bashundhara, Mohakhali, Banasree, Jatrabari, Demra, Keraniganj, Savar, Gazipur, Narayanganj, Tongi.
+
+If any field is genuinely not present in the text, use reasonable defaults but try your best to extract everything.`
+          },
+          {
+            role: "user",
+            content: `Extract order details from this text:\n\n${orderText}`
+          }
+        ],
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "extract_order",
+              description: "Extract structured order details from customer text",
+              parameters: {
+                type: "object",
+                properties: {
+                  customer_name: { type: "string", description: "Customer's full name" },
+                  phone: { type: "string", description: "Phone number" },
+                  address: { type: "string", description: "Delivery address" },
+                  product: { type: "string", description: "Product name" },
+                  quantity: { type: "number", description: "Quantity ordered" },
+                  price: { type: "number", description: "Price in BDT" },
+                  location_type: { type: "string", enum: ["inside_dhaka", "outside_dhaka"] }
+                },
+                required: ["customer_name", "phone", "address", "product", "quantity", "price", "location_type"],
+                additionalProperties: false
+              }
+            }
+          }
+        ],
+        tool_choice: { type: "function", function: { name: "extract_order" } }
+      }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error("AI gateway error:", response.status, errorText)
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ error: "Rate limit exceeded, please try again shortly." }), {
+          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds." }), {
+          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+      throw new Error(`AI gateway error: ${response.status}`)
+    }
+
+    const aiResult = await response.json()
+    const toolCall = aiResult.choices?.[0]?.message?.tool_calls?.[0]
+    
+    if (!toolCall?.function?.arguments) {
+      throw new Error("AI did not return structured extraction")
+    }
+
+    const extracted = JSON.parse(toolCall.function.arguments)
+    
+    const deliveryCharge = extracted.location_type === "inside_dhaka" ? 80 : 120
+
+    const extractedOrder = {
+      customer_name: extracted.customer_name || "Unknown Customer",
+      phone: extracted.phone || "No phone found",
+      address: extracted.address || "No address provided",
+      product: extracted.product || "Unknown Product",
+      quantity: extracted.quantity || 1,
+      price: extracted.price || 0,
+      delivery_charge: deliveryCharge,
+      location_type: extracted.location_type || "outside_dhaka"
+    }
 
     return new Response(
       JSON.stringify({ extractedOrder }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error: any) {
+    console.error("Extraction error:", error.message)
     return new Response(
       JSON.stringify({ error: error.message }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
 })
-
-function extractOrderDetails(orderText: string): ExtractedOrder {
-  const text = orderText.toLowerCase()
-  
-  // Extract customer name
-  const namePatterns = [
-    /(?:my name is|i am)\s+([a-zA-Z]+(?:\s+[a-zA-Z]+)?)(?:\s*(?:,|\.|\s+phone|\s+mobile|\s+address|\s+order|\s+want|\s+need))/i,
-    /name[:\s]+([a-zA-Z]+(?:\s+[a-zA-Z]+)?)(?:\s*(?:,|\.|\s+phone|\s+mobile|\s+address|\s+order|\s+want|\s+need))/i,
-    /(?:i'm|iam)\s+([a-zA-Z]+(?:\s+[a-zA-Z]+)?)(?:\s*(?:,|\.|\s+and|\s+phone|\s+mobile|\s+address|\s+order|\s+want|\s+need))/i
-  ]
-  
-  let customerName = 'Unknown Customer'
-  for (const pattern of namePatterns) {
-    const match = text.match(pattern)
-    if (match && match[1]) {
-      customerName = match[1].trim().split(' ').map(word => 
-        word.charAt(0).toUpperCase() + word.slice(1)
-      ).join(' ')
-      break
-    }
-  }
-
-  // Extract phone number
-  const phonePatterns = [
-    /(?:phone|mobile|contact|number)[:\s]*(?:\+88)?01[3-9]\d{8}/gi,
-    /(?:\+88)?01[3-9]\d{8}/g
-  ]
-  
-  let phone = ''
-  for (const pattern of phonePatterns) {
-    const match = text.match(pattern)
-    if (match) {
-      phone = match[0].replace(/[^\d+]/g, '')
-      break
-    }
-  }
-
-  // Extract address
-  const addressPatterns = [
-    /(?:address|delivery|location)[:\s]+([^.!?]+?)(?:\s+(?:phone|mobile|order|want|need)|$)/i,
-    /(?:house|road|street|block|sector|apartment|flat)\s+[^.!?]+?(?:\s+(?:phone|mobile|order|want|need)|$)/i,
-    /(?:dhaka|dhanmondi|gulshan|banani|mirpur|uttara|badda|khilgaon|motijheel|paltan|farmgate|shahbagh)[^.!?]*/i,
-    /([^.!?]*(?:road|street|house|block|sector|dhaka|dhanmondi|gulshan|banani|mirpur|uttara|badda|khilgaon|motijheel|paltan|farmgate|shahbagh)[^.!?]*)/i
-  ]
-  
-  let address = 'No address provided'
-  for (const pattern of addressPatterns) {
-    const match = text.match(pattern)
-    if (match) {
-      // Use match[1] if available, otherwise use match[0]
-      let matchedText = match[1] || match[0]
-      // Clean up and capitalize address
-      matchedText = matchedText.trim().split(' ').map(word => 
-        word.charAt(0).toUpperCase() + word.slice(1)
-      ).join(' ')
-      address = matchedText
-      break
-    }
-  }
-
-  // Extract product
-  const productPatterns = [
-    /(?:order|want|need|buy|get)\s+(\d+)\s+(.+?)(?:\s+(?:taka|tk|৳|price|cost))?/i,
-    /(\d+)\s+(.+?)(?:\s+(?:taka|tk|৳|price|cost))?/i
-  ]
-  
-  let product = 'Unknown Product'
-  let quantity = 1
-  let price = 0
-
-  for (const pattern of productPatterns) {
-    const match = text.match(pattern)
-    if (match) {
-      quantity = parseInt(match[1]) || 1
-      product = match[2].trim()
-      break
-    }
-  }
-
-  // Extract price
-  const pricePatterns = [
-    /(?:price|cost|rate|taka|tk|৳)\s*[:\s]*\s*(\d+)/i,
-    /(\d+)\s*(?:taka|tk|৳)/i
-  ]
-  
-  for (const pattern of pricePatterns) {
-    const match = text.match(pattern)
-    if (match) {
-      price = parseInt(match[match.length - 1]) || 0
-      break
-    }
-  }
-
-  // Determine delivery charge based on address
-  const dhakaKeywords = [
-    'dhaka', 'dhanmondi', 'gulshan', 'banani', 'mirpur', 'mohammadpur',
-    'uttara', 'badda', 'khilgaon', 'motijheel', 'paltan', 'farmgate',
-    'shahbagh', 'new market', 'azampur', 'kurmitola', 'tejgaon'
-  ]
-  
-  const isInsideDhaka = dhakaKeywords.some(keyword => address.toLowerCase().includes(keyword))
-  const deliveryCharge = isInsideDhaka ? 80 : 120
-  const locationType = isInsideDhaka ? 'inside_dhaka' : 'outside_dhaka'
-
-  return {
-    customer_name: customerName,
-    phone: phone || 'No phone found',
-    address: address,
-    product: product,
-    quantity: quantity,
-    price: price,
-    delivery_charge: deliveryCharge,
-    location_type: locationType
-  }
-}
