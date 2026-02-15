@@ -25,7 +25,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truck, Loader2, Search, NotebookPen, Package, Check, FileText } from "lucide-react";
+import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truck, Loader2, Search, NotebookPen, Package, Check, FileText, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -338,6 +338,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
   const [checkingFraudIds, setCheckingFraudIds] = useState<Set<string>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkChecking, setIsBulkChecking] = useState(false);
+  const [isDeletingOrders, setIsDeletingOrders] = useState(false);
 
   const handleStatusToggle = async (order: Order) => {
     const newStatus = order.status === "confirmed" ? "pending" : "confirmed";
@@ -613,6 +614,70 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
     }
   };
 
+  const handleDeleteOrders = async () => {
+    if (selectedIds.size === 0 || isDeletingOrders) return;
+
+    setIsDeletingOrders(true);
+    const idsToDelete = Array.from(selectedIds);
+
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .delete()
+        .in("id", idsToDelete);
+
+      if (error) throw error;
+
+      // Update parent component by removing deleted orders
+      if (onOrderUpdate) {
+        // Remove each deleted order from the list
+        idsToDelete.forEach(id => {
+          const order = orders.find(o => o.id === id);
+          if (order) {
+            // We'll trigger a refetch by updating with null or similar
+            // But since we can't directly remove from parent, we'll rely on the parent to refetch
+          }
+        });
+      }
+
+      toast.custom((t) => (
+        <div className="bg-white border border-black/5 shadow-2xl rounded-2xl p-4 flex items-center gap-4 min-w-[300px]">
+          <div className="h-10 w-10 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0">
+            <Trash2 className="w-5 h-5 text-red-500" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Deleted</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-sm font-bold text-black">{idsToDelete.length} Orders</span>
+              <span className="text-xs text-black/50 font-medium">Removed from Dashboard</span>
+            </div>
+          </div>
+        </div>
+      ));
+
+      // Clear selection
+      setSelectedIds(new Set());
+
+      // Force a page reload to refresh the orders list
+      window.location.reload();
+    } catch (error) {
+      console.error("Error deleting orders:", error);
+      toast.custom((t) => (
+        <div className="bg-white border border-black/5 shadow-2xl rounded-2xl p-4 flex items-center gap-4 min-w-[300px]">
+          <div className="h-10 w-10 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-5 h-5 text-red-500" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-black/30">Delete Failed</span>
+            <span className="text-sm font-bold text-black">Could not delete orders</span>
+          </div>
+        </div>
+      ));
+    } finally {
+      setIsDeletingOrders(false);
+    }
+  };
+
   const formatPrice = (price: number | null, deliveryRate: number | null = null) => {
     if (price === null) return "-";
     const total = price + (deliveryRate ?? 0);
@@ -648,8 +713,8 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
     }
 
     return (
-      <Badge 
-        variant={variant} 
+      <Badge
+        variant={variant}
         className={cn("h-7 px-3 text-[9px] font-bold uppercase tracking-widest whitespace-nowrap", className)}
       >
         {order.courier_status || "Sent"}
@@ -881,6 +946,14 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                 >
                   Cancel
                 </button>
+                <PlasticButton
+                  text="Delete Orders"
+                  icon={Trash2}
+                  loading={isDeletingOrders}
+                  loadingText="Deleting..."
+                  onClick={handleDeleteOrders}
+                  className="h-10 px-6 text-[10px] font-bold uppercase tracking-widest bg-gradient-to-b from-red-500 to-red-600 text-white hover:from-red-400 hover:to-red-500 shadow-[0_4px_20px_-4px_rgba(239,68,68,0.4)]"
+                />
                 <PlasticButton
                   text="Bulk Fraud Check"
                   loading={isBulkChecking}
