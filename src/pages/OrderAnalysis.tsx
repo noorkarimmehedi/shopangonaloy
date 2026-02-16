@@ -43,7 +43,12 @@ export default function OrderAnalysis() {
         toast.error("Please select a date first");
         return;
       }
-      body = { startDate: format(singleDate, "yyyy-MM-dd"), endDate: format(singleDate, "yyyy-MM-dd") };
+      // Send date in Bangladesh timezone context
+      body = {
+        startDate: format(singleDate, "yyyy-MM-dd"),
+        endDate: format(singleDate, "yyyy-MM-dd"),
+        timezone: "Asia/Dhaka"
+      };
     } else if (mode === "range") {
       if (!dateRange?.from) {
         toast.error("Please select a date range first");
@@ -51,7 +56,8 @@ export default function OrderAnalysis() {
       }
       body = {
         startDate: format(dateRange.from, "yyyy-MM-dd"),
-        endDate: dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : format(dateRange.from, "yyyy-MM-dd")
+        endDate: dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : format(dateRange.from, "yyyy-MM-dd"),
+        timezone: "Asia/Dhaka"
       };
     } else {
       if (!startOrder || !endOrder) {

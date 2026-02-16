@@ -59,8 +59,8 @@ serve(async (req) => {
     // if (!roleData || roleData.role !== "admin") { ... }
 
     const requestBody = await req.json();
-    const { date, startDate, endDate, startOrder, endOrder } = requestBody;
-    console.log("Params:", { startDate, endDate, startOrder, endOrder });
+    const { date, startDate, endDate, startOrder, endOrder, timezone } = requestBody;
+    console.log("Params:", { startDate, endDate, startOrder, endOrder, timezone });
 
     let orders;
     let ordersError;
@@ -96,10 +96,14 @@ serve(async (req) => {
       }
 
       dateLabel = from === to ? from : `${from} to ${to}`;
-      const rangeStart = `${from}T00:00:00.000Z`;
-      const rangeEnd = `${to}T23:59:59.999Z`;
 
-      console.log(`Querying by date range: ${rangeStart} to ${rangeEnd}`);
+      // Adjust for Bangladesh timezone (UTC+6)
+      // When user selects a date in Bangladesh time, we need to query from 
+      // (date - 6 hours) to (date + 18 hours) in UTC to cover the full day in Bangladesh
+      const rangeStart = `${from}T00:00:00.000+06:00`;
+      const rangeEnd = `${to}T23:59:59.999+06:00`;
+
+      console.log(`Querying by date range (Bangladesh time): ${rangeStart} to ${rangeEnd}`);
       const { data, error } = await supabase
         .from("orders")
         .select("*")
