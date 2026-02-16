@@ -115,8 +115,9 @@ export default function Dashboard() {
     try {
       const { data, error } = await supabase.functions.invoke("fetch-shopify-orders");
       if (error) throw error;
-      if (data?.orders) {
-        setOrders(data.orders);
+      // Always fetch from DB to include manually created orders
+      await fetchOrders();
+      if (data) {
         toast.custom((t) => (
           <div className="bg-white border border-black/5 shadow-2xl rounded-2xl p-4 flex items-center gap-4 min-w-[300px]">
             <div className="h-10 w-10 rounded-xl bg-[#95BF47]/10 flex items-center justify-center shrink-0">
