@@ -52,7 +52,19 @@ export default function Dashboard() {
   const { user } = useAuth();
 
   useEffect(() => {
-    fetchOrders();
+    // Auto-sync from Shopify on load, then fetch orders
+    const autoSync = async () => {
+      setSyncing(true);
+      try {
+        await supabase.functions.invoke("fetch-shopify-orders");
+      } catch (e) {
+        console.error("Auto-sync failed:", e);
+      } finally {
+        setSyncing(false);
+      }
+      await fetchOrders();
+    };
+    autoSync();
 
     const channel = supabase
       .channel('orders-realtime')
