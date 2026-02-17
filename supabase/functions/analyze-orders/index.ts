@@ -138,13 +138,13 @@ serve(async (req) => {
     for (const order of orders) {
       const product = order.product || "Unknown Item";
       const qty = order.quantity || 1;
-      const price = order.price || 0;
+      const price = order.price || 0; // price is already the total line price
 
       if (!itemMap[product]) {
         itemMap[product] = { quantity: 0, revenue: 0, orderCount: 0 };
       }
       itemMap[product].quantity += qty;
-      itemMap[product].revenue += price * qty;
+      itemMap[product].revenue += price;
       itemMap[product].orderCount += 1;
     }
 
