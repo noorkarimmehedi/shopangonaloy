@@ -13,6 +13,7 @@ interface ShopifyOrder {
   total_price: string;
   subtotal_price: string;
   fulfillment_status: string | null;
+  cancelled_at: string | null;
   total_shipping_price_set?: {
     shop_money?: {
       amount: string;
@@ -272,7 +273,7 @@ Deno.serve(async (req) => {
         quantity,
         price: subtotalPrice,
         delivery_rate: shippingPrice,
-        fulfillment_status: order.fulfillment_status || null,
+        fulfillment_status: order.cancelled_at ? "cancelled" : (order.fulfillment_status || null),
         fraud_checked: existingOrder?.fraud_checked || false,
         fraud_data: existingOrder?.fraud_data || null,
       });
