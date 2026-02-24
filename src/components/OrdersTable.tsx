@@ -805,7 +805,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                       {order.fulfillment_status === "partial" && (
                         <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[8px] font-bold uppercase tracking-wider">Partial</span>
                       )}
-                      {order.fulfillment_status === "restocked" && (
+                      {(order.fulfillment_status === "restocked" || order.fulfillment_status === "cancelled") && (
                         <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[8px] font-bold uppercase tracking-wider">Cancelled</span>
                       )}
                     </div>
