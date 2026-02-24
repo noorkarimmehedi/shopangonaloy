@@ -797,7 +797,18 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                     </div>
                   </TableCell>
                   <TableCell className="py-5">
-                    <span className="font-bold text-[13px] tracking-tight block">{order.order_number}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-[13px] tracking-tight">{order.order_number}</span>
+                      {order.fulfillment_status === "fulfilled" && (
+                        <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[8px] font-bold uppercase tracking-wider">Fulfilled</span>
+                      )}
+                      {order.fulfillment_status === "partial" && (
+                        <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[8px] font-bold uppercase tracking-wider">Partial</span>
+                      )}
+                      {order.fulfillment_status === "restocked" && (
+                        <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[8px] font-bold uppercase tracking-wider">Cancelled</span>
+                      )}
+                    </div>
                     <span className="text-[10px] text-black/20 font-medium uppercase tracking-wider">{format(new Date(order.created_at), "MMM dd, yyyy")}</span>
                   </TableCell>
                   <TableCell className="py-5">
