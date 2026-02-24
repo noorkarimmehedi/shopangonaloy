@@ -13,6 +13,7 @@ interface ShopifyOrder {
   total_price: string;
   subtotal_price: string;
   fulfillment_status: string | null;
+  cancelled_at: string | null;
   total_shipping_price_set?: {
     shop_money?: {
       amount: string;
