@@ -25,7 +25,7 @@ export function CartoonButton({
       <button
         onClick={handleClick}
         disabled={disabled}
-        className={`relative ${color} text-white font-extrabold text-base px-8 py-3 rounded-2xl border-[3px] border-black shadow-[inset_0_-4px_0_0_rgba(0,0,0,0.2)] active:translate-y-[2px] active:shadow-[inset_0_-2px_0_0_rgba(0,0,0,0.2)] transition-all duration-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer`}
+        className={`relative ${color} text-black font-extrabold text-base px-8 py-3 rounded-2xl border-[3px] border-black shadow-[inset_0_-4px_0_0_rgba(0,0,0,0.2)] active:translate-y-[2px] active:shadow-[inset_0_-2px_0_0_rgba(0,0,0,0.2)] transition-all duration-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer`}
       >
         {label}
         {hasHighlight && !disabled && (
