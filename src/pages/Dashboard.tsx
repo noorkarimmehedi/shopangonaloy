@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { RefreshCw, ShieldCheck, Search, LayoutDashboard, TrendingUp, ArrowRight, Package } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { PlasticButton } from "@/components/ui/plastic-button";
-import SyncOrderLiquidButton from "@/components/SyncOrderLiquidButton";
+import { CartoonButton } from "@/components/ui/cartoon-button";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -286,7 +286,7 @@ export default function Dashboard() {
               </motion.p>
             </div>
             <div className="shrink-0">
-              <SyncOrderLiquidButton onClick={syncOrders} loading={syncing} disabled={checkingFraud} />
+              <CartoonButton label={syncing ? "Syncing..." : "Sync Orders"} onClick={syncOrders} disabled={syncing || checkingFraud} color="bg-blue-600" />
             </div>
           </div>
         </section>
