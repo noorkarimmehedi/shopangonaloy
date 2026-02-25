@@ -286,7 +286,7 @@ export default function Dashboard() {
               </motion.p>
             </div>
             <div className="shrink-0">
-              <CartoonButton label={syncing ? "Syncing..." : "Sync Orders"} onClick={syncOrders} disabled={syncing || checkingFraud} color="bg-blue-600" />
+              <CartoonButton label={syncing ? "Syncing..." : "Sync Orders"} onClick={syncOrders} disabled={syncing || checkingFraud} />
             </div>
           </div>
         </section>
