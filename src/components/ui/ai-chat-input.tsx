@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useState, useEffect, useRef } from "react"
-import { Lightbulb, Mic, Globe, Paperclip, Send } from "lucide-react"
+import { Send } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { cn } from "@/lib/utils"
 
@@ -24,8 +24,6 @@ const AIChatInput = ({ onSend, disabled }: AIChatInputProps) => {
   const [placeholderIndex, setPlaceholderIndex] = useState(0)
   const [showPlaceholder, setShowPlaceholder] = useState(true)
   const [isActive, setIsActive] = useState(false)
-  const [thinkActive, setThinkActive] = useState(false)
-  const [deepSearchActive, setDeepSearchActive] = useState(false)
   const [inputValue, setInputValue] = useState("")
   const wrapperRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -73,19 +71,6 @@ const AIChatInput = ({ onSend, disabled }: AIChatInputProps) => {
     }
   }
 
-  const containerVariants = {
-    collapsed: {
-      height: 68,
-      boxShadow: "0 2px 8px 0 rgba(0,0,0,0.08)",
-      transition: { type: "spring" as const, stiffness: 120, damping: 18 },
-    },
-    expanded: {
-      height: 128,
-      boxShadow: "0 8px 32px 0 rgba(0,0,0,0.16)",
-      transition: { type: "spring" as const, stiffness: 120, damping: 18 },
-    },
-  }
-
   const placeholderContainerVariants = {
     initial: {},
     animate: { transition: { staggerChildren: 0.025 } },
@@ -122,24 +107,14 @@ const AIChatInput = ({ onSend, disabled }: AIChatInputProps) => {
 
   return (
     <div className="w-full flex justify-center" ref={wrapperRef}>
-      <motion.div
+      <div
         className="w-full max-w-3xl rounded-2xl border border-black/[0.08] bg-white overflow-hidden"
-        variants={containerVariants}
-        initial="collapsed"
-        animate={isActive ? "expanded" : "collapsed"}
         onClick={handleActivate}
         style={{ cursor: isActive ? "default" : "pointer" }}
       >
         <div className="flex flex-col h-full px-4">
           {/* Input Row */}
-          <div className="flex items-center gap-2 h-[68px]">
-            <button
-              className="p-2 rounded-lg hover:bg-black/5 transition-colors"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Paperclip className="w-5 h-5 text-black/40" />
-            </button>
-
+          <div className="flex items-center gap-2 h-[56px]">
             {/* Text Input & Placeholder */}
             <div className="flex-1 relative">
               <input
@@ -177,12 +152,6 @@ const AIChatInput = ({ onSend, disabled }: AIChatInputProps) => {
             </div>
 
             <button
-              className="p-2 rounded-lg hover:bg-black/5 transition-colors"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Mic className="w-5 h-5 text-black/40" />
-            </button>
-            <button
               className={cn(
                 "p-2 rounded-lg transition-colors",
                 inputValue.trim() && !disabled
@@ -198,73 +167,8 @@ const AIChatInput = ({ onSend, disabled }: AIChatInputProps) => {
               <Send className="w-5 h-5" />
             </button>
           </div>
-
-          {/* Expanded Controls */}
-          <AnimatePresence>
-            {isActive && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex items-center gap-2 pb-3"
-              >
-                {/* Think Toggle */}
-                <motion.button
-                  className={cn(
-                    "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
-                    thinkActive
-                      ? "bg-amber-100 text-amber-700"
-                      : "bg-black/5 text-black/50 hover:bg-black/10"
-                  )}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setThinkActive((a) => !a)
-                  }}
-                >
-                  <Lightbulb className="w-4 h-4" />
-                  Think
-                </motion.button>
-
-                {/* Deep Search Toggle */}
-                <motion.button
-                  className={cn(
-                    "flex items-center gap-1.5 rounded-full text-sm font-medium transition-colors overflow-hidden py-1.5",
-                    deepSearchActive
-                      ? "bg-blue-100 text-blue-700"
-                      : "bg-black/5 text-black/50 hover:bg-black/10"
-                  )}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setDeepSearchActive((a) => !a)
-                  }}
-                  initial={false}
-                  animate={{
-                    width: deepSearchActive ? 125 : 36,
-                    paddingLeft: deepSearchActive ? 8 : 9,
-                    paddingRight: deepSearchActive ? 12 : 9,
-                  }}
-                >
-                  <span className="shrink-0">
-                    <Globe className="w-4 h-4" />
-                  </span>
-                  <AnimatePresence>
-                    {deepSearchActive && (
-                      <motion.span
-                        initial={{ opacity: 0, width: 0 }}
-                        animate={{ opacity: 1, width: "auto" }}
-                        exit={{ opacity: 0, width: 0 }}
-                        className="whitespace-nowrap"
-                      >
-                        Deep Search
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </motion.button>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
-      </motion.div>
+      </div>
     </div>
   )
 }
