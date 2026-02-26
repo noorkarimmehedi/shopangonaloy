@@ -15,6 +15,7 @@ import {
   Sparkles,
   PackageSearch,
   Settings,
+  MessageCircle,
 } from "lucide-react";
 import { Logo } from "./logo";
 import type { Route } from "./nav-main";
@@ -55,6 +56,12 @@ export function AppSidebar() {
         </svg>
       ),
       link: "/order-extraction",
+    },
+    {
+      id: "order-chat",
+      title: "AI Chat",
+      icon: <MessageCircle className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />,
+      link: "/order-chat",
     },
     ...(!roleLoading && isAdmin ? [
       {
