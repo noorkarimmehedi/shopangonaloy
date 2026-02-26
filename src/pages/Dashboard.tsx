@@ -280,42 +280,6 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* Stats Row */}
-        <motion.section
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="grid grid-cols-2 md:grid-cols-4 border-y border-black/5 divide-x divide-black/5"
-        >
-          <div className="py-12 px-8 group hover:bg-black/[0.01] transition-colors">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-black/20 group-hover:text-black/40 transition-colors">Total Inventory</span>
-            <div className="mt-2 flex items-baseline gap-2">
-              <p className="text-5xl font-light tracking-tighter">{orders.length}</p>
-              <span className="text-[10px] font-bold text-black/10">Units</span>
-            </div>
-          </div>
-          <div className="py-12 px-8 group hover:bg-black/[0.01] transition-colors">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-black/20 group-hover:text-black/40 transition-colors">Confirmed</span>
-            <div className="mt-2">
-              <p className="text-5xl font-light tracking-tighter text-blue-600">{confirmedCount}</p>
-            </div>
-          </div>
-          <div className="py-12 px-8 group hover:bg-black/[0.01] transition-colors">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-black/20 group-hover:text-black/40 transition-colors">Pending</span>
-            <div className="mt-2">
-              <p className="text-5xl font-light tracking-tighter text-amber-500">{pendingCount}</p>
-            </div>
-          </div>
-          <div className="py-12 px-8 group hover:bg-black/[0.01] transition-colors bg-black/[0.02]">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-black/20 group-hover:text-black/40 transition-colors">Verified Accuracy</span>
-            <div className="mt-2 flex items-baseline gap-1">
-              <p className="text-5xl font-light tracking-tighter">
-                {orders.length > 0 ? Math.round((orders.filter(o => o.fraud_checked).length / orders.length) * 100) : 0}
-              </p>
-              <span className="text-2xl font-light text-black/20">%</span>
-            </div>
-          </div>
-        </motion.section>
 
         {/* Orders Card */}
         <motion.section
