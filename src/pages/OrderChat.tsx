@@ -270,8 +270,8 @@ export default function OrderChat() {
                     )}
                   >
                     {msg.role === "user" ? (
-                      <div className="size-8 rounded-lg bg-black flex items-center justify-center shrink-0 mt-0.5">
-                        <User className="size-3.5 text-white" />
+                      <div className="size-8 rounded-full bg-black flex items-center justify-center shrink-0 mt-0.5">
+                        <User className="size-4 text-white" />
                       </div>
                     ) : (
                       <AiAvatar isStreaming={streaming} />
