@@ -92,12 +92,7 @@ Deno.serve(async (req) => {
 ## All Orders (JSON)
 ${JSON.stringify(orderDetails, null, 1)}
 
-When answering:
-- Use ৳ (Taka) for currency
-- Format dates in a human-readable way
-- If asked about specific orders, search by order number, customer name, phone, or product
-- Provide counts, summaries, and breakdowns as requested
-- You can do calculations like average order value, most popular products, etc.`;
+`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
