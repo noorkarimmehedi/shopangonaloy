@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Loader2, MessageCircle, TrendingUp } from "lucide-react";
+import { Send, User, Loader2, MessageCircle, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import ReactMarkdown from "react-markdown";
@@ -81,6 +81,24 @@ const quickQuestions = [
   "Which orders have notes?",
 ];
 
+/** AI avatar: favicon with a spinning ring */
+function AiAvatar({ isStreaming }: { isStreaming?: boolean }) {
+  return (
+    <div className="relative size-8 shrink-0 mt-0.5">
+      {/* Spinning ring */}
+      <motion.div
+        className="absolute inset-0 rounded-full border-2 border-transparent border-t-black/40 border-r-black/10"
+        animate={isStreaming ? { rotate: 360 } : { rotate: 0 }}
+        transition={isStreaming ? { duration: 1.2, repeat: Infinity, ease: "linear" } : { duration: 0 }}
+      />
+      {/* Favicon */}
+      <div className="absolute inset-[3px] rounded-full bg-black/5 flex items-center justify-center overflow-hidden">
+        <img src="/favicon.svg" alt="AI" className="size-4 object-contain" />
+      </div>
+    </div>
+  );
+}
+
 export default function OrderChat() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -138,6 +156,9 @@ export default function OrderChat() {
     }
   };
 
+  /** Check if the last message is an assistant message still streaming */
+  const isAssistantStreaming = isLoading && messages.length > 0 && messages[messages.length - 1]?.role === "assistant";
+
   return (
     <div className="min-h-screen bg-[#FDFDFD] text-[#1A1A1A] flex flex-col">
       {/* Sticky Header */}
@@ -177,6 +198,24 @@ export default function OrderChat() {
               >
                 <TrendingUp className="w-3 h-3" />
                 AI-Powered Insights
+              </motion.div>
+
+              {/* Animated favicon hero */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.05, type: "spring", stiffness: 200 }}
+                className="relative mb-8"
+              >
+                <motion.div
+                  className="absolute inset-0 rounded-full border-2 border-transparent border-t-black/20 border-r-black/5"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                  style={{ width: 72, height: 72 }}
+                />
+                <div className="size-[72px] rounded-full bg-black/5 flex items-center justify-center">
+                  <img src="/favicon.svg" alt="AI" className="size-8 object-contain" />
+                </div>
               </motion.div>
 
               <motion.h1
@@ -224,44 +263,49 @@ export default function OrderChat() {
         {messages.length > 0 && (
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-10 space-y-6">
             <AnimatePresence initial={false}>
-              {messages.map((msg, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className={cn(
-                    "flex gap-3 max-w-3xl",
-                    msg.role === "user" ? "ml-auto flex-row-reverse" : ""
-                  )}
-                >
-                  <div className={cn(
-                    "size-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5",
-                    msg.role === "user"
-                      ? "bg-black"
-                      : "bg-black/5"
-                  )}>
-                    {msg.role === "user"
-                      ? <User className="size-3.5 text-white" />
-                      : <Bot className="size-3.5 text-black/50" />
-                    }
-                  </div>
-                  <div className={cn(
-                    "rounded-xl px-5 py-3 text-sm leading-relaxed",
-                    msg.role === "user"
-                      ? "bg-black text-white"
-                      : "bg-white border border-black/5 shadow-sm"
-                  )}>
-                    {msg.role === "assistant" ? (
-                      <div className="prose prose-sm max-w-none text-[#1A1A1A]/80 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_strong]:text-[#1A1A1A] [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg [&_code]:bg-black/5 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs">
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+              {messages.map((msg, i) => {
+                const isLastAssistant = msg.role === "assistant" && i === messages.length - 1;
+                const streaming = isLastAssistant && isLoading;
+
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className={cn(
+                      "flex gap-3 max-w-3xl",
+                      msg.role === "user" ? "ml-auto flex-row-reverse" : ""
+                    )}
+                  >
+                    {msg.role === "user" ? (
+                      <div className="size-8 rounded-lg bg-black flex items-center justify-center shrink-0 mt-0.5">
+                        <User className="size-3.5 text-white" />
                       </div>
                     ) : (
-                      msg.content
+                      <AiAvatar isStreaming={streaming} />
                     )}
-                  </div>
-                </motion.div>
-              ))}
+                    <div className={cn(
+                      "rounded-xl px-5 py-3 text-sm leading-relaxed",
+                      msg.role === "user"
+                        ? "bg-black text-white"
+                        : "bg-white border border-black/5 shadow-sm"
+                    )}>
+                      {msg.role === "assistant" ? (
+                        <div className={cn(
+                          "prose prose-sm max-w-none text-[#1A1A1A]/80 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_strong]:text-[#1A1A1A] [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg [&_code]:bg-black/5 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs",
+                          streaming && "ai-typing"
+                        )}>
+                          <ReactMarkdown>{msg.content}</ReactMarkdown>
+                          {streaming && <span className="inline-block w-[2px] h-4 bg-black/40 ml-0.5 align-text-bottom animate-pulse" />}
+                        </div>
+                      ) : (
+                        msg.content
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
 
             {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
@@ -270,9 +314,7 @@ export default function OrderChat() {
                 animate={{ opacity: 1, y: 0 }}
                 className="flex gap-3 max-w-3xl"
               >
-                <div className="size-8 rounded-lg flex items-center justify-center bg-black/5 shrink-0">
-                  <Bot className="size-3.5 text-black/50" />
-                </div>
+                <AiAvatar isStreaming />
                 <div className="rounded-xl px-5 py-3 bg-white border border-black/5 shadow-sm">
                   <div className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-black/20 animate-pulse" />
