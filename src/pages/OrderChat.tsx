@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Loader2 } from "lucide-react";
+import { Send, Bot, User, Loader2, MessageCircle, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactMarkdown from "react-markdown";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -74,6 +74,13 @@ async function streamChat({
   onDone();
 }
 
+const quickQuestions = [
+  "How many orders are pending?",
+  "Show orders sent to Steadfast",
+  "What's the total revenue?",
+  "Which orders have notes?",
+];
+
 export default function OrderChat() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -87,11 +94,11 @@ export default function OrderChat() {
     }
   }, [messages]);
 
-  const send = async () => {
-    const text = input.trim();
-    if (!text || isLoading) return;
+  const send = async (text?: string) => {
+    const msg = (text || input).trim();
+    if (!msg || isLoading) return;
 
-    const userMsg: Msg = { role: "user", content: text };
+    const userMsg: Msg = { role: "user", content: msg };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsLoading(true);
@@ -132,108 +139,179 @@ export default function OrderChat() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh)] bg-background">
-      {/* Header */}
-      <div className="border-b px-4 py-3 flex items-center gap-2 shrink-0">
-        <Bot className="size-5 text-primary" />
-        <h1 className="text-lg font-semibold">Order Assistant</h1>
-        <span className="text-xs text-muted-foreground ml-1">AI-powered • Knows all your orders</span>
-      </div>
-
-      {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
-        {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground gap-3">
-            <Bot className="size-12 opacity-30" />
-            <div>
-              <p className="text-sm font-medium">Ask anything about your orders</p>
-              <p className="text-xs mt-1 max-w-sm">
-                I know every order — pending, confirmed, sent to Steadfast, notes, fraud checks, prices, and more.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2 mt-3 max-w-md justify-center">
-              {[
-                "How many orders are pending?",
-                "Show orders sent to Steadfast",
-                "What's the total revenue today?",
-                "Which orders have notes?",
-              ].map((q) => (
-                <button
-                  key={q}
-                  onClick={() => { setInput(q); textareaRef.current?.focus(); }}
-                  className="text-xs px-3 py-1.5 rounded-full border bg-muted/50 hover:bg-muted transition-colors"
-                >
-                  {q}
-                </button>
-              ))}
-            </div>
+    <div className="min-h-screen bg-[#FDFDFD] text-[#1A1A1A] flex flex-col">
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-50 flex items-center justify-between border-b border-black/5 bg-white/80 backdrop-blur-xl px-6 h-16 shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-lg bg-black flex items-center justify-center">
+            <MessageCircle className="h-4 w-4 text-white" />
           </div>
-        )}
-
-        {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={cn(
-              "flex gap-3 max-w-2xl",
-              msg.role === "user" ? "ml-auto flex-row-reverse" : ""
-            )}
-          >
-            <div className={cn(
-              "size-7 rounded-full flex items-center justify-center shrink-0 mt-0.5",
-              msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
-            )}>
-              {msg.role === "user" ? <User className="size-3.5" /> : <Bot className="size-3.5" />}
-            </div>
-            <div className={cn(
-              "rounded-xl px-4 py-2.5 text-sm leading-relaxed",
-              msg.role === "user"
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted/60 border"
-            )}>
-              {msg.role === "assistant" ? (
-                <div className="prose prose-sm dark:prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
-                  <ReactMarkdown>{msg.content}</ReactMarkdown>
-                </div>
-              ) : (
-                msg.content
-              )}
-            </div>
-          </div>
-        ))}
-
-        {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
-          <div className="flex gap-3">
-            <div className="size-7 rounded-full flex items-center justify-center bg-muted shrink-0">
-              <Bot className="size-3.5" />
-            </div>
-            <div className="rounded-xl px-4 py-2.5 bg-muted/60 border">
-              <Loader2 className="size-4 animate-spin text-muted-foreground" />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Input */}
-      <div className="border-t p-4 shrink-0">
-        <div className="flex gap-2 max-w-2xl mx-auto">
-          <Textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Ask about your orders..."
-            className="min-h-[44px] max-h-32 resize-none"
-            rows={1}
-          />
-          <Button
-            onClick={send}
-            disabled={!input.trim() || isLoading}
-            size="icon"
-            className="shrink-0 self-end"
-          >
-            <Send className="size-4" />
-          </Button>
+          <span className="text-xs font-bold uppercase tracking-widest text-black/40">Order Assistant</span>
         </div>
+        {messages.length > 0 && (
+          <button
+            onClick={() => setMessages([])}
+            className="text-[10px] font-bold uppercase tracking-wider text-black/30 hover:text-black/60 transition-colors"
+          >
+            Clear Chat
+          </button>
+        )}
+      </header>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col max-w-[1800px] w-full mx-auto">
+        {/* Empty State */}
+        <AnimatePresence mode="wait">
+          {messages.length === 0 && (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="flex-1 flex flex-col items-center justify-center px-6 py-16"
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/5 text-black/60 text-[10px] font-bold uppercase tracking-wider mb-6"
+              >
+                <TrendingUp className="w-3 h-3" />
+                AI-Powered Insights
+              </motion.div>
+
+              <motion.h1
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="text-5xl lg:text-6xl font-normal leading-tight text-center"
+              >
+                Order <span className="italic text-black/30 underline decoration-black/10 transition-colors hover:text-black/60">Assistant</span>
+              </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-lg text-black/50 max-w-xl font-light text-center mt-4"
+              >
+                Ask anything about your orders — pending, confirmed, courier status, notes, fraud checks, and revenue.
+              </motion.p>
+
+              <motion.div
+                initial={{ opacity: 0, y: 25 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 }}
+                className="grid grid-cols-2 gap-3 mt-10 max-w-lg w-full"
+              >
+                {quickQuestions.map((q, i) => (
+                  <motion.button
+                    key={q}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 + i * 0.05 }}
+                    onClick={() => send(q)}
+                    className="text-left text-sm px-4 py-3 rounded-xl border border-black/5 bg-white hover:bg-black/[0.02] hover:border-black/10 transition-all text-black/60 hover:text-black/80 group"
+                  >
+                    <span className="group-hover:translate-x-0.5 inline-block transition-transform">{q}</span>
+                  </motion.button>
+                ))}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Messages */}
+        {messages.length > 0 && (
+          <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-10 space-y-6">
+            <AnimatePresence initial={false}>
+              {messages.map((msg, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className={cn(
+                    "flex gap-3 max-w-3xl",
+                    msg.role === "user" ? "ml-auto flex-row-reverse" : ""
+                  )}
+                >
+                  <div className={cn(
+                    "size-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5",
+                    msg.role === "user"
+                      ? "bg-black"
+                      : "bg-black/5"
+                  )}>
+                    {msg.role === "user"
+                      ? <User className="size-3.5 text-white" />
+                      : <Bot className="size-3.5 text-black/50" />
+                    }
+                  </div>
+                  <div className={cn(
+                    "rounded-xl px-5 py-3 text-sm leading-relaxed",
+                    msg.role === "user"
+                      ? "bg-black text-white"
+                      : "bg-white border border-black/5 shadow-sm"
+                  )}>
+                    {msg.role === "assistant" ? (
+                      <div className="prose prose-sm max-w-none text-[#1A1A1A]/80 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_strong]:text-[#1A1A1A] [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg [&_code]:bg-black/5 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs">
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      msg.content
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+
+            {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex gap-3 max-w-3xl"
+              >
+                <div className="size-8 rounded-lg flex items-center justify-center bg-black/5 shrink-0">
+                  <Bot className="size-3.5 text-black/50" />
+                </div>
+                <div className="rounded-xl px-5 py-3 bg-white border border-black/5 shadow-sm">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-black/20 animate-pulse" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-black/20 animate-pulse [animation-delay:150ms]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-black/20 animate-pulse [animation-delay:300ms]" />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        )}
+
+        {/* Input Area */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: messages.length === 0 ? 0.5 : 0 }}
+          className="border-t border-black/5 bg-white/80 backdrop-blur-xl px-6 py-4 shrink-0"
+        >
+          <div className="flex gap-3 max-w-3xl mx-auto items-end">
+            <Textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Ask about your orders..."
+              className="min-h-[48px] max-h-32 resize-none bg-[#FDFDFD] border-black/5 focus-visible:ring-black/10 rounded-xl text-sm placeholder:text-black/25"
+              rows={1}
+            />
+            <Button
+              onClick={() => send()}
+              disabled={!input.trim() || isLoading}
+              size="icon"
+              className="shrink-0 h-12 w-12 rounded-xl bg-black hover:bg-black/90 text-white"
+            >
+              {isLoading ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+            </Button>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
