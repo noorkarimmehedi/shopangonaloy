@@ -44,29 +44,31 @@ Deno.serve(async (req) => {
     const totalRevenue = orders?.reduce((sum, o) => sum + (o.price || 0), 0) || 0;
     const totalDeliveryCharges = orders?.reduce((sum, o) => sum + (o.delivery_rate || 0), 0) || 0;
 
+    // Compact order data to fit within token limits - drop fraud_data (bulky JSON) and address
     const orderDetails = orders?.map((o) => ({
-      order_number: o.order_number,
-      customer: o.customer_name,
-      phone: o.phone,
-      address: o.address,
-      product: o.product,
-      quantity: o.quantity,
+      "#": o.order_number,
+      c: o.customer_name,
+      ph: o.phone,
+      addr: o.address,
+      p: o.product,
+      qty: o.quantity,
       price: o.price,
-      delivery_rate: o.delivery_rate,
-      status: o.status,
-      fulfillment_status: o.fulfillment_status,
-      sent_to_courier: o.sent_to_courier,
-      consignment_id: o.consignment_id,
-      tracking_code: o.tracking_code,
-      courier_status: o.courier_status,
-      courier_message: o.courier_message,
-      fraud_checked: o.fraud_checked,
-      fraud_data: o.fraud_data,
-      notes: o.notes,
-      created_at: o.created_at,
+      dlv: o.delivery_rate,
+      st: o.status,
+      fs: o.fulfillment_status,
+      sent: o.sent_to_courier ? 1 : 0,
+      cid: o.consignment_id,
+      trk: o.tracking_code,
+      cs: o.courier_status,
+      fc: o.fraud_checked ? 1 : 0,
+      note: o.notes,
+      dt: o.created_at?.slice(0, 10),
     })) || [];
 
-    const systemPrompt = `You are an intelligent order management assistant for Angonaloy, a Bangladeshi e-commerce business. You have full access to all order data. Answer questions accurately based on the data provided.
+    // Limit to most recent 500 orders to stay within context window
+    const limitedOrders = orderDetails.slice(0, 500);
+
+    const systemPrompt = `You are an intelligent order management assistant for Angonaloy, a Bangladeshi e-commerce business. You have access to order data below. Answer accurately.
 
 ## Response Style Rules (STRICTLY FOLLOW)
 - NEVER use markdown tables. They look bad.
@@ -77,21 +79,13 @@ Deno.serve(async (req) => {
 - Don't ask follow-up questions unless truly needed.
 - Use ৳ (Taka) for currency.
 
-## Order Summary
-- Total Orders: ${totalOrders}
-- Pending: ${pendingOrders.length}
-- Confirmed: ${confirmedOrders.length}
-- Cancelled: ${cancelledOrders.length}
-- Sent to Steadfast (courier): ${sentToCourier.length}
-- Not sent to courier: ${notSentToCourier.length}
-- Orders with notes: ${withNotes.length}
-- Fraud checked: ${fraudChecked.length}
-- Total Revenue (product prices): ৳${totalRevenue}
-- Total Delivery Charges: ৳${totalDeliveryCharges}
+## Summary
+Total: ${totalOrders} | Pending: ${pendingOrders.length} | Confirmed: ${confirmedOrders.length} | Cancelled: ${cancelledOrders.length} | Sent to courier: ${sentToCourier.length} | Not sent: ${notSentToCourier.length} | With notes: ${withNotes.length} | Fraud checked: ${fraudChecked.length} | Revenue: ৳${totalRevenue} | Delivery: ৳${totalDeliveryCharges}
 
-## All Orders (JSON)
-${JSON.stringify(orderDetails, null, 1)}
+## Field key: #=order_number, c=customer, ph=phone, addr=address, p=product, qty=quantity, price=price, dlv=delivery_rate, st=status, fs=fulfillment_status, sent=sent_to_courier(1/0), cid=consignment_id, trk=tracking_code, cs=courier_status, fc=fraud_checked(1/0), note=notes, dt=date
 
+## Orders (${limitedOrders.length} of ${totalOrders})
+${JSON.stringify(limitedOrders)}
 `;
 
     const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
