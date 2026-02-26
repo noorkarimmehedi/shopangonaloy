@@ -15,6 +15,7 @@ import {
   Sparkles,
   PackageSearch,
   Settings,
+  MessageCircle,
 } from "lucide-react";
 import { Logo } from "./logo";
 import type { Route } from "./nav-main";
