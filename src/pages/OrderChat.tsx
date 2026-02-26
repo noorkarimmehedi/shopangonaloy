@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, User, Loader2, MessageCircle, TrendingUp } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { User, MessageCircle, TrendingUp } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { AIChatInput } from "@/components/ui/ai-chat-input";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -101,10 +100,8 @@ function AiAvatar({ isStreaming }: { isStreaming?: boolean }) {
 
 export default function OrderChat() {
   const [messages, setMessages] = useState<Msg[]>([]);
-  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -112,13 +109,12 @@ export default function OrderChat() {
     }
   }, [messages]);
 
-  const send = async (text?: string) => {
-    const msg = (text || input).trim();
+  const send = async (text: string) => {
+    const msg = text.trim();
     if (!msg || isLoading) return;
 
     const userMsg: Msg = { role: "user", content: msg };
     setMessages((prev) => [...prev, userMsg]);
-    setInput("");
     setIsLoading(true);
 
     let assistantSoFar = "";
@@ -149,12 +145,7 @@ export default function OrderChat() {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      send();
-    }
-  };
+
 
   /** Check if the last message is an assistant message still streaming */
   const isAssistantStreaming = isLoading && messages.length > 0 && messages[messages.length - 1]?.role === "assistant";
@@ -332,27 +323,9 @@ export default function OrderChat() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: messages.length === 0 ? 0.5 : 0 }}
-          className="border-t border-black/5 bg-white/80 backdrop-blur-xl px-6 py-4 shrink-0"
+          className="bg-white/80 backdrop-blur-xl px-6 py-4 shrink-0"
         >
-          <div className="flex gap-3 max-w-3xl mx-auto items-end">
-            <Textarea
-              ref={textareaRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask about your orders..."
-              className="min-h-[48px] max-h-32 resize-none bg-[#FDFDFD] border-black/5 focus-visible:ring-black/10 rounded-xl text-sm placeholder:text-black/25"
-              rows={1}
-            />
-            <Button
-              onClick={() => send()}
-              disabled={!input.trim() || isLoading}
-              size="icon"
-              className="shrink-0 h-12 w-12 rounded-xl bg-black hover:bg-black/90 text-white"
-            >
-              {isLoading ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-            </Button>
-          </div>
+          <AIChatInput onSend={(msg) => send(msg)} disabled={isLoading} />
         </motion.div>
       </div>
     </div>
