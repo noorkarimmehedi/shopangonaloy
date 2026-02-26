@@ -123,7 +123,7 @@ const AIChatInput = ({ onSend, disabled }: AIChatInputProps) => {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="flex-1 border-0 outline-0 rounded-md py-2 text-base bg-transparent w-full font-normal"
+                className="flex-1 border-0 outline-none rounded-md py-2 text-base bg-transparent w-full font-normal focus:ring-0 focus:outline-none"
                 style={{ position: "relative", zIndex: 1 }}
                 onFocus={handleActivate}
               />
