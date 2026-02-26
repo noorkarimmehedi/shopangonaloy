@@ -100,10 +100,8 @@ function AiAvatar({ isStreaming }: { isStreaming?: boolean }) {
 
 export default function OrderChat() {
   const [messages, setMessages] = useState<Msg[]>([]);
-  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -111,13 +109,12 @@ export default function OrderChat() {
     }
   }, [messages]);
 
-  const send = async (text?: string) => {
-    const msg = (text || input).trim();
+  const send = async (text: string) => {
+    const msg = text.trim();
     if (!msg || isLoading) return;
 
     const userMsg: Msg = { role: "user", content: msg };
     setMessages((prev) => [...prev, userMsg]);
-    setInput("");
     setIsLoading(true);
 
     let assistantSoFar = "";
