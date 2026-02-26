@@ -277,7 +277,7 @@ export default function OrderChat() {
                       <AiAvatar isStreaming={streaming} />
                     )}
                     <div className={cn(
-                      "rounded-xl px-5 py-3 text-sm leading-relaxed",
+                      "rounded-xl px-4 py-2 text-sm leading-relaxed",
                       msg.role === "user"
                         ? "bg-black text-white"
                         : "bg-white border border-black/5 shadow-sm"
