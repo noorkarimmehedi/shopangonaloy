@@ -64,6 +64,7 @@ const AppRoutes = () => (
       <Route path="/" element={<Dashboard />} />
       <Route path="/order-analysis" element={<OrderAnalysis />} />
       <Route path="/order-extraction" element={<OrderExtraction />} />
+      <Route path="/order-chat" element={<OrderChat />} />
       <Route path="/settings" element={<Settings />} />
     </Route>
     <Route

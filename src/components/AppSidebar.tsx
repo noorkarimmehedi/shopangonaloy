@@ -57,6 +57,12 @@ export function AppSidebar() {
       ),
       link: "/order-extraction",
     },
+    {
+      id: "order-chat",
+      title: "AI Chat",
+      icon: <MessageCircle className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />,
+      link: "/order-chat",
+    },
     ...(!roleLoading && isAdmin ? [
       {
         id: "order-analysis",
