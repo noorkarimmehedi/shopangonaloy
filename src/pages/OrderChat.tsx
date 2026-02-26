@@ -331,27 +331,9 @@ export default function OrderChat() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: messages.length === 0 ? 0.5 : 0 }}
-          className="border-t border-black/5 bg-white/80 backdrop-blur-xl px-6 py-4 shrink-0"
+          className="bg-white/80 backdrop-blur-xl px-6 py-4 shrink-0"
         >
-          <div className="flex gap-3 max-w-3xl mx-auto items-end">
-            <Textarea
-              ref={textareaRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask about your orders..."
-              className="min-h-[48px] max-h-32 resize-none bg-[#FDFDFD] border-black/5 focus-visible:ring-black/10 rounded-xl text-sm placeholder:text-black/25"
-              rows={1}
-            />
-            <Button
-              onClick={() => send()}
-              disabled={!input.trim() || isLoading}
-              size="icon"
-              className="shrink-0 h-12 w-12 rounded-xl bg-black hover:bg-black/90 text-white"
-            >
-              {isLoading ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-            </Button>
-          </div>
+          <AIChatInput onSend={(msg) => send(msg)} disabled={isLoading} />
         </motion.div>
       </div>
     </div>
