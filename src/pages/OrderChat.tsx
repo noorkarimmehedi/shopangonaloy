@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, User, Loader2, MessageCircle, TrendingUp } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { User, MessageCircle, TrendingUp } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { AIChatInput } from "@/components/ui/ai-chat-input";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
