@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import Settings from "./pages/Settings";
 import OrderAnalysis from "./pages/OrderAnalysis";
 import OrderExtraction from "./pages/OrderExtraction";
+import OrderChat from "./pages/OrderChat";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
