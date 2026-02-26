@@ -87,7 +87,6 @@ Total: ${totalOrders} | Pending: ${pendingOrders.length} | Confirmed: ${confirme
 ## Orders (${limitedOrders.length} of ${totalOrders})
 ${JSON.stringify(limitedOrders)}
 `;
-`;
 
     const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
     if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY is not configured");
