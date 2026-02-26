@@ -145,12 +145,7 @@ export default function OrderChat() {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      send();
-    }
-  };
+
 
   /** Check if the last message is an assistant message still streaming */
   const isAssistantStreaming = isLoading && messages.length > 0 && messages[messages.length - 1]?.role === "assistant";
