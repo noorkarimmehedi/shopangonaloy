@@ -340,6 +340,15 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
   const [isBulkChecking, setIsBulkChecking] = useState(false);
   const [isDeletingOrders, setIsDeletingOrders] = useState(false);
 
+  // Build phone frequency map to detect repeat customers
+  const phoneOrderCount = new Map<string, number>();
+  orders.forEach((order) => {
+    if (order.phone) {
+      const phone = order.phone.trim();
+      phoneOrderCount.set(phone, (phoneOrderCount.get(phone) || 0) + 1);
+    }
+  });
+
   const handleStatusToggle = async (order: Order) => {
     const newStatus = order.status === "confirmed" ? "pending" : "confirmed";
 
