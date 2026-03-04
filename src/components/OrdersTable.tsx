@@ -340,6 +340,15 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
   const [isBulkChecking, setIsBulkChecking] = useState(false);
   const [isDeletingOrders, setIsDeletingOrders] = useState(false);
 
+  // Build phone frequency map to detect repeat customers
+  const phoneOrderCount = new Map<string, number>();
+  orders.forEach((order) => {
+    if (order.phone) {
+      const phone = order.phone.trim();
+      phoneOrderCount.set(phone, (phoneOrderCount.get(phone) || 0) + 1);
+    }
+  });
+
   const handleStatusToggle = async (order: Order) => {
     const newStatus = order.status === "confirmed" ? "pending" : "confirmed";
 
@@ -813,7 +822,21 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                   </TableCell>
                   <TableCell className="py-5">
                     <div className="flex flex-col gap-1">
-                      <span className="font-medium text-sm tracking-tight">{order.customer_name || "Guest User"}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium text-sm tracking-tight">{order.customer_name || "Guest User"}</span>
+                        {order.phone && (phoneOrderCount.get(order.phone.trim()) || 0) > 1 && (
+                          <Tooltip delayDuration={0}>
+                            <TooltipTrigger asChild>
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-bold uppercase tracking-wider cursor-default">
+                                ×{phoneOrderCount.get(order.phone.trim())}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="text-xs">
+                              This number has {phoneOrderCount.get(order.phone.trim())} orders
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                      </div>
                       <span className="font-mono text-[11px] text-black">{order.phone || "No Phone"}</span>
                     </div>
                   </TableCell>
