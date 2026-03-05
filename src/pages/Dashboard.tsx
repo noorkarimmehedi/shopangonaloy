@@ -227,16 +227,15 @@ export default function Dashboard() {
   const confirmedCount = orders.filter((o) => o.status === "confirmed").length;
   const pendingCount = orders.filter((o) => o.status === "pending").length;
 
-  const filteredOrders = searchQuery.trim()
-    ? orders.filter((o) => {
-      const q = searchQuery.toLowerCase();
-      return (
-        o.order_number.toLowerCase().includes(q) ||
-        (o.customer_name && o.customer_name.toLowerCase().includes(q)) ||
-        (o.phone && o.phone.toLowerCase().includes(q))
-      );
-    })
-    : orders;
+  const filteredOrders = useMemo(() => {
+    if (!debouncedSearch.trim()) return orders;
+    const q = debouncedSearch.toLowerCase();
+    return orders.filter((o) =>
+      o.order_number.toLowerCase().includes(q) ||
+      (o.customer_name && o.customer_name.toLowerCase().includes(q)) ||
+      (o.phone && o.phone.toLowerCase().includes(q))
+    );
+  }, [orders, debouncedSearch]);
 
   return (
     <div className="min-h-screen bg-[#FDFDFD] text-[#1A1A1A]">
