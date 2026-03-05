@@ -779,16 +779,12 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
           </TableRow>
         </TableHeader>
         <TableBody>
-          <AnimatePresence mode="popLayout">
             {orders.map((order, idx) => {
               const { primary, moreCount, lines } = productSummary(order);
 
               return (
-                <motion.tr
+                <TableRow
                   key={order.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: Math.min(idx * 0.05, 0.5) }}
                   className={cn(
                     "border-b border-black/[0.02] hover:bg-black/[0.01] transition-colors group relative",
                     selectedIds.has(order.id) && "bg-black/[0.015]"
