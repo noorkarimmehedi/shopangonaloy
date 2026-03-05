@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { OrdersTable } from "@/components/OrdersTable";
@@ -49,7 +49,14 @@ export default function Dashboard() {
   const [syncing, setSyncing] = useState(false);
   const [checkingFraud, setCheckingFraud] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const { user } = useAuth();
+
+  // Debounce search to prevent glitchy re-renders
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 200);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   useEffect(() => {
     // Fetch existing orders on load (no auto-sync)
@@ -220,16 +227,15 @@ export default function Dashboard() {
   const confirmedCount = orders.filter((o) => o.status === "confirmed").length;
   const pendingCount = orders.filter((o) => o.status === "pending").length;
 
-  const filteredOrders = searchQuery.trim()
-    ? orders.filter((o) => {
-      const q = searchQuery.toLowerCase();
-      return (
-        o.order_number.toLowerCase().includes(q) ||
-        (o.customer_name && o.customer_name.toLowerCase().includes(q)) ||
-        (o.phone && o.phone.toLowerCase().includes(q))
-      );
-    })
-    : orders;
+  const filteredOrders = useMemo(() => {
+    if (!debouncedSearch.trim()) return orders;
+    const q = debouncedSearch.toLowerCase();
+    return orders.filter((o) =>
+      o.order_number.toLowerCase().includes(q) ||
+      (o.customer_name && o.customer_name.toLowerCase().includes(q)) ||
+      (o.phone && o.phone.toLowerCase().includes(q))
+    );
+  }, [orders, debouncedSearch]);
 
   return (
     <div className="min-h-screen bg-[#FDFDFD] text-[#1A1A1A]">
