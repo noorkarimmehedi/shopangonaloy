@@ -49,7 +49,14 @@ export default function Dashboard() {
   const [syncing, setSyncing] = useState(false);
   const [checkingFraud, setCheckingFraud] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const { user } = useAuth();
+
+  // Debounce search to prevent glitchy re-renders
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 200);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   useEffect(() => {
     // Fetch existing orders on load (no auto-sync)
