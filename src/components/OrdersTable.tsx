@@ -946,10 +946,10 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                       )}
                     </div>
                   </TableCell>
-                </motion.tr>
+                </TableRow>
               );
             })}
-          </AnimatePresence>
+        
         </TableBody>
       </Table>
 
