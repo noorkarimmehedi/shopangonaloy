@@ -74,7 +74,7 @@ async function checkFraudStatus(
   try {
     console.log(`Checking fraud status for: ${cleanPhone}`);
 
-    const response = await fetch("https://fraudshieldbd.site/api/customer/check", {
+    const response = await fetch("https://fraudshield.bd/api/customer/check", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
@@ -89,7 +89,7 @@ async function checkFraudStatus(
     }
 
     const rawText = await response.text();
-    console.log(`FraudShield raw response for ${cleanPhone}: ${rawText.substring(0, 300)}`);
+    console.log(`FraudShield raw response for ${cleanPhone}: ${rawText.substring(0, 500)}`);
     
     let result: FraudShieldResponse;
     try {
@@ -99,17 +99,24 @@ async function checkFraudStatus(
       return { fraudData: null, successRate: null };
     }
 
-    if (!result.courierData || !result.courierData.summary) {
+    // Build summary from courierData entries
+    const courierData = result.courierData;
+    if (!courierData || Object.keys(courierData).length === 0) {
       console.error(`FraudShield returned no courierData for ${cleanPhone}`);
       return { fraudData: null, successRate: null };
     }
 
-    const summary = result.courierData.summary;
-
-    // Transform courier entries → apis object (matches frontend format)
+    // Calculate totals from individual courier entries (summary may or may not exist)
+    let totalParcels = 0;
+    let totalSuccess = 0;
+    let totalCancelled = 0;
     const apis: NormalizedFraudData["apis"] = {};
-    for (const [key, entry] of Object.entries(result.courierData)) {
+
+    for (const [key, entry] of Object.entries(courierData)) {
       if (key === "summary") continue;
+      totalParcels += entry.total_parcel || 0;
+      totalSuccess += entry.success_parcel || 0;
+      totalCancelled += entry.cancelled_parcel || 0;
       apis[entry.name || key] = {
         total_parcels: entry.total_parcel,
         total_delivered_parcels: entry.success_parcel,
@@ -117,13 +124,18 @@ async function checkFraudStatus(
       };
     }
 
-    const successRate = summary.success_ratio;
+    // Use summary if available, otherwise use calculated totals
+    const summary = courierData.summary;
+    const finalTotal = summary?.total_parcel ?? totalParcels;
+    const finalSuccess = summary?.success_parcel ?? totalSuccess;
+    const finalCancelled = summary?.cancelled_parcel ?? totalCancelled;
+    const successRate = summary?.success_ratio ?? (finalTotal > 0 ? (finalSuccess / finalTotal) * 100 : 0);
 
     const fraudData: NormalizedFraudData = {
       mobile_number: cleanPhone,
-      total_parcels: summary.total_parcel,
-      total_delivered: summary.success_parcel,
-      total_cancel: summary.cancelled_parcel,
+      total_parcels: finalTotal,
+      total_delivered: finalSuccess,
+      total_cancel: finalCancelled,
       fraud_risk: successRate >= 70 ? "low" : successRate >= 50 ? "medium" : "high",
       success_rate: successRate,
       last_delivery: "",
@@ -131,7 +143,7 @@ async function checkFraudStatus(
     };
 
     console.log(
-      `Fraud check result for ${cleanPhone}: ${summary.success_parcel}/${summary.total_parcel} delivered (${successRate}%)`,
+      `Fraud check result for ${cleanPhone}: ${finalSuccess}/${finalTotal} delivered (${successRate}%)`,
     );
 
     return { fraudData, successRate };
