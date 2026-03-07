@@ -111,7 +111,7 @@ interface OrdersTableProps {
 }
 
 function FraudIndicator({ order }: { order: Order }) {
-  if (!order.fraud_checked || !order.fraud_data) {
+  if (!order.fraud_checked) {
     return (
       <Tooltip>
         <TooltipTrigger>
@@ -120,8 +120,24 @@ function FraudIndicator({ order }: { order: Order }) {
           </div>
         </TooltipTrigger>
         <TooltipContent side="right" className="bg-card border-border shadow-lg">
-          <p className="text-sm text-muted-foreground">
-            {!order.fraud_checked ? "Not checked yet" : "No data available"}
+          <p className="text-sm text-muted-foreground">Not checked yet</p>
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  if (!order.fraud_data) {
+    return (
+      <Tooltip>
+        <TooltipTrigger>
+          <div className="flex items-center justify-center">
+            <AlertTriangle className="h-5 w-5 text-destructive/70" />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="right" className="bg-card border-border shadow-lg p-3 max-w-[250px]">
+          <p className="text-sm font-medium text-destructive">API Error</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            FraudShield API couldn't be reached. Click the check button to retry.
           </p>
         </TooltipContent>
       </Tooltip>
