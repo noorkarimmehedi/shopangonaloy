@@ -81,7 +81,7 @@ async function checkFraudStatus(
   try {
     console.log(`Checking fraud status for: ${cleanPhone}`);
 
-    const response = await fetch("https://fraudshieldbd.site/api/customer/check", {
+    const response = await fetch("https://fraudshield.bd/api/customer/check", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
@@ -106,39 +106,38 @@ async function checkFraudStatus(
       return { fraudData: null, successRate: null };
     }
 
-    if (!result.courierData || !result.courierData.summary) {
-      console.error(`FraudShield returned no courierData for ${cleanPhone}`);
+    if (!result.success || !result.data) {
+      console.error(`FraudShield returned unsuccessful for ${cleanPhone}`);
       return { fraudData: null, successRate: null };
     }
 
-    const summary = result.courierData.summary;
+    const d = result.data;
 
-    // Transform courier entries → apis object (matches frontend format)
+    // Transform courier_history → apis object (matches frontend format)
     const apis: NormalizedFraudData["apis"] = {};
-    for (const [key, entry] of Object.entries(result.courierData)) {
-      if (key === "summary") continue;
-      apis[entry.name || key] = {
-        total_parcels: entry.total_parcel,
-        total_delivered_parcels: entry.success_parcel,
-        total_cancelled_parcels: entry.cancelled_parcel,
+    for (const entry of d.courier_history || []) {
+      apis[entry.courier] = {
+        total_parcels: entry.total,
+        total_delivered_parcels: entry.successful,
+        total_cancelled_parcels: entry.failed,
       };
     }
 
-    const successRate = summary.success_ratio;
+    const successRate = d.success_rate;
 
     const fraudData: NormalizedFraudData = {
       mobile_number: cleanPhone,
-      total_parcels: summary.total_parcel,
-      total_delivered: summary.success_parcel,
-      total_cancel: summary.cancelled_parcel,
-      fraud_risk: successRate >= 70 ? "low" : successRate >= 50 ? "medium" : "high",
+      total_parcels: d.total_parcels,
+      total_delivered: d.successful_deliveries,
+      total_cancel: d.failed_deliveries,
+      fraud_risk: d.fraud_risk,
       success_rate: successRate,
-      last_delivery: "",
+      last_delivery: d.last_delivery || "",
       apis,
     };
 
     console.log(
-      `Fraud check result for ${cleanPhone}: ${summary.success_parcel}/${summary.total_parcel} delivered (${successRate}%)`,
+      `Fraud check result for ${cleanPhone}: ${d.successful_deliveries}/${d.total_parcels} delivered (${successRate}%)`,
     );
 
     return { fraudData, successRate };
