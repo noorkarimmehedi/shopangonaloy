@@ -6,18 +6,25 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-interface CourierEntry {
-  name: string;
-  total_parcel: number;
-  success_parcel: number;
-  cancelled_parcel: number;
-  success_ratio: number;
-  logo?: string;
+interface CourierHistoryEntry {
+  courier: string;
+  total: number;
+  successful: number;
+  failed: number;
 }
 
 interface FraudShieldResponse {
-  reports: unknown[];
-  courierData: Record<string, CourierEntry>;
+  success: boolean;
+  data: {
+    phone: string;
+    total_parcels: number;
+    successful_deliveries: number;
+    failed_deliveries: number;
+    success_rate: number;
+    fraud_risk: string;
+    last_delivery: string;
+    courier_history: CourierHistoryEntry[];
+  };
 }
 
 // Normalized fraud data stored in the DB (matches frontend expectations)
