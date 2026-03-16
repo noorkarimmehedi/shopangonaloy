@@ -1024,6 +1024,12 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                   onClick={handleGenerateInvoice}
                   className="h-10 px-6 text-[10px] font-bold uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 border border-white/10"
                 />
+                <PlasticButton
+                  text="Print"
+                  icon={Printer}
+                  onClick={handlePrintInvoice}
+                  className="h-10 px-6 text-[10px] font-bold uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 border border-white/10"
+                />
               </div>
             </div>
           </motion.div>
