@@ -20,8 +20,8 @@ interface Order {
 
 export const generateInvoice = (orders: Order[]) => {
   // Receipt-style small label: ~80mm x ~120mm (similar to thermal/shipping label)
-  const pageWidth = 80;
-  const pageHeight = 120;
+  const pageWidth = 75;
+  const pageHeight = 100;
 
   const doc = new jsPDF({
     orientation: "portrait",
