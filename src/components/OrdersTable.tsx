@@ -29,7 +29,7 @@ import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truc
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { generateInvoice } from "@/utils/invoiceGenerator";
+import { generateInvoice, printInvoice } from "@/utils/invoiceGenerator";
 
 function splitProductLines(product: string | null): string[] {
   if (!product) return [];
