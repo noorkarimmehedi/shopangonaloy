@@ -18,7 +18,7 @@ interface Order {
   tracking_code?: string | null;
 }
 
-export const generateInvoice = (orders: Order[]) => {
+const buildInvoicePdf = (orders: Order[]) => {
   // Receipt-style small label: ~80mm x ~120mm (similar to thermal/shipping label)
   const pageWidth = 75;
   const pageHeight = 100;
@@ -188,9 +188,27 @@ export const generateInvoice = (orders: Order[]) => {
     doc.text(total.toLocaleString("en-BD", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), valueX, y, { align: "right" });
   });
 
+  return doc;
+};
+
+export const generateInvoice = (orders: Order[]) => {
+  const doc = buildInvoicePdf(orders);
   const filename = orders.length > 1
     ? `Invoices_Bulk_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`
     : `Invoice_${orders[0].order_number}.pdf`;
-
   doc.save(filename);
+};
+
+export const printInvoice = (orders: Order[]) => {
+  const doc = buildInvoicePdf(orders);
+  doc.autoPrint();
+  const blob = doc.output("blob");
+  const url = URL.createObjectURL(blob);
+  const printWindow = window.open(url);
+  if (printWindow) {
+    printWindow.onafterprint = () => {
+      printWindow.close();
+      URL.revokeObjectURL(url);
+    };
+  }
 };

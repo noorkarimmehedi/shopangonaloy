@@ -25,11 +25,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truck, Loader2, Search, NotebookPen, Package, Check, FileText, Trash2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truck, Loader2, Search, NotebookPen, Package, Check, FileText, Trash2, Printer } from "lucide-react";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { generateInvoice } from "@/utils/invoiceGenerator";
+import { generateInvoice, printInvoice } from "@/utils/invoiceGenerator";
 
 function splitProductLines(product: string | null): string[] {
   if (!product) return [];
@@ -639,6 +639,17 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
     }
   };
 
+  const handlePrintInvoice = async () => {
+    const selectedOrders = orders.filter((o) => selectedIds.has(o.id));
+    if (selectedOrders.length === 0) return;
+    try {
+      printInvoice(selectedOrders);
+    } catch (error) {
+      console.error("Print failed:", error);
+      toast.error("Failed to print invoices");
+    }
+  };
+
   const handleDeleteOrders = async () => {
     if (selectedIds.size === 0 || isDeletingOrders) return;
 
@@ -1011,6 +1022,12 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                   text="Generate Invoice"
                   icon={FileText}
                   onClick={handleGenerateInvoice}
+                  className="h-10 px-6 text-[10px] font-bold uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 border border-white/10"
+                />
+                <PlasticButton
+                  text="Print"
+                  icon={Printer}
+                  onClick={handlePrintInvoice}
                   className="h-10 px-6 text-[10px] font-bold uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 border border-white/10"
                 />
               </div>
