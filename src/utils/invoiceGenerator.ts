@@ -18,7 +18,7 @@ interface Order {
   tracking_code?: string | null;
 }
 
-export const generateInvoice = (orders: Order[]) => {
+const buildInvoicePdf = (orders: Order[]) => {
   // Receipt-style small label: ~80mm x ~120mm (similar to thermal/shipping label)
   const pageWidth = 75;
   const pageHeight = 100;
