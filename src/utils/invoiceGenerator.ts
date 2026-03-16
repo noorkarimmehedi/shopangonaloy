@@ -69,11 +69,12 @@ export const generateInvoice = (orders: Order[]) => {
     doc.text("Steadfast", margin + 16, y);
     y += 3.5;
 
-    if (order.consignment_id) {
+    const consignmentId = order.consignment_id ?? (order as any).consignment_id;
+    if (consignmentId != null) {
       doc.setFont("helvetica", "normal");
       doc.text(`Delivery ID: `, margin, y);
       doc.setFont("helvetica", "bold");
-      doc.text(String(order.consignment_id), margin + 16, y);
+      doc.text(String(consignmentId), margin + 16, y);
       y += 3.5;
     }
 
