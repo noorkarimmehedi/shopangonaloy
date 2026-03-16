@@ -1,272 +1,195 @@
 import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 
-// Note: jsPDF has limited support for Bangla (Bengali) script.
-// For full Bangla support, you would need to:
-// 1. Download a Bangla font (e.g., Noto Sans Bengali from Google Fonts)
-// 2. Convert it using: https://rawgit.com/MrRio/jsPDF/master/fontconverter/fontconverter.html
-// 3. Import the generated font file and use doc.addFont() and doc.setFont()
-// Currently using default fonts which support basic Latin characters.
-
-// Define Order interface based on what's used in Dashboard
 interface Order {
-    id: string;
-    order_number: string;
-    customer_name: string | null;
-    phone: string | null;
-    address: string | null;
-    product: string | null;
-    quantity: number | null;
-    price: number | null;
-    status: string;
-    created_at: string;
-    delivery_rate: number | null;
-    courier_status?: string | null;
+  id: string;
+  order_number: string;
+  customer_name: string | null;
+  phone: string | null;
+  address: string | null;
+  product: string | null;
+  quantity: number | null;
+  price: number | null;
+  status: string;
+  created_at: string;
+  delivery_rate: number | null;
+  courier_status?: string | null;
+  consignment_id?: number | null;
+  tracking_code?: string | null;
 }
 
 export const generateInvoice = (orders: Order[]) => {
-    // Use A4 dimensions
-    const doc = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4"
-    });
+  // Receipt-style small label: ~80mm x ~120mm (similar to thermal/shipping label)
+  const pageWidth = 80;
+  const pageHeight = 120;
 
-    const width = doc.internal.pageSize.getWidth(); // ~210mm
-    const height = doc.internal.pageSize.getHeight(); // ~297mm
-    const margin = 20;
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: [pageWidth, pageHeight],
+  });
 
-    // Swiss Design Colors (RGB)
-    const black = [10, 10, 10] as [number, number, number]; // #0A0A0A
-    const darkGrey = [60, 60, 60] as [number, number, number]; // #3C3C3C
-    const lightGrey = [230, 230, 230] as [number, number, number]; // #E6E6E6
-    const white = [255, 255, 255] as [number, number, number];
+  const margin = 4;
+  const contentWidth = pageWidth - margin * 2;
 
-    orders.forEach((order, index) => {
-        if (index > 0) {
-            doc.addPage();
-        }
+  orders.forEach((order, index) => {
+    if (index > 0) {
+      doc.addPage([pageWidth, pageHeight]);
+    }
 
-        // --- 1. BRAND HEADER (Top Right) ---
-        // Draw Logo: Black Rounded Square with White "A"
-        const logoSize = 16;
-        const logoX = width - margin - logoSize;
-        const logoY = margin;
+    let y = margin + 2;
 
-        doc.setFillColor(black[0], black[1], black[2]);
-        doc.roundedRect(logoX, logoY, logoSize, logoSize, 2, 2, "F");
+    // --- Brand Name ---
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Angonaloy", margin, y);
+    y += 5;
 
-        doc.setTextColor(white[0], white[1], white[2]);
-        doc.setFont("helvetica", "bolditalic"); // Match logo.tsx italic style
-        doc.setFontSize(26);
-        doc.text("A", logoX + (logoSize / 2), logoY + (logoSize / 1.4), { align: "center" });
+    // --- Invoice Details ---
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7);
 
-        // Brand Name & Details below logo
-        doc.setTextColor(black[0], black[1], black[2]);
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(8);
-        // Letter spacing simulation by adding spaces (PDF js doesn't support tracking natively well without plugin)
-        doc.text("Angonaloy", width - margin, logoY + logoSize + 6, { align: "right" });
+    const invoiceNo = order.order_number.replace("#", "");
 
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(darkGrey[0], darkGrey[1], darkGrey[2]);
-        doc.text("Dhaka, Bangladesh", width - margin, logoY + logoSize + 10, { align: "right" });
-        doc.text("https://angonaloy.shop/", width - margin, logoY + logoSize + 14, { align: "right" });
-        doc.text("+8801819502705", width - margin, logoY + logoSize + 18, { align: "right" });
+    doc.text(`Invoice No.: `, margin, y);
+    doc.setFont("helvetica", "bold");
+    doc.text(`AN-${invoiceNo}`, margin + 16, y);
+    y += 3.5;
 
+    doc.setFont("helvetica", "normal");
+    doc.text(`Invoice Date: `, margin, y);
+    doc.setFont("helvetica", "bold");
+    doc.text(format(new Date(order.created_at), "MMM dd, yyyy"), margin + 16, y);
+    y += 3.5;
 
-        // --- 2. MASSIVE TITLE (Top Left) ---
-        doc.setTextColor(black[0], black[1], black[2]);
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(60); // Massive display text
-        doc.text("INVOICE", margin - 2, 50); // slight offset for optical alignment with margin
+    doc.setFont("helvetica", "normal");
+    doc.text(`Courier: `, margin, y);
+    doc.setFont("helvetica", "bold");
+    doc.text("Steadfast", margin + 16, y);
+    y += 3.5;
 
+    if (order.consignment_id) {
+      doc.setFont("helvetica", "normal");
+      doc.text(`Delivery ID: `, margin, y);
+      doc.setFont("helvetica", "bold");
+      doc.text(String(order.consignment_id), margin + 16, y);
+      y += 3.5;
+    }
 
-        // --- 3. DETAILS GRID ---
-        const gridY = 70;
+    y += 2;
 
-        // Horizontal Separator - Thick
-        doc.setDrawColor(black[0], black[1], black[2]);
-        doc.setLineWidth(0.7);
-        doc.line(margin, gridY, width - margin, gridY);
+    // --- Invoice To ---
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7);
+    doc.text("Invoice To:", margin, y);
+    y += 4;
 
-        // Grid Content
-        const col1 = margin;
-        const col2 = margin + 60;
-        const col3 = margin + 120;
-        const row1 = gridY + 8;
-        const row2 = gridY + 20;
+    doc.setFontSize(7);
+    // Name with icon
+    doc.setFont("helvetica", "normal");
+    doc.text("\u00B7", margin, y); // bullet
+    doc.setFont("helvetica", "normal");
+    doc.text(order.customer_name || "Customer", margin + 3, y);
+    y += 3.5;
 
-        // Label Style
-        const drawLabel = (text: string, x: number, y: number) => {
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(7);
-            doc.setTextColor(darkGrey[0], darkGrey[1], darkGrey[2]);
-            doc.text(text.toUpperCase(), x, y);
-        };
+    // Phone
+    if (order.phone) {
+      doc.text("\u00B7", margin, y);
+      doc.text(order.phone, margin + 3, y);
+      y += 3.5;
+    }
 
-        // Value Style
-        const drawValue = (text: string, x: number, y: number) => {
-            doc.setFont("helvetica", "bold"); // Bold for high contrast
-            doc.setFontSize(10);
-            doc.setTextColor(black[0], black[1], black[2]);
-            doc.text(text, x, y);
-        };
+    // Address
+    if (order.address) {
+      doc.text("\u00B7", margin, y);
+      const addressLines = doc.splitTextToSize(order.address, contentWidth - 5);
+      doc.text(addressLines, margin + 3, y);
+      y += addressLines.length * 3.5;
+    }
 
-        // Value Paragraph Style
-        const drawParagraph = (text: string, x: number, y: number, maxWidth: number) => {
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(10);
-            doc.setTextColor(black[0], black[1], black[2]);
-            doc.text(text, x, y, { maxWidth });
-        };
+    y += 3;
 
-        // Col 1: Invoice Details
-        drawLabel("INVOICE NO", col1, row1);
-        drawValue(`#${order.order_number}`, col1, row1 + 5);
+    // --- Divider line ---
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(0.2);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 3;
 
-        drawLabel("DATE ISSUED", col1, row2);
-        drawValue(format(new Date(order.created_at), "dd.MM.yyyy"), col1, row2 + 5);
+    // --- Table Header ---
+    const col1X = margin;
+    const col2X = margin + 42;
+    const col3X = margin + 52;
 
-        // Col 2: Bill To
-        drawLabel("BILLED TO", col2, row1);
-        drawValue(order.customer_name || "Guest Customer", col2, row1 + 5);
-        if (order.phone) {
-            doc.setFont("helvetica", "normal");
-            doc.text(order.phone, col2, row1 + 10);
-        }
-        if (order.address) {
-            drawParagraph(order.address, col2, row1 + 15, 50);
-        }
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7);
+    doc.text("Product", col1X, y);
+    doc.text("Qty", col2X, y);
+    doc.text("Price", col3X, y, { align: "left" });
+    y += 1;
 
+    // Header underline
+    doc.setLineWidth(0.1);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 3;
 
+    // --- Product Row ---
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7);
 
+    const productName = order.product || "Item";
+    const productLines = doc.splitTextToSize(productName, 38);
+    doc.text(productLines, col1X, y);
 
-        // --- 4. ITEM TABLE ---
-        // Prepare Data
-        const productString = order.product || "Item";
-        const subtotal = order.price || 0;
-        const shipping = order.delivery_rate || 0;
-        const total = subtotal + shipping;
+    const qty = order.quantity || 1;
+    doc.text(String(qty), col2X + 2, y);
 
-        const tableData = [
-            [productString, order.quantity || 1]
-        ];
+    const subtotal = order.price || 0;
+    const priceStr = subtotal.toLocaleString("en-BD", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    doc.text(priceStr, pageWidth - margin, y, { align: "right" });
 
-        autoTable(doc, {
-            startY: 120,
-            head: [["DESCRIPTION", "QTY"]],
-            body: tableData,
-            theme: 'grid',
-            styles: {
-                font: "helvetica",
-                fontSize: 10,
-                cellPadding: { top: 12, bottom: 12, left: 0, right: 0 },
-                lineColor: black,
-                lineWidth: 0,
-                textColor: black,
-            },
-            headStyles: {
-                fillColor: white,
-                textColor: darkGrey,
-                fontStyle: "bold",
-                fontSize: 8,
-                halign: "left",
-            },
-            columnStyles: {
-                0: { cellWidth: "auto" }, // Description gets auto width
-                1: { cellWidth: 30, valign: "top" }, // Qty aligned to top
-            },
-            margin: { left: margin, right: margin },
+    y += productLines.length * 3.5 + 2;
 
-            // Custom Drawing for Borders
-            didDrawPage: (data) => {
-                // Thick Line ABOVE Header
-                doc.setDrawColor(black[0], black[1], black[2]);
-                doc.setLineWidth(0.7);
-                doc.line(margin, data.settings.startY, width - margin, data.settings.startY);
+    // --- Divider ---
+    doc.setLineWidth(0.1);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 4;
 
-                // Thin Line BELOW Header
-                const headerBottom = data.settings.startY + 8; // approx
-                doc.setLineWidth(0.1);
-                doc.line(margin, headerBottom, width - margin, headerBottom);
-            },
-            didDrawCell: (data) => {
-                // Thick Line BELOW each body row
-                if (data.section === 'body' && data.column.index === 1) {
-                    const y = data.cell.y + data.cell.height;
-                    doc.setDrawColor(lightGrey[0], lightGrey[1], lightGrey[2]);
-                    doc.setLineWidth(0.1);
-                    doc.line(margin, y, width - margin, y);
-                }
-            }
-        });
+    // --- Totals ---
+    const shipping = order.delivery_rate || 0;
+    const total = subtotal + shipping;
 
-        // --- 5. TOTALS SECTION ---
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const finalY = (doc as any).lastAutoTable.finalY + 15;
-        const totalsWidth = 80;
-        const totalsX = width - margin - totalsWidth;
+    const labelX = margin + 28;
+    const valueX = pageWidth - margin;
 
-        // Subtotal
-        doc.setFontSize(9);
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(darkGrey[0], darkGrey[1], darkGrey[2]);
-        doc.text("Subtotal", totalsX, finalY);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7);
 
-        doc.setTextColor(black[0], black[1], black[2]);
-        doc.text(subtotal.toLocaleString(), width - margin, finalY, { align: "right" });
+    doc.text("Sub Total", labelX, y);
+    doc.text(subtotal.toLocaleString("en-BD", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), valueX, y, { align: "right" });
+    y += 4;
 
-        // Shipping
-        doc.setTextColor(darkGrey[0], darkGrey[1], darkGrey[2]);
-        doc.text("Shipping", totalsX, finalY + 8);
+    doc.text("Delivery Fee", labelX, y);
+    doc.text(shipping.toLocaleString("en-BD", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), valueX, y, { align: "right" });
+    y += 4;
 
-        doc.setTextColor(black[0], black[1], black[2]);
-        doc.text(shipping.toLocaleString(), width - margin, finalY + 8, { align: "right" });
+    // Grand Total line
+    doc.setLineWidth(0.2);
+    doc.line(labelX, y - 1, pageWidth - margin, y - 1);
+    y += 2;
 
-        // Total Line
-        doc.setDrawColor(black[0], black[1], black[2]);
-        doc.setLineWidth(0.5);
-        doc.line(totalsX, finalY + 14, width - margin, finalY + 14);
+    doc.setFontSize(8);
+    doc.text("Grand Total", labelX, y);
+    doc.text(total.toLocaleString("en-BD", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), valueX, y, { align: "right" });
+    y += 4;
 
-        // GRAND TOTAL
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "bold");
-        doc.text("TOTAL", totalsX, finalY + 22);
+    doc.text("Due Amount", labelX, y);
+    doc.text(total.toLocaleString("en-BD", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), valueX, y, { align: "right" });
+  });
 
-        doc.setFontSize(16); // Large total
-        doc.text(`BDT ${total.toLocaleString()}`, width - margin, finalY + 22, { align: "right" });
+  const filename = orders.length > 1
+    ? `Invoices_Bulk_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`
+    : `Invoice_${orders[0].order_number}.pdf`;
 
-
-        // --- 6. FOOTER & THANK YOU ---
-        const footerY = height - 30;
-
-        // Aesthetic "Block" footer or large text
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(30);
-        doc.setTextColor(240, 240, 240); // Very light grey text
-        doc.text("THANK YOU", margin, footerY);
-
-        // Notes or Payment Info
-        doc.setFontSize(8);
-        doc.setTextColor(darkGrey[0], darkGrey[1], darkGrey[2]);
-        doc.text("Payment due upon receipt.", margin, footerY + 8);
-        doc.text("Please include invoice number on your check.", margin, footerY + 12);
-
-        // Page Number
-        doc.setFontSize(8);
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(darkGrey[0], darkGrey[1], darkGrey[2]);
-        doc.text(`Page 1/1`, width - margin, height - 10, { align: "right" });
-
-
-
-    });
-
-    const filename = orders.length > 1
-        ? `Invoices_Bulk_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`
-        : `Invoice_${orders[0].order_number}.pdf`;
-
-    doc.save(filename);
+  doc.save(filename);
 };
