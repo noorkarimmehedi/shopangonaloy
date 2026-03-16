@@ -650,6 +650,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
     }
   };
 
+  const handleDeleteOrders = async () => {
     if (selectedIds.size === 0 || isDeletingOrders) return;
 
     setIsDeletingOrders(true);
