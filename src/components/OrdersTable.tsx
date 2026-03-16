@@ -639,7 +639,17 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
     }
   };
 
-  const handleDeleteOrders = async () => {
+  const handlePrintInvoice = async () => {
+    const selectedOrders = orders.filter((o) => selectedIds.has(o.id));
+    if (selectedOrders.length === 0) return;
+    try {
+      printInvoice(selectedOrders);
+    } catch (error) {
+      console.error("Print failed:", error);
+      toast.error("Failed to print invoices");
+    }
+  };
+
     if (selectedIds.size === 0 || isDeletingOrders) return;
 
     setIsDeletingOrders(true);
