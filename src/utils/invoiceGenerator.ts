@@ -41,6 +41,9 @@ const buildInvoicePdf = async (orders: Order[]) => {
     format: [pageWidth, pageHeight],
   });
 
+  await loadBengaliFont(doc);
+  doc.setFont("NotoSansBengali", "normal");
+
   const margin = 4;
   const contentWidth = pageWidth - margin * 2;
 
