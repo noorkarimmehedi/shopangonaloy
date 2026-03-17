@@ -18,7 +18,19 @@ interface Order {
   tracking_code?: string | null;
 }
 
-const buildInvoicePdf = (orders: Order[]) => {
+const loadBengaliFont = async (doc: jsPDF) => {
+  const response = await fetch("/fonts/NotoSansBengali-Variable.ttf");
+  const buffer = await response.arrayBuffer();
+  const base64 = btoa(
+    new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), "")
+  );
+  doc.addFileToVFS("NotoSansBengali.ttf", base64);
+  doc.addFont("NotoSansBengali.ttf", "NotoSansBengali", "normal");
+  doc.addFileToVFS("NotoSansBengali-Bold.ttf", base64);
+  doc.addFont("NotoSansBengali-Bold.ttf", "NotoSansBengali", "bold");
+};
+
+const buildInvoicePdf = async (orders: Order[]) => {
   // Receipt-style small label: ~80mm x ~120mm (similar to thermal/shipping label)
   const pageWidth = 75;
   const pageHeight = 100;
@@ -28,6 +40,9 @@ const buildInvoicePdf = (orders: Order[]) => {
     unit: "mm",
     format: [pageWidth, pageHeight],
   });
+
+  await loadBengaliFont(doc);
+  doc.setFont("NotoSansBengali", "normal");
 
   const margin = 4;
   const contentWidth = pageWidth - margin * 2;
@@ -40,40 +55,40 @@ const buildInvoicePdf = (orders: Order[]) => {
     let y = margin + 2;
 
     // --- Brand Name ---
-    doc.setFont("helvetica", "bold");
+    doc.setFont("NotoSansBengali", "bold");
     doc.setFontSize(14);
     doc.setTextColor(0, 0, 0);
     doc.text("Angonaloy", margin, y);
     y += 5;
 
     // --- Invoice Details ---
-    doc.setFont("helvetica", "normal");
+    doc.setFont("NotoSansBengali", "normal");
     doc.setFontSize(7);
 
     const invoiceNo = order.order_number.replace("#", "");
 
     doc.text(`Invoice No.: `, margin, y);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("NotoSansBengali", "bold");
     doc.text(`AN-${invoiceNo}`, margin + 16, y);
     y += 3.5;
 
-    doc.setFont("helvetica", "normal");
+    doc.setFont("NotoSansBengali", "normal");
     doc.text(`Invoice Date: `, margin, y);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("NotoSansBengali", "bold");
     doc.text(format(new Date(order.created_at), "MMM dd, yyyy"), margin + 16, y);
     y += 3.5;
 
-    doc.setFont("helvetica", "normal");
+    doc.setFont("NotoSansBengali", "normal");
     doc.text(`Courier: `, margin, y);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("NotoSansBengali", "bold");
     doc.text("Steadfast", margin + 16, y);
     y += 3.5;
 
     const consignmentId = order.consignment_id ?? (order as any).consignment_id;
     if (consignmentId != null) {
-      doc.setFont("helvetica", "normal");
+      doc.setFont("NotoSansBengali", "normal");
       doc.text(`Delivery ID: `, margin, y);
-      doc.setFont("helvetica", "bold");
+      doc.setFont("NotoSansBengali", "bold");
       doc.text(String(consignmentId), margin + 16, y);
       y += 3.5;
     }
@@ -81,16 +96,15 @@ const buildInvoicePdf = (orders: Order[]) => {
     y += 2;
 
     // --- Invoice To ---
-    doc.setFont("helvetica", "bold");
+    doc.setFont("NotoSansBengali", "bold");
     doc.setFontSize(7);
     doc.text("Invoice To:", margin, y);
     y += 4;
 
     doc.setFontSize(7);
     // Name with icon
-    doc.setFont("helvetica", "normal");
+    doc.setFont("NotoSansBengali", "normal");
     doc.text("\u00B7", margin, y); // bullet
-    doc.setFont("helvetica", "normal");
     doc.text(order.customer_name || "Customer", margin + 3, y);
     y += 3.5;
 
@@ -122,7 +136,7 @@ const buildInvoicePdf = (orders: Order[]) => {
     const col2X = margin + 42;
     const col3X = margin + 52;
 
-    doc.setFont("helvetica", "bold");
+    doc.setFont("NotoSansBengali", "bold");
     doc.setFontSize(7);
     doc.text("Product", col1X, y);
     doc.text("Qty", col2X, y);
@@ -135,7 +149,7 @@ const buildInvoicePdf = (orders: Order[]) => {
     y += 3;
 
     // --- Product Row ---
-    doc.setFont("helvetica", "normal");
+    doc.setFont("NotoSansBengali", "normal");
     doc.setFontSize(7);
 
     const productName = order.product || "Item";
@@ -163,7 +177,7 @@ const buildInvoicePdf = (orders: Order[]) => {
     const labelX = margin + 28;
     const valueX = pageWidth - margin;
 
-    doc.setFont("helvetica", "bold");
+    doc.setFont("NotoSansBengali", "bold");
     doc.setFontSize(7);
 
     doc.text("Sub Total", labelX, y);
@@ -191,16 +205,16 @@ const buildInvoicePdf = (orders: Order[]) => {
   return doc;
 };
 
-export const generateInvoice = (orders: Order[]) => {
-  const doc = buildInvoicePdf(orders);
+export const generateInvoice = async (orders: Order[]) => {
+  const doc = await buildInvoicePdf(orders);
   const filename = orders.length > 1
     ? `Invoices_Bulk_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`
     : `Invoice_${orders[0].order_number}.pdf`;
   doc.save(filename);
 };
 
-export const printInvoice = (orders: Order[]) => {
-  const doc = buildInvoicePdf(orders);
+export const printInvoice = async (orders: Order[]) => {
+  const doc = await buildInvoicePdf(orders);
   doc.autoPrint();
   const blob = doc.output("blob");
   const url = URL.createObjectURL(blob);
