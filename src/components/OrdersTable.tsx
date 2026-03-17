@@ -605,7 +605,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
       // Small delay to ensure UI renders before heavy PDF gen blocks thread
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      await generateInvoice(selectedOrders);
+      generateInvoice(selectedOrders);
 
       toast.dismiss(toastId);
       toast.custom((t) => (
@@ -643,7 +643,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
     const selectedOrders = orders.filter((o) => selectedIds.has(o.id));
     if (selectedOrders.length === 0) return;
     try {
-      await printInvoice(selectedOrders);
+      printInvoice(selectedOrders);
     } catch (error) {
       console.error("Print failed:", error);
       toast.error("Failed to print invoices");
