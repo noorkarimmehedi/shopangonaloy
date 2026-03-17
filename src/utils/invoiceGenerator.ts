@@ -18,7 +18,19 @@ interface Order {
   tracking_code?: string | null;
 }
 
-const buildInvoicePdf = (orders: Order[]) => {
+const loadBengaliFont = async (doc: jsPDF) => {
+  const response = await fetch("/fonts/NotoSansBengali-Variable.ttf");
+  const buffer = await response.arrayBuffer();
+  const base64 = btoa(
+    new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), "")
+  );
+  doc.addFileToVFS("NotoSansBengali.ttf", base64);
+  doc.addFont("NotoSansBengali.ttf", "NotoSansBengali", "normal");
+  doc.addFileToVFS("NotoSansBengali-Bold.ttf", base64);
+  doc.addFont("NotoSansBengali-Bold.ttf", "NotoSansBengali", "bold");
+};
+
+const buildInvoicePdf = async (orders: Order[]) => {
   // Receipt-style small label: ~80mm x ~120mm (similar to thermal/shipping label)
   const pageWidth = 75;
   const pageHeight = 100;
