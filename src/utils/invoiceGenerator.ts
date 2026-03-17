@@ -206,16 +206,16 @@ const buildInvoicePdf = async (orders: Order[]) => {
   return doc;
 };
 
-export const generateInvoice = (orders: Order[]) => {
-  const doc = buildInvoicePdf(orders);
+export const generateInvoice = async (orders: Order[]) => {
+  const doc = await buildInvoicePdf(orders);
   const filename = orders.length > 1
     ? `Invoices_Bulk_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`
     : `Invoice_${orders[0].order_number}.pdf`;
   doc.save(filename);
 };
 
-export const printInvoice = (orders: Order[]) => {
-  const doc = buildInvoicePdf(orders);
+export const printInvoice = async (orders: Order[]) => {
+  const doc = await buildInvoicePdf(orders);
   doc.autoPrint();
   const blob = doc.output("blob");
   const url = URL.createObjectURL(blob);
