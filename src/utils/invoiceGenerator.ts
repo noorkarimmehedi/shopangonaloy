@@ -55,40 +55,40 @@ const buildInvoicePdf = async (orders: Order[]) => {
     let y = margin + 2;
 
     // --- Brand Name ---
-    doc.setFont("helvetica", "bold");
+    doc.setFont("NotoSansBengali", "bold");
     doc.setFontSize(14);
     doc.setTextColor(0, 0, 0);
     doc.text("Angonaloy", margin, y);
     y += 5;
 
     // --- Invoice Details ---
-    doc.setFont("helvetica", "normal");
+    doc.setFont("NotoSansBengali", "normal");
     doc.setFontSize(7);
 
     const invoiceNo = order.order_number.replace("#", "");
 
     doc.text(`Invoice No.: `, margin, y);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("NotoSansBengali", "bold");
     doc.text(`AN-${invoiceNo}`, margin + 16, y);
     y += 3.5;
 
-    doc.setFont("helvetica", "normal");
+    doc.setFont("NotoSansBengali", "normal");
     doc.text(`Invoice Date: `, margin, y);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("NotoSansBengali", "bold");
     doc.text(format(new Date(order.created_at), "MMM dd, yyyy"), margin + 16, y);
     y += 3.5;
 
-    doc.setFont("helvetica", "normal");
+    doc.setFont("NotoSansBengali", "normal");
     doc.text(`Courier: `, margin, y);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("NotoSansBengali", "bold");
     doc.text("Steadfast", margin + 16, y);
     y += 3.5;
 
     const consignmentId = order.consignment_id ?? (order as any).consignment_id;
     if (consignmentId != null) {
-      doc.setFont("helvetica", "normal");
+      doc.setFont("NotoSansBengali", "normal");
       doc.text(`Delivery ID: `, margin, y);
-      doc.setFont("helvetica", "bold");
+      doc.setFont("NotoSansBengali", "bold");
       doc.text(String(consignmentId), margin + 16, y);
       y += 3.5;
     }
@@ -96,16 +96,15 @@ const buildInvoicePdf = async (orders: Order[]) => {
     y += 2;
 
     // --- Invoice To ---
-    doc.setFont("helvetica", "bold");
+    doc.setFont("NotoSansBengali", "bold");
     doc.setFontSize(7);
     doc.text("Invoice To:", margin, y);
     y += 4;
 
     doc.setFontSize(7);
     // Name with icon
-    doc.setFont("helvetica", "normal");
+    doc.setFont("NotoSansBengali", "normal");
     doc.text("\u00B7", margin, y); // bullet
-    doc.setFont("helvetica", "normal");
     doc.text(order.customer_name || "Customer", margin + 3, y);
     y += 3.5;
 
@@ -137,7 +136,7 @@ const buildInvoicePdf = async (orders: Order[]) => {
     const col2X = margin + 42;
     const col3X = margin + 52;
 
-    doc.setFont("helvetica", "bold");
+    doc.setFont("NotoSansBengali", "bold");
     doc.setFontSize(7);
     doc.text("Product", col1X, y);
     doc.text("Qty", col2X, y);
@@ -150,7 +149,7 @@ const buildInvoicePdf = async (orders: Order[]) => {
     y += 3;
 
     // --- Product Row ---
-    doc.setFont("helvetica", "normal");
+    doc.setFont("NotoSansBengali", "normal");
     doc.setFontSize(7);
 
     const productName = order.product || "Item";
@@ -178,7 +177,7 @@ const buildInvoicePdf = async (orders: Order[]) => {
     const labelX = margin + 28;
     const valueX = pageWidth - margin;
 
-    doc.setFont("helvetica", "bold");
+    doc.setFont("NotoSansBengali", "bold");
     doc.setFontSize(7);
 
     doc.text("Sub Total", labelX, y);
