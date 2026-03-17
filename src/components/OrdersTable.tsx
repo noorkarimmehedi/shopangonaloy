@@ -605,7 +605,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
       // Small delay to ensure UI renders before heavy PDF gen blocks thread
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      generateInvoice(selectedOrders);
+      await generateInvoice(selectedOrders);
 
       toast.dismiss(toastId);
       toast.custom((t) => (
@@ -643,7 +643,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
     const selectedOrders = orders.filter((o) => selectedIds.has(o.id));
     if (selectedOrders.length === 0) return;
     try {
-      printInvoice(selectedOrders);
+      await printInvoice(selectedOrders);
     } catch (error) {
       console.error("Print failed:", error);
       toast.error("Failed to print invoices");
@@ -986,7 +986,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
             initial={{ opacity: 0, y: 100 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 100 }}
-            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100]"
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100]"
           >
             <div className="bg-black text-white px-8 py-4 rounded-3xl shadow-2xl flex items-center gap-8 backdrop-blur-xl border border-white/10">
               <div className="flex flex-col">
