@@ -605,7 +605,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
       // Small delay to ensure UI renders before heavy PDF gen blocks thread
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      generateInvoice(selectedOrders);
+      await generateInvoice(selectedOrders);
 
       toast.dismiss(toastId);
       toast.custom((t) => (
