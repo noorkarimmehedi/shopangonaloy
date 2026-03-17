@@ -643,7 +643,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
     const selectedOrders = orders.filter((o) => selectedIds.has(o.id));
     if (selectedOrders.length === 0) return;
     try {
-      printInvoice(selectedOrders);
+      await printInvoice(selectedOrders);
     } catch (error) {
       console.error("Print failed:", error);
       toast.error("Failed to print invoices");
