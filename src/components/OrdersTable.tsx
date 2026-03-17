@@ -1009,26 +1009,26 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                   loading={isDeletingOrders}
                   loadingText="Deleting..."
                   onClick={handleDeleteOrders}
-                  className="h-10 px-6 text-[10px] font-bold uppercase tracking-widest bg-gradient-to-b from-red-500 to-red-600 text-white hover:from-red-400 hover:to-red-500 shadow-[0_4px_20px_-4px_rgba(239,68,68,0.4)]"
+                  className="h-8 px-4 text-[8px] font-bold uppercase tracking-widest bg-gradient-to-b from-red-500 to-red-600 text-white hover:from-red-400 hover:to-red-500 shadow-[0_4px_20px_-4px_rgba(239,68,68,0.4)]"
                 />
                 <PlasticButton
                   text="Bulk Fraud Check"
                   loading={isBulkChecking}
                   loadingText="Checking..."
                   onClick={handleBulkFraudCheck}
-                  className="h-10 px-6 text-[10px] font-bold uppercase tracking-widest bg-gradient-to-b from-white to-zinc-300 !text-black shadow-[0_4px_20px_-4px_rgba(255,255,255,0.2)]"
+                  className="h-8 px-4 text-[8px] font-bold uppercase tracking-widest bg-gradient-to-b from-white to-zinc-300 !text-black shadow-[0_4px_20px_-4px_rgba(255,255,255,0.2)]"
                 />
                 <PlasticButton
                   text="Generate Invoice"
                   icon={FileText}
                   onClick={handleGenerateInvoice}
-                  className="h-10 px-6 text-[10px] font-bold uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 border border-white/10"
+                  className="h-8 px-4 text-[8px] font-bold uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 border border-white/10"
                 />
                 <PlasticButton
                   text="Print"
                   icon={Printer}
                   onClick={handlePrintInvoice}
-                  className="h-10 px-6 text-[10px] font-bold uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 border border-white/10"
+                  className="h-8 px-4 text-[8px] font-bold uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 border border-white/10"
                 />
               </div>
             </div>
