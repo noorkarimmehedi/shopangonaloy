@@ -18,20 +18,76 @@ interface Order {
   tracking_code?: string | null;
 }
 
-const loadBengaliFont = async (doc: jsPDF) => {
-  const response = await fetch("/fonts/NotoSansBengali-Variable.ttf");
-  const buffer = await response.arrayBuffer();
-  const base64 = btoa(
-    new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), "")
-  );
-  doc.addFileToVFS("NotoSansBengali.ttf", base64);
-  doc.addFont("NotoSansBengali.ttf", "NotoSansBengali", "normal");
-  doc.addFileToVFS("NotoSansBengali-Bold.ttf", base64);
-  doc.addFont("NotoSansBengali-Bold.ttf", "NotoSansBengali", "bold");
+const formatCurrency = (amount: number) =>
+  amount.toLocaleString("en-BD", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const buildInvoiceHtml = (order: Order) => {
+  const invoiceNo = order.order_number.replace("#", "");
+  const consignmentId = order.consignment_id;
+  const subtotal = order.price || 0;
+  const shipping = order.delivery_rate || 0;
+  const total = subtotal + shipping;
+  const qty = order.quantity || 1;
+
+  return `
+    <div style="font-family: 'Noto Sans Bengali', sans-serif; width: 283px; padding: 15px; box-sizing: border-box; color: #000;">
+      <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Angonaloy</div>
+      
+      <div style="font-size: 9px; line-height: 1.6;">
+        <div><span style="color: #666;">Invoice No.:</span> <strong>AN-${invoiceNo}</strong></div>
+        <div><span style="color: #666;">Invoice Date:</span> <strong>${format(new Date(order.created_at), "MMM dd, yyyy")}</strong></div>
+        <div><span style="color: #666;">Courier:</span> <strong>Steadfast</strong></div>
+        ${consignmentId != null ? `<div><span style="color: #666;">Delivery ID:</span> <strong>${consignmentId}</strong></div>` : ""}
+      </div>
+
+      <div style="margin-top: 10px; font-size: 9px; font-weight: 700;">Invoice To:</div>
+      <div style="font-size: 9px; line-height: 1.6; margin-top: 4px;">
+        <div>· ${order.customer_name || "Customer"}</div>
+        ${order.phone ? `<div>· ${order.phone}</div>` : ""}
+        ${order.address ? `<div>· ${order.address}</div>` : ""}
+      </div>
+
+      <hr style="border: none; border-top: 1px solid #000; margin: 10px 0 6px;" />
+
+      <table style="width: 100%; font-size: 9px; border-collapse: collapse;">
+        <thead>
+          <tr style="font-weight: 700; border-bottom: 1px solid #ccc;">
+            <td style="padding: 2px 0; width: 60%;">Product</td>
+            <td style="padding: 2px 0; width: 15%; text-align: center;">Qty</td>
+            <td style="padding: 2px 0; width: 25%; text-align: right;">Price</td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding: 4px 0;">${order.product || "Item"}</td>
+            <td style="padding: 4px 0; text-align: center;">${qty}</td>
+            <td style="padding: 4px 0; text-align: right;">${formatCurrency(subtotal)}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <hr style="border: none; border-top: 1px solid #ccc; margin: 6px 0;" />
+
+      <div style="font-size: 9px; font-weight: 700;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <span>Sub Total</span><span>${formatCurrency(subtotal)}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <span>Delivery Fee</span><span>${formatCurrency(shipping)}</span>
+        </div>
+        <hr style="border: none; border-top: 1.5px solid #000; margin: 4px 0;" />
+        <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 4px;">
+          <span>Grand Total</span><span>${formatCurrency(total)}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 10px;">
+          <span>Due Amount</span><span>${formatCurrency(total)}</span>
+        </div>
+      </div>
+    </div>
+  `;
 };
 
 const buildInvoicePdf = async (orders: Order[]) => {
-  // Receipt-style small label: ~80mm x ~120mm (similar to thermal/shipping label)
   const pageWidth = 75;
   const pageHeight = 100;
 
@@ -41,166 +97,36 @@ const buildInvoicePdf = async (orders: Order[]) => {
     format: [pageWidth, pageHeight],
   });
 
-  await loadBengaliFont(doc);
-  doc.setFont("NotoSansBengali", "normal");
-
-  const margin = 4;
-  const contentWidth = pageWidth - margin * 2;
-
-  orders.forEach((order, index) => {
-    if (index > 0) {
+  for (let i = 0; i < orders.length; i++) {
+    if (i > 0) {
       doc.addPage([pageWidth, pageHeight]);
     }
 
-    let y = margin + 2;
+    const html = buildInvoiceHtml(orders[i]);
 
-    // --- Brand Name ---
-    doc.setFont("NotoSansBengali", "bold");
-    doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
-    doc.text("Angonaloy", margin, y);
-    y += 5;
+    // Create a temporary container for rendering
+    const container = document.createElement("div");
+    container.innerHTML = html;
+    container.style.position = "absolute";
+    container.style.left = "-9999px";
+    container.style.top = "0";
+    document.body.appendChild(container);
 
-    // --- Invoice Details ---
-    doc.setFont("NotoSansBengali", "normal");
-    doc.setFontSize(7);
+    await new Promise<void>((resolve, reject) => {
+      doc.html(container.firstElementChild as HTMLElement, {
+        callback: () => {
+          resolve();
+        },
+        x: 0,
+        y: i * pageHeight * (72 / 25.4), // offset for correct page (points)
+        width: pageWidth,
+        windowWidth: 283, // matches the div width in px
+        autoPaging: false,
+      });
+    });
 
-    const invoiceNo = order.order_number.replace("#", "");
-
-    doc.text(`Invoice No.: `, margin, y);
-    doc.setFont("NotoSansBengali", "bold");
-    doc.text(`AN-${invoiceNo}`, margin + 16, y);
-    y += 3.5;
-
-    doc.setFont("NotoSansBengali", "normal");
-    doc.text(`Invoice Date: `, margin, y);
-    doc.setFont("NotoSansBengali", "bold");
-    doc.text(format(new Date(order.created_at), "MMM dd, yyyy"), margin + 16, y);
-    y += 3.5;
-
-    doc.setFont("NotoSansBengali", "normal");
-    doc.text(`Courier: `, margin, y);
-    doc.setFont("NotoSansBengali", "bold");
-    doc.text("Steadfast", margin + 16, y);
-    y += 3.5;
-
-    const consignmentId = order.consignment_id ?? (order as any).consignment_id;
-    if (consignmentId != null) {
-      doc.setFont("NotoSansBengali", "normal");
-      doc.text(`Delivery ID: `, margin, y);
-      doc.setFont("NotoSansBengali", "bold");
-      doc.text(String(consignmentId), margin + 16, y);
-      y += 3.5;
-    }
-
-    y += 2;
-
-    // --- Invoice To ---
-    doc.setFont("NotoSansBengali", "bold");
-    doc.setFontSize(7);
-    doc.text("Invoice To:", margin, y);
-    y += 4;
-
-    doc.setFontSize(7);
-    // Name with icon
-    doc.setFont("NotoSansBengali", "normal");
-    doc.text("\u00B7", margin, y); // bullet
-    doc.text(order.customer_name || "Customer", margin + 3, y);
-    y += 3.5;
-
-    // Phone
-    if (order.phone) {
-      doc.text("\u00B7", margin, y);
-      doc.text(order.phone, margin + 3, y);
-      y += 3.5;
-    }
-
-    // Address
-    if (order.address) {
-      doc.text("\u00B7", margin, y);
-      const addressLines = doc.splitTextToSize(order.address, contentWidth - 5);
-      doc.text(addressLines, margin + 3, y);
-      y += addressLines.length * 3.5;
-    }
-
-    y += 3;
-
-    // --- Divider line ---
-    doc.setDrawColor(0, 0, 0);
-    doc.setLineWidth(0.2);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 3;
-
-    // --- Table Header ---
-    const col1X = margin;
-    const col2X = margin + 42;
-    const col3X = margin + 52;
-
-    doc.setFont("NotoSansBengali", "bold");
-    doc.setFontSize(7);
-    doc.text("Product", col1X, y);
-    doc.text("Qty", col2X, y);
-    doc.text("Price", col3X, y, { align: "left" });
-    y += 1;
-
-    // Header underline
-    doc.setLineWidth(0.1);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 3;
-
-    // --- Product Row ---
-    doc.setFont("NotoSansBengali", "normal");
-    doc.setFontSize(7);
-
-    const productName = order.product || "Item";
-    const productLines = doc.splitTextToSize(productName, 38);
-    doc.text(productLines, col1X, y);
-
-    const qty = order.quantity || 1;
-    doc.text(String(qty), col2X + 2, y);
-
-    const subtotal = order.price || 0;
-    const priceStr = subtotal.toLocaleString("en-BD", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    doc.text(priceStr, pageWidth - margin, y, { align: "right" });
-
-    y += productLines.length * 3.5 + 2;
-
-    // --- Divider ---
-    doc.setLineWidth(0.1);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 4;
-
-    // --- Totals ---
-    const shipping = order.delivery_rate || 0;
-    const total = subtotal + shipping;
-
-    const labelX = margin + 28;
-    const valueX = pageWidth - margin;
-
-    doc.setFont("NotoSansBengali", "bold");
-    doc.setFontSize(7);
-
-    doc.text("Sub Total", labelX, y);
-    doc.text(subtotal.toLocaleString("en-BD", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), valueX, y, { align: "right" });
-    y += 4;
-
-    doc.text("Delivery Fee", labelX, y);
-    doc.text(shipping.toLocaleString("en-BD", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), valueX, y, { align: "right" });
-    y += 4;
-
-    // Grand Total line
-    doc.setLineWidth(0.2);
-    doc.line(labelX, y - 1, pageWidth - margin, y - 1);
-    y += 2;
-
-    doc.setFontSize(8);
-    doc.text("Grand Total", labelX, y);
-    doc.text(total.toLocaleString("en-BD", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), valueX, y, { align: "right" });
-    y += 4;
-
-    doc.text("Due Amount", labelX, y);
-    doc.text(total.toLocaleString("en-BD", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), valueX, y, { align: "right" });
-  });
+    document.body.removeChild(container);
+  }
 
   return doc;
 };
