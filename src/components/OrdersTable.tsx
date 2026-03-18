@@ -25,11 +25,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truck, Loader2, Search, NotebookPen, Package, Check, FileText, Trash2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truck, Loader2, Search, NotebookPen, Package, Check, FileText, Trash2, Printer } from "lucide-react";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { generateInvoice } from "@/utils/invoiceGenerator";
+import { generateInvoice, printInvoice } from "@/utils/invoiceGenerator";
 
 function splitProductLines(product: string | null): string[] {
   if (!product) return [];
@@ -639,6 +639,17 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
     }
   };
 
+  const handlePrintInvoice = async () => {
+    const selectedOrders = orders.filter((o) => selectedIds.has(o.id));
+    if (selectedOrders.length === 0) return;
+    try {
+      printInvoice(selectedOrders);
+    } catch (error) {
+      console.error("Print failed:", error);
+      toast.error("Failed to print invoices");
+    }
+  };
+
   const handleDeleteOrders = async () => {
     if (selectedIds.size === 0 || isDeletingOrders) return;
 
@@ -795,177 +806,177 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
           </TableRow>
         </TableHeader>
         <TableBody>
-          {orders.map((order, idx) => {
-            const { primary, moreCount, lines } = productSummary(order);
+            {orders.map((order, idx) => {
+              const { primary, moreCount, lines } = productSummary(order);
 
-            return (
-              <TableRow
-                key={order.id}
-                className={cn(
-                  "border-b border-black/[0.02] hover:bg-black/[0.01] transition-colors group relative",
-                  selectedIds.has(order.id) && "bg-black/[0.015]"
-                )}
-              >
-                <TableCell className="w-12 py-5 pl-10">
-                  <div
-                    onClick={() => toggleSelectOrder(order.id)}
-                    className={cn(
-                      "w-4 h-4 rounded border border-black/10 flex items-center justify-center cursor-pointer transition-all",
-                      selectedIds.has(order.id) ? "bg-black border-black shadow-sm" : "bg-white group-hover:border-black/30"
-                    )}
-                  >
-                    {selectedIds.has(order.id) && <Check className="w-3 h-3 text-white" />}
-                  </div>
-                </TableCell>
-                <TableCell className="py-5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-[13px] tracking-tight">{order.order_number}</span>
-                    {order.fulfillment_status === "fulfilled" && (
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[8px] font-bold uppercase tracking-wider">Fulfilled</span>
-                    )}
-                    {order.fulfillment_status === "partial" && (
-                      <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[8px] font-bold uppercase tracking-wider">Partial</span>
-                    )}
-                    {order.fulfillment_status === "restocked" && (
-                      <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[8px] font-bold uppercase tracking-wider">Cancelled</span>
-                    )}
-                  </div>
-                  <span className="text-[10px] text-black/20 font-medium uppercase tracking-wider">{format(new Date(order.created_at), "MMM dd, yyyy")}</span>
-                </TableCell>
-                <TableCell className="py-5">
-                  <div className="flex flex-col gap-1">
+              return (
+                <TableRow
+                  key={order.id}
+                  className={cn(
+                    "border-b border-black/[0.02] hover:bg-black/[0.01] transition-colors group relative",
+                    selectedIds.has(order.id) && "bg-black/[0.015]"
+                  )}
+                >
+                  <TableCell className="w-12 py-5 pl-10">
+                    <div
+                      onClick={() => toggleSelectOrder(order.id)}
+                      className={cn(
+                        "w-4 h-4 rounded border border-black/10 flex items-center justify-center cursor-pointer transition-all",
+                        selectedIds.has(order.id) ? "bg-black border-black shadow-sm" : "bg-white group-hover:border-black/30"
+                      )}
+                    >
+                      {selectedIds.has(order.id) && <Check className="w-3 h-3 text-white" />}
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-5">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-medium text-sm tracking-tight">{order.customer_name || "Guest User"}</span>
-                      {order.phone && (phoneOrderCount.get(order.phone.trim()) || 0) > 1 && (
-                        <Tooltip delayDuration={0}>
-                          <TooltipTrigger asChild>
-                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-bold uppercase tracking-wider cursor-default">
-                              ×{phoneOrderCount.get(order.phone.trim())}
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent side="top" className="text-xs">
-                            This number has {phoneOrderCount.get(order.phone.trim())} orders
-                          </TooltipContent>
-                        </Tooltip>
+                      <span className="font-bold text-[13px] tracking-tight">{order.order_number}</span>
+                      {order.fulfillment_status === "fulfilled" && (
+                        <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[8px] font-bold uppercase tracking-wider">Fulfilled</span>
+                      )}
+                      {order.fulfillment_status === "partial" && (
+                        <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[8px] font-bold uppercase tracking-wider">Partial</span>
+                      )}
+                      {order.fulfillment_status === "restocked" && (
+                        <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[8px] font-bold uppercase tracking-wider">Cancelled</span>
                       )}
                     </div>
-                    <span className="font-mono text-[11px] text-black">{order.phone || "No Phone"}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-center py-5">
-                  <div className="flex items-center justify-center gap-2">
-                    <FraudIndicator order={order} />
-                    <button
-                      onClick={() => handleCheckFraud(order)}
-                      disabled={checkingFraudIds.has(order.id)}
-                      className="p-1.5 rounded-lg bg-black/[0.03] text-black/20 hover:bg-black hover:text-white transition-all opacity-0 group-hover:opacity-100"
-                    >
-                      {checkingFraudIds.has(order.id) ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <Search className="h-3.5 w-3.5" />
-                      )}
-                    </button>
-                  </div>
-                </TableCell>
-                <TableCell className="max-w-[200px] py-5">
-                  <p className="text-xs text-black/40 font-light truncate" title={order.address || ""}>
-                    {order.address || "Digital Delivery"}
-                  </p>
-                </TableCell>
-                <TableCell className="max-w-[220px] py-5">
-                  <Tooltip delayDuration={0}>
-                    <TooltipTrigger asChild>
-                      <div className="text-xs tracking-tight text-black/60 truncate cursor-default">
-                        <span className="font-medium">{primary}</span>
-                        {moreCount > 0 && (
-                          <span className="ml-2 px-1.5 py-0.5 bg-black/5 rounded text-[9px] font-bold">+{moreCount} More</span>
+                    <span className="text-[10px] text-black/20 font-medium uppercase tracking-wider">{format(new Date(order.created_at), "MMM dd, yyyy")}</span>
+                  </TableCell>
+                  <TableCell className="py-5">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium text-sm tracking-tight">{order.customer_name || "Guest User"}</span>
+                        {order.phone && (phoneOrderCount.get(order.phone.trim()) || 0) > 1 && (
+                          <Tooltip delayDuration={0}>
+                            <TooltipTrigger asChild>
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-bold uppercase tracking-wider cursor-default">
+                                ×{phoneOrderCount.get(order.phone.trim())}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="text-xs">
+                              This number has {phoneOrderCount.get(order.phone.trim())} orders
+                            </TooltipContent>
+                          </Tooltip>
                         )}
                       </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-[360px] bg-black text-white border-none p-4 rounded-2xl shadow-2xl">
-                      {lines.length === 0 ? (
-                        <p className="text-xs">—</p>
+                      <span className="font-mono text-[11px] text-black">{order.phone || "No Phone"}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center py-5">
+                    <div className="flex items-center justify-center gap-2">
+                      <FraudIndicator order={order} />
+                      <button
+                        onClick={() => handleCheckFraud(order)}
+                        disabled={checkingFraudIds.has(order.id)}
+                        className="p-1.5 rounded-lg bg-black/[0.03] text-black/20 hover:bg-black hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                      >
+                        {checkingFraudIds.has(order.id) ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Search className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                    </div>
+                  </TableCell>
+                  <TableCell className="max-w-[200px] py-5">
+                    <p className="text-xs text-black/40 font-light truncate" title={order.address || ""}>
+                      {order.address || "Digital Delivery"}
+                    </p>
+                  </TableCell>
+                  <TableCell className="max-w-[220px] py-5">
+                    <Tooltip delayDuration={0}>
+                      <TooltipTrigger asChild>
+                        <div className="text-xs tracking-tight text-black/60 truncate cursor-default">
+                          <span className="font-medium">{primary}</span>
+                          {moreCount > 0 && (
+                            <span className="ml-2 px-1.5 py-0.5 bg-black/5 rounded text-[9px] font-bold">+{moreCount} More</span>
+                          )}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-[360px] bg-black text-white border-none p-4 rounded-2xl shadow-2xl">
+                        {lines.length === 0 ? (
+                          <p className="text-xs">—</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {lines.map((line, index) => (
+                              <p key={index} className="text-xs font-light">
+                                {lines.length === 1
+                                  ? formatProductLine(line, order.quantity)
+                                  : line}
+                              </p>
+                            ))}
+                          </div>
+                        )}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell className="text-right py-5 pr-4 tabular-nums">
+                    <span className="font-medium text-sm">৳{((order.price || 0) + (order.delivery_rate || 0)).toLocaleString()}</span>
+                  </TableCell>
+                  <TableCell className="text-center py-5">
+                    <div className="flex items-center justify-center gap-3">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button
+                            className={cn(
+                              "h-8 w-24 text-[9px] font-bold uppercase tracking-widest rounded-full transition-all border shadow-sm",
+                              order.status === "confirmed"
+                                ? "bg-blue-50 border-blue-100 text-blue-600 shadow-blue-900/5"
+                                : "bg-amber-50 border-amber-100 text-amber-600 shadow-amber-900/5"
+                            )}
+                          >
+                            {order.status}
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[140px] p-2 bg-white/95 backdrop-blur-xl border border-black/5 rounded-2xl shadow-2xl" align="center">
+                          <div className="flex flex-col gap-1">
+                            {["pending", "confirmed"].map((st) => (
+                              <button
+                                key={st}
+                                onClick={() => {
+                                  if (order.status !== st) handleStatusToggle(order);
+                                }}
+                                className={cn(
+                                  "h-9 w-full text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all text-left px-3",
+                                  order.status === st
+                                    ? "bg-black text-white"
+                                    : "hover:bg-black/5 text-black/40"
+                                )}
+                              >
+                                {st}
+                              </button>
+                            ))}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                      <NotesPopover order={order} onOrderUpdate={onOrderUpdate} />
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center py-5 pr-10">
+                    <div className="flex items-center justify-center gap-2">
+                      {!order.sent_to_courier ? (
+                        <PlasticButton
+                          text="Send to steadfast"
+                          loadingText="Syncing..."
+                          loading={sendingIds.has(order.id)}
+                          onClick={() => handleSendToCourier(order)}
+                          className="h-7 px-3 text-[9px] font-bold uppercase tracking-widest bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-lg shadow-blue-500/20 whitespace-nowrap"
+                        />
                       ) : (
-                        <div className="space-y-2">
-                          {lines.map((line, index) => (
-                            <p key={index} className="text-xs font-light">
-                              {lines.length === 1
-                                ? formatProductLine(line, order.quantity)
-                                : line}
-                            </p>
-                          ))}
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="inline-flex items-center gap-2 px-3 py-2 mx-0.5 rounded-lg bg-black/[0.03] border border-black/5 group-hover:border-black/10 transition-all whitespace-nowrap">
+                            <span className="text-[7px] font-bold uppercase tracking-[0.2em] text-black/30">REF</span>
+                            <span className="text-[15px] font-mono font-bold text-black tracking-tight">{order.consignment_id}</span>
+                          </div>
                         </div>
                       )}
-                    </TooltipContent>
-                  </Tooltip>
-                </TableCell>
-                <TableCell className="text-right py-5 pr-4 tabular-nums">
-                  <span className="font-medium text-sm">৳{((order.price || 0) + (order.delivery_rate || 0)).toLocaleString()}</span>
-                </TableCell>
-                <TableCell className="text-center py-5">
-                  <div className="flex items-center justify-center gap-3">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <button
-                          className={cn(
-                            "h-8 w-24 text-[9px] font-bold uppercase tracking-widest rounded-full transition-all border shadow-sm",
-                            order.status === "confirmed"
-                              ? "bg-blue-50 border-blue-100 text-blue-600 shadow-blue-900/5"
-                              : "bg-amber-50 border-amber-100 text-amber-600 shadow-amber-900/5"
-                          )}
-                        >
-                          {order.status}
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[140px] p-2 bg-white/95 backdrop-blur-xl border border-black/5 rounded-2xl shadow-2xl" align="center">
-                        <div className="flex flex-col gap-1">
-                          {["pending", "confirmed"].map((st) => (
-                            <button
-                              key={st}
-                              onClick={() => {
-                                if (order.status !== st) handleStatusToggle(order);
-                              }}
-                              className={cn(
-                                "h-9 w-full text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all text-left px-3",
-                                order.status === st
-                                  ? "bg-black text-white"
-                                  : "hover:bg-black/5 text-black/40"
-                              )}
-                            >
-                              {st}
-                            </button>
-                          ))}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                    <NotesPopover order={order} onOrderUpdate={onOrderUpdate} />
-                  </div>
-                </TableCell>
-                <TableCell className="text-center py-5 pr-10">
-                  <div className="flex items-center justify-center gap-2">
-                    {!order.sent_to_courier ? (
-                      <PlasticButton
-                        text="Send to steadfast"
-                        loadingText="Syncing..."
-                        loading={sendingIds.has(order.id)}
-                        onClick={() => handleSendToCourier(order)}
-                        className="h-7 px-3 text-[9px] font-bold uppercase tracking-widest bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-lg shadow-blue-500/20 whitespace-nowrap"
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="inline-flex items-center gap-2 px-3 py-2 mx-0.5 rounded-lg bg-black/[0.03] border border-black/5 group-hover:border-black/10 transition-all whitespace-nowrap">
-                          <span className="text-[7px] font-bold uppercase tracking-[0.2em] text-black/30">REF</span>
-                          <span className="text-[15px] font-mono font-bold text-black tracking-tight">{order.consignment_id}</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+        
         </TableBody>
       </Table>
 
@@ -1011,6 +1022,12 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
                   text="Generate Invoice"
                   icon={FileText}
                   onClick={handleGenerateInvoice}
+                  className="h-10 px-6 text-[10px] font-bold uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 border border-white/10"
+                />
+                <PlasticButton
+                  text="Print"
+                  icon={Printer}
+                  onClick={handlePrintInvoice}
                   className="h-10 px-6 text-[10px] font-bold uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 border border-white/10"
                 />
               </div>

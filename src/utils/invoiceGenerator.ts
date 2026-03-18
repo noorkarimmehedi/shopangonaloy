@@ -18,10 +18,10 @@ interface Order {
   tracking_code?: string | null;
 }
 
-export const generateInvoice = (orders: Order[]) => {
+const buildInvoicePdf = (orders: Order[]) => {
   // Receipt-style small label: ~80mm x ~120mm (similar to thermal/shipping label)
-  const pageWidth = 80;
-  const pageHeight = 120;
+  const pageWidth = 75;
+  const pageHeight = 100;
 
   const doc = new jsPDF({
     orientation: "portrait",
@@ -71,36 +71,11 @@ export const generateInvoice = (orders: Order[]) => {
 
     const consignmentId = order.consignment_id ?? (order as any).consignment_id;
     if (consignmentId != null) {
-      // Label
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(7);
-      doc.text(`Delivery ID:`, margin, y);
-      y += 4.5;
-
-      // Delivery ID value — bigger, bold, inside a squared box
-      const deliveryIdStr = String(consignmentId);
+      doc.text(`Delivery ID: `, margin, y);
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(14);
-
-      const boxPadX = 3;
-      const boxPadY = 2.5;
-      const textWidth = doc.getTextWidth(deliveryIdStr);
-      const boxW = textWidth + boxPadX * 2;
-      const boxH = 8;
-      const boxX = margin;
-      const boxY = y - 5.5;
-
-      // Draw squared box
-      doc.setDrawColor(0, 0, 0);
-      doc.setLineWidth(0.5);
-      doc.rect(boxX, boxY, boxW, boxH);
-
-      // Draw text inside box
-      doc.text(deliveryIdStr, boxX + boxPadX, boxY + boxH - boxPadY);
-      y += 5.5;
-
-      // Reset font size back
-      doc.setFontSize(7);
+      doc.text(String(consignmentId), margin + 16, y);
+      y += 3.5;
     }
 
     y += 2;
@@ -213,9 +188,27 @@ export const generateInvoice = (orders: Order[]) => {
     doc.text(total.toLocaleString("en-BD", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), valueX, y, { align: "right" });
   });
 
+  return doc;
+};
+
+export const generateInvoice = (orders: Order[]) => {
+  const doc = buildInvoicePdf(orders);
   const filename = orders.length > 1
     ? `Invoices_Bulk_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`
     : `Invoice_${orders[0].order_number}.pdf`;
-
   doc.save(filename);
+};
+
+export const printInvoice = (orders: Order[]) => {
+  const doc = buildInvoicePdf(orders);
+  doc.autoPrint();
+  const blob = doc.output("blob");
+  const url = URL.createObjectURL(blob);
+  const printWindow = window.open(url);
+  if (printWindow) {
+    printWindow.onafterprint = () => {
+      printWindow.close();
+      URL.revokeObjectURL(url);
+    };
+  }
 };
