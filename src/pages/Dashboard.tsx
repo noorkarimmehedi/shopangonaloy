@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { OrdersTable } from "@/components/OrdersTable";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { RefreshCw, ShieldCheck, Search, LayoutDashboard, TrendingUp, ArrowRight, Package } from "lucide-react";
+import { RefreshCw, ShieldCheck, Search, LayoutDashboard, TrendingUp, ArrowRight, Package, Printer } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { PlasticButton } from "@/components/ui/plastic-button";
 import { CartoonButton } from "@/components/ui/cartoon-button";
@@ -50,6 +50,7 @@ export default function Dashboard() {
   const [checkingFraud, setCheckingFraud] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const { user } = useAuth();
 
   // Debounce search to prevent glitchy re-renders
@@ -242,7 +243,21 @@ export default function Dashboard() {
       {/* Header */}
       <header className="sticky top-0 z-50 flex items-center justify-between border-b border-black/5 bg-white/80 backdrop-blur-xl px-6 h-16">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-black flex items-center justify-center">
+          <Button
+            onClick={() => {
+              const selectedOrders = orders.filter((o) => selectedIds.has(o.id));
+              import("@/utils/invoiceGenerator").then((module) => {
+                module.generateInvoice(selectedOrders);
+              });
+            }}
+            disabled={selectedIds.size === 0}
+            variant="outline"
+            className="h-8 px-3 text-[10px] font-bold uppercase tracking-widest border-black/10 hover:bg-black/5"
+          >
+            <Printer className="w-3.5 h-3.5 mr-1.5" />
+            Print
+          </Button>
+          <div className="h-8 w-8 rounded-lg bg-black flex items-center justify-center ml-2">
             <LayoutDashboard className="h-4 w-4 text-white" />
           </div>
           <span className="text-xs font-bold uppercase tracking-widest text-black/40">Operations Hub</span>
@@ -322,6 +337,8 @@ export default function Dashboard() {
               loading={loading}
               onStatusUpdate={handleStatusUpdate}
               onOrderUpdate={handleOrderUpdate}
+              selectedIds={selectedIds}
+              setSelectedIds={setSelectedIds}
             />
           </div>
         </motion.section>
