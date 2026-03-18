@@ -71,31 +71,20 @@ export const generateInvoice = (orders: Order[]) => {
 
     const consignmentId = order.consignment_id ?? (order as any).consignment_id;
     if (consignmentId != null) {
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(7);
-      doc.text(`Delivery ID: `, margin, y);
-      y += 4;
-
-      // Draw a box around the delivery ID
-      const idText = String(consignmentId);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(13);
-      const textWidth = doc.getTextWidth(idText);
-      const boxPad = 2.5;
       const boxX = margin;
-      const boxY = y - 4;
-      const boxW = textWidth + boxPad * 2;
-      const boxH = 7.5;
+      const boxW = contentWidth;
+      const boxH = 12;
       doc.setDrawColor(0, 0, 0);
-      doc.setLineWidth(0.5);
-      doc.rect(boxX, boxY, boxW, boxH);
-      doc.setTextColor(0, 0, 0);
-      doc.text(idText, boxX + boxPad, y + 2.5);
-      y += boxH + 2;
-
-      // Reset
-      doc.setFontSize(7);
+      doc.setLineWidth(0.4);
+      doc.rect(boxX, y, boxW, boxH);
       doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      doc.text(`Delivery ID:`, boxX + 2, y + 4);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text(String(consignmentId), boxX + 2, y + 10);
+      doc.setFontSize(7);
+      y += boxH + 2;
     }
 
     y += 2;
