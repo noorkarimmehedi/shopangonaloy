@@ -243,8 +243,14 @@ export default function Dashboard() {
       {/* Header */}
       <header className="sticky top-0 z-50 flex items-center justify-between border-b border-black/5 bg-white/80 backdrop-blur-xl px-6 h-16">
         <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-lg bg-black flex items-center justify-center">
+            <LayoutDashboard className="h-4 w-4 text-white" />
+          </div>
+          <span className="text-xs font-bold uppercase tracking-widest text-black/40">Operations Hub</span>
+        </div>
+        <div className="flex items-center gap-3">
           <PlasticButton
-            text={`Print`}
+            text={selectedIds.size > 0 ? `Print (${selectedIds.size})` : `Print`}
             icon={Printer}
             onClick={() => {
               const selectedOrders = orders.filter((o) => selectedIds.has(o.id));
@@ -253,15 +259,10 @@ export default function Dashboard() {
               });
             }}
             disabled={selectedIds.size === 0}
-            className="h-8 px-4 py-1 text-[10px] font-bold uppercase tracking-widest mr-2"
+            className="h-8 px-4 py-1 text-[10px] font-bold uppercase tracking-widest"
             loadingText="Printing..."
           />
-          <div className="h-8 w-8 rounded-lg bg-black flex items-center justify-center">
-            <LayoutDashboard className="h-4 w-4 text-white" />
-          </div>
-          <span className="text-xs font-bold uppercase tracking-widest text-black/40">Operations Hub</span>
         </div>
-
       </header>
 
       <main className="max-w-[1800px] mx-auto px-6 py-16 space-y-16">
