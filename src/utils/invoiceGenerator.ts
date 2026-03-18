@@ -71,20 +71,36 @@ export const generateInvoice = (orders: Order[]) => {
 
     const consignmentId = order.consignment_id ?? (order as any).consignment_id;
     if (consignmentId != null) {
-      const boxX = margin;
-      const boxW = contentWidth;
-      const boxH = 12;
-      doc.setDrawColor(0, 0, 0);
-      doc.setLineWidth(0.4);
-      doc.rect(boxX, y, boxW, boxH);
+      // Label
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7);
-      doc.text(`Delivery ID:`, boxX + 2, y + 4);
+      doc.text(`Delivery ID:`, margin, y);
+      y += 4.5;
+
+      // Delivery ID value — bigger, bold, inside a squared box
+      const deliveryIdStr = String(consignmentId);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
-      doc.text(String(consignmentId), boxX + 2, y + 10);
+
+      const boxPadX = 2.5;
+      const boxPadY = 2;
+      const textWidth = doc.getTextWidth(deliveryIdStr);
+      const boxW = textWidth + boxPadX * 2;
+      const boxH = 6.5;
+      const boxX = margin;
+      const boxY = y - 4.5;
+
+      // Draw squared box
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.4);
+      doc.rect(boxX, boxY, boxW, boxH);
+
+      // Draw text inside box
+      doc.text(deliveryIdStr, boxX + boxPadX, boxY + boxH - boxPadY);
+      y += 4.5;
+
+      // Reset font size back
       doc.setFontSize(7);
-      y += boxH + 2;
     }
 
     y += 2;

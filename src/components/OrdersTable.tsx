@@ -1,4 +1,4 @@
-import { useState, Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -108,8 +108,6 @@ interface OrdersTableProps {
   loading: boolean;
   onStatusUpdate: (orderId: string, newStatus: string) => void;
   onOrderUpdate?: (updatedOrder: Order) => void;
-  selectedIds: Set<string>;
-  setSelectedIds: Dispatch<SetStateAction<Set<string>>>;
 }
 
 function FraudIndicator({ order }: { order: Order }) {
@@ -350,10 +348,11 @@ function NotesPopover({ order, onOrderUpdate }: { order: Order; onOrderUpdate?: 
   );
 }
 
-export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate, selectedIds, setSelectedIds }: OrdersTableProps) {
+export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: OrdersTableProps) {
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
   const [sendingIds, setSendingIds] = useState<Set<string>>(new Set());
   const [checkingFraudIds, setCheckingFraudIds] = useState<Set<string>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkChecking, setIsBulkChecking] = useState(false);
   const [isDeletingOrders, setIsDeletingOrders] = useState(false);
 
