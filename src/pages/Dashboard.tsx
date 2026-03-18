@@ -243,20 +243,19 @@ export default function Dashboard() {
       {/* Header */}
       <header className="sticky top-0 z-50 flex items-center justify-between border-b border-black/5 bg-white/80 backdrop-blur-xl px-6 h-16">
         <div className="flex items-center gap-3">
-          {selectedIds.size > 0 && (
-            <PlasticButton
-              text={`Print`}
-              icon={Printer}
-              onClick={() => {
-                const selectedOrders = orders.filter((o) => selectedIds.has(o.id));
-                import("@/utils/invoiceGenerator").then((module) => {
-                  module.generateInvoice(selectedOrders);
-                });
-              }}
-              className="h-8 px-4 py-1 text-[10px] font-bold uppercase tracking-widest mr-2"
-              loadingText="Printing..."
-            />
-          )}
+          <PlasticButton
+            text={`Print`}
+            icon={Printer}
+            onClick={() => {
+              const selectedOrders = orders.filter((o) => selectedIds.has(o.id));
+              import("@/utils/invoiceGenerator").then((module) => {
+                module.generateInvoice(selectedOrders);
+              });
+            }}
+            disabled={selectedIds.size === 0}
+            className="h-8 px-4 py-1 text-[10px] font-bold uppercase tracking-widest mr-2"
+            loadingText="Printing..."
+          />
           <div className="h-8 w-8 rounded-lg bg-black flex items-center justify-center">
             <LayoutDashboard className="h-4 w-4 text-white" />
           </div>
