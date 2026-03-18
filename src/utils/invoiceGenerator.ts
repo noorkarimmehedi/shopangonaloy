@@ -80,24 +80,24 @@ export const generateInvoice = (orders: Order[]) => {
       // Delivery ID value — bigger, bold, inside a squared box
       const deliveryIdStr = String(consignmentId);
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
+      doc.setFontSize(14);
 
-      const boxPadX = 2.5;
-      const boxPadY = 2;
+      const boxPadX = 3;
+      const boxPadY = 2.5;
       const textWidth = doc.getTextWidth(deliveryIdStr);
       const boxW = textWidth + boxPadX * 2;
-      const boxH = 6.5;
+      const boxH = 8;
       const boxX = margin;
-      const boxY = y - 4.5;
+      const boxY = y - 5.5;
 
       // Draw squared box
       doc.setDrawColor(0, 0, 0);
-      doc.setLineWidth(0.4);
+      doc.setLineWidth(0.5);
       doc.rect(boxX, boxY, boxW, boxH);
 
       // Draw text inside box
       doc.text(deliveryIdStr, boxX + boxPadX, boxY + boxH - boxPadY);
-      y += 4.5;
+      y += 5.5;
 
       // Reset font size back
       doc.setFontSize(7);
