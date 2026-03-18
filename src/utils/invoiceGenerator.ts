@@ -1,3 +1,4 @@
+import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { format } from "date-fns";
 
@@ -18,114 +19,175 @@ interface Order {
   tracking_code?: string | null;
 }
 
+const PAGE_WIDTH_MM = 75;
+const PAGE_HEIGHT_MM = 100;
+const MM_TO_PX = 96 / 25.4;
+const PAGE_WIDTH_PX = Math.round(PAGE_WIDTH_MM * MM_TO_PX);
+const PAGE_HEIGHT_PX = Math.round(PAGE_HEIGHT_MM * MM_TO_PX);
+
+let bengaliFontReady: Promise<void> | null = null;
+
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
 const formatCurrency = (amount: number) =>
   amount.toLocaleString("en-BD", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const buildInvoiceHtml = (order: Order) => {
+const ensureBengaliFontLoaded = async () => {
+  if (document.fonts.check('12px "Noto Sans Bengali"')) return;
+
+  if (!bengaliFontReady) {
+    bengaliFontReady = (async () => {
+      const response = await fetch("/fonts/NotoSansBengali-Regular.ttf");
+      if (!response.ok) throw new Error("Failed to load Bengali font");
+
+      const fontBuffer = await response.arrayBuffer();
+      const fontFace = new FontFace("Noto Sans Bengali", fontBuffer, {
+        style: "normal",
+        weight: "400",
+      });
+
+      await fontFace.load();
+      document.fonts.add(fontFace);
+      await document.fonts.ready;
+    })().catch((error) => {
+      bengaliFontReady = null;
+      throw error;
+    });
+  }
+
+  await bengaliFontReady;
+};
+
+const buildInvoiceMarkup = (order: Order) => {
   const invoiceNo = order.order_number.replace("#", "");
-  const consignmentId = order.consignment_id;
   const subtotal = order.price || 0;
   const shipping = order.delivery_rate || 0;
   const total = subtotal + shipping;
-  const qty = order.quantity || 1;
+  const quantity = order.quantity || 1;
+
+  const customerName = escapeHtml(order.customer_name || "Customer");
+  const customerPhone = order.phone ? escapeHtml(order.phone) : "—";
+  const customerAddress = order.address ? escapeHtml(order.address).replace(/\n/g, "<br />") : "—";
+  const productName = escapeHtml(order.product || "Item").replace(/\n/g, "<br />");
 
   return `
-    <div style="font-family: 'Noto Sans Bengali', sans-serif; width: 283px; padding: 15px; box-sizing: border-box; color: #000;">
-      <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Angonaloy</div>
-      
-      <div style="font-size: 9px; line-height: 1.6;">
-        <div><span style="color: #666;">Invoice No.:</span> <strong>AN-${invoiceNo}</strong></div>
-        <div><span style="color: #666;">Invoice Date:</span> <strong>${format(new Date(order.created_at), "MMM dd, yyyy")}</strong></div>
-        <div><span style="color: #666;">Courier:</span> <strong>Steadfast</strong></div>
-        ${consignmentId != null ? `<div><span style="color: #666;">Delivery ID:</span> <strong>${consignmentId}</strong></div>` : ""}
+    <div style="
+      width: ${PAGE_WIDTH_PX}px;
+      height: ${PAGE_HEIGHT_PX}px;
+      box-sizing: border-box;
+      padding: 14px;
+      background: #ffffff;
+      color: #0a0a0a;
+      font-family: 'Noto Sans Bengali', sans-serif;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    ">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #d4d4d4; padding-bottom: 6px;">
+        <div>
+          <div style="font-size: 15px; font-weight: 700; line-height: 1.1;">অঙ্গনালয়</div>
+          <div style="font-size: 10px; color: #525252; margin-top: 2px;">Angonaloy</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 10px; font-weight: 700; letter-spacing: .2px;">INVOICE</div>
+          <div style="font-size: 8px; color: #525252; margin-top: 2px;">#AN-${invoiceNo}</div>
+        </div>
       </div>
 
-      <div style="margin-top: 10px; font-size: 9px; font-weight: 700;">Invoice To:</div>
-      <div style="font-size: 9px; line-height: 1.6; margin-top: 4px;">
-        <div>· ${order.customer_name || "Customer"}</div>
-        ${order.phone ? `<div>· ${order.phone}</div>` : ""}
-        ${order.address ? `<div>· ${order.address}</div>` : ""}
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 8px;">
+        <div style="background: #f5f5f5; border: 1px solid #e5e5e5; border-radius: 6px; padding: 5px;">
+          <div style="color: #525252; margin-bottom: 2px;">তারিখ / Date</div>
+          <div style="font-weight: 700;">${format(new Date(order.created_at), "dd MMM yyyy")}</div>
+        </div>
+        <div style="background: #f5f5f5; border: 1px solid #e5e5e5; border-radius: 6px; padding: 5px;">
+          <div style="color: #525252; margin-bottom: 2px;">ডেলিভারি আইডি</div>
+          <div style="font-weight: 700;">${order.consignment_id ?? "Pending"}</div>
+        </div>
       </div>
 
-      <hr style="border: none; border-top: 1px solid #000; margin: 10px 0 6px;" />
+      <div style="border: 1px solid #e5e5e5; border-radius: 8px; padding: 6px; font-size: 8px; line-height: 1.45;">
+        <div style="font-weight: 700; font-size: 9px; margin-bottom: 4px;">গ্রাহকের তথ্য / Customer</div>
+        <div><span style="color:#525252;">নাম:</span> ${customerName}</div>
+        <div><span style="color:#525252;">ফোন:</span> ${customerPhone}</div>
+        <div><span style="color:#525252;">ঠিকানা:</span> ${customerAddress}</div>
+      </div>
 
-      <table style="width: 100%; font-size: 9px; border-collapse: collapse;">
-        <thead>
-          <tr style="font-weight: 700; border-bottom: 1px solid #ccc;">
-            <td style="padding: 2px 0; width: 60%;">Product</td>
-            <td style="padding: 2px 0; width: 15%; text-align: center;">Qty</td>
-            <td style="padding: 2px 0; width: 25%; text-align: right;">Price</td>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style="padding: 4px 0;">${order.product || "Item"}</td>
-            <td style="padding: 4px 0; text-align: center;">${qty}</td>
-            <td style="padding: 4px 0; text-align: right;">${formatCurrency(subtotal)}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div style="border: 1px solid #e5e5e5; border-radius: 8px; padding: 6px; font-size: 8px; line-height: 1.4;">
+        <div style="font-weight: 700; font-size: 9px; margin-bottom: 4px;">পণ্য / Product</div>
+        <div style="display:flex; justify-content:space-between; gap:8px; margin-bottom: 4px;">
+          <div style="flex:1;">${productName}</div>
+          <div style="white-space: nowrap; font-weight: 700;">x${quantity}</div>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-top: 2px;">
+          <span style="color:#525252;">Price</span>
+          <strong>${formatCurrency(subtotal)}</strong>
+        </div>
+      </div>
 
-      <hr style="border: none; border-top: 1px solid #ccc; margin: 6px 0;" />
-
-      <div style="font-size: 9px; font-weight: 700;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-          <span>Sub Total</span><span>${formatCurrency(subtotal)}</span>
+      <div style="margin-top: auto; border-top: 1px dashed #a3a3a3; padding-top: 6px; font-size: 8px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom: 3px;">
+          <span style="color:#525252;">Sub Total</span>
+          <span>${formatCurrency(subtotal)}</span>
         </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-          <span>Delivery Fee</span><span>${formatCurrency(shipping)}</span>
+        <div style="display:flex; justify-content:space-between; margin-bottom: 4px;">
+          <span style="color:#525252;">Delivery Fee</span>
+          <span>${formatCurrency(shipping)}</span>
         </div>
-        <hr style="border: none; border-top: 1.5px solid #000; margin: 4px 0;" />
-        <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 4px;">
-          <span>Grand Total</span><span>${formatCurrency(total)}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; font-size: 10px;">
-          <span>Due Amount</span><span>${formatCurrency(total)}</span>
+        <div style="display:flex; justify-content:space-between; font-size: 10px; font-weight: 700; border-top: 1px solid #d4d4d4; padding-top: 4px;">
+          <span>মোট / Total</span>
+          <span>${formatCurrency(total)}</span>
         </div>
       </div>
     </div>
   `;
 };
 
-const buildInvoicePdf = async (orders: Order[]) => {
-  const pageWidth = 75;
-  const pageHeight = 100;
+const renderInvoiceImage = async (order: Order) => {
+  await ensureBengaliFontLoaded();
 
+  const host = document.createElement("div");
+  host.style.position = "fixed";
+  host.style.left = "-99999px";
+  host.style.top = "0";
+  host.style.pointerEvents = "none";
+  host.style.zIndex = "-1";
+  host.innerHTML = buildInvoiceMarkup(order);
+
+  document.body.appendChild(host);
+  const invoiceElement = host.firstElementChild as HTMLElement;
+
+  await document.fonts.ready;
+  await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+
+  const canvas = await html2canvas(invoiceElement, {
+    scale: 2,
+    backgroundColor: "#ffffff",
+    useCORS: true,
+    logging: false,
+  });
+
+  document.body.removeChild(host);
+  return canvas.toDataURL("image/png", 1.0);
+};
+
+const buildInvoicePdf = async (orders: Order[]) => {
   const doc = new jsPDF({
     orientation: "portrait",
     unit: "mm",
-    format: [pageWidth, pageHeight],
+    format: [PAGE_WIDTH_MM, PAGE_HEIGHT_MM],
   });
 
-  for (let i = 0; i < orders.length; i++) {
-    if (i > 0) {
-      doc.addPage([pageWidth, pageHeight]);
-    }
+  for (let index = 0; index < orders.length; index += 1) {
+    if (index > 0) doc.addPage([PAGE_WIDTH_MM, PAGE_HEIGHT_MM]);
 
-    const html = buildInvoiceHtml(orders[i]);
-
-    // Create a temporary container for rendering
-    const container = document.createElement("div");
-    container.innerHTML = html;
-    container.style.position = "absolute";
-    container.style.left = "-9999px";
-    container.style.top = "0";
-    document.body.appendChild(container);
-
-    await new Promise<void>((resolve, reject) => {
-      doc.html(container.firstElementChild as HTMLElement, {
-        callback: () => {
-          resolve();
-        },
-        x: 0,
-        y: i * pageHeight * (72 / 25.4), // offset for correct page (points)
-        width: pageWidth,
-        windowWidth: 283, // matches the div width in px
-        autoPaging: false,
-      });
-    });
-
-    document.body.removeChild(container);
+    const invoiceImage = await renderInvoiceImage(orders[index]);
+    doc.addImage(invoiceImage, "PNG", 0, 0, PAGE_WIDTH_MM, PAGE_HEIGHT_MM, undefined, "FAST");
   }
 
   return doc;
@@ -133,9 +195,10 @@ const buildInvoicePdf = async (orders: Order[]) => {
 
 export const generateInvoice = async (orders: Order[]) => {
   const doc = await buildInvoicePdf(orders);
-  const filename = orders.length > 1
-    ? `Invoices_Bulk_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`
-    : `Invoice_${orders[0].order_number}.pdf`;
+  const filename =
+    orders.length > 1
+      ? `Invoices_Bulk_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`
+      : `Invoice_${orders[0].order_number}.pdf`;
   doc.save(filename);
 };
 
@@ -145,10 +208,15 @@ export const printInvoice = async (orders: Order[]) => {
   const blob = doc.output("blob");
   const url = URL.createObjectURL(blob);
   const printWindow = window.open(url);
-  if (printWindow) {
-    printWindow.onafterprint = () => {
-      printWindow.close();
-      URL.revokeObjectURL(url);
-    };
+
+  if (!printWindow) {
+    doc.save(`Invoice_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`);
+    URL.revokeObjectURL(url);
+    return;
   }
+
+  printWindow.onafterprint = () => {
+    printWindow.close();
+    URL.revokeObjectURL(url);
+  };
 };
