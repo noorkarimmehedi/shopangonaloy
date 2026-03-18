@@ -25,11 +25,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truck, Loader2, Search, NotebookPen, Package, Check, FileText, Trash2, Printer } from "lucide-react";
+import { AlertTriangle, CheckCircle2, HelpCircle, ShieldAlert, ShieldCheck, Truck, Loader2, Search, NotebookPen, Package, Check, FileText, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { generateInvoice, printInvoice } from "@/utils/invoiceGenerator";
+import { generateInvoice } from "@/utils/invoiceGenerator";
 
 function splitProductLines(product: string | null): string[] {
   if (!product) return [];
@@ -605,7 +605,7 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
       // Small delay to ensure UI renders before heavy PDF gen blocks thread
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      await generateInvoice(selectedOrders);
+      generateInvoice(selectedOrders);
 
       toast.dismiss(toastId);
       toast.custom((t) => (
@@ -636,17 +636,6 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
           </div>
         </div>
       ));
-    }
-  };
-
-  const handlePrintInvoice = async () => {
-    const selectedOrders = orders.filter((o) => selectedIds.has(o.id));
-    if (selectedOrders.length === 0) return;
-    try {
-      await printInvoice(selectedOrders);
-    } catch (error) {
-      console.error("Print failed:", error);
-      toast.error("Failed to print invoices");
     }
   };
 
@@ -986,57 +975,43 @@ export function OrdersTable({ orders, loading, onStatusUpdate, onOrderUpdate }: 
             initial={{ opacity: 0, y: 100 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 100 }}
-            className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] w-[calc(100%-2rem)] max-w-fit"
+            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100]"
           >
-            <div className="bg-black text-white px-4 py-3 sm:px-8 sm:py-4 rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col sm:flex-row items-center gap-3 sm:gap-8 backdrop-blur-xl border border-white/10">
-              <div className="flex items-center gap-4 sm:gap-8 w-full sm:w-auto justify-between sm:justify-start">
-                <div className="flex flex-col">
-                  <span className="text-[8px] sm:text-[10px] uppercase font-bold tracking-widest text-white/40">Selection</span>
-                  <span className="text-xs sm:text-sm font-medium">{selectedIds.size} Orders Selected</span>
-                </div>
-                <button
-                  onClick={() => setSelectedIds(new Set())}
-                  className="px-3 py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-white/50 hover:text-white transition-colors sm:hidden"
-                >
-                  Cancel
-                </button>
+            <div className="bg-black text-white px-8 py-4 rounded-3xl shadow-2xl flex items-center gap-8 backdrop-blur-xl border border-white/10">
+              <div className="flex flex-col">
+                <span className="text-[10px] uppercase font-bold tracking-widest text-white/40">Selection</span>
+                <span className="text-sm font-medium">{selectedIds.size} Orders Selected</span>
               </div>
 
-              <div className="hidden sm:block h-8 w-px bg-white/10" />
+              <div className="h-8 w-px bg-white/10" />
 
-              <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-center w-full sm:w-auto">
+              <div className="flex items-center gap-3">
                 <button
                   onClick={() => setSelectedIds(new Set())}
-                  className="hidden sm:block px-4 py-2 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-white transition-colors"
+                  className="px-4 py-2 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-white transition-colors"
                 >
                   Cancel
                 </button>
                 <PlasticButton
-                  text="Delete"
+                  text="Delete Orders"
                   icon={Trash2}
                   loading={isDeletingOrders}
-                  loadingText="..."
+                  loadingText="Deleting..."
                   onClick={handleDeleteOrders}
-                  className="h-7 sm:h-8 px-3 sm:px-4 text-[7px] sm:text-[8px] font-bold uppercase tracking-widest bg-gradient-to-b from-red-500 to-red-600 text-white hover:from-red-400 hover:to-red-500 shadow-[0_4px_20px_-4px_rgba(239,68,68,0.4)]"
+                  className="h-10 px-6 text-[10px] font-bold uppercase tracking-widest bg-gradient-to-b from-red-500 to-red-600 text-white hover:from-red-400 hover:to-red-500 shadow-[0_4px_20px_-4px_rgba(239,68,68,0.4)]"
                 />
                 <PlasticButton
-                  text="Fraud Check"
+                  text="Bulk Fraud Check"
                   loading={isBulkChecking}
-                  loadingText="..."
+                  loadingText="Checking..."
                   onClick={handleBulkFraudCheck}
-                  className="h-7 sm:h-8 px-3 sm:px-4 text-[7px] sm:text-[8px] font-bold uppercase tracking-widest bg-gradient-to-b from-white to-zinc-300 !text-black shadow-[0_4px_20px_-4px_rgba(255,255,255,0.2)]"
+                  className="h-10 px-6 text-[10px] font-bold uppercase tracking-widest bg-gradient-to-b from-white to-zinc-300 !text-black shadow-[0_4px_20px_-4px_rgba(255,255,255,0.2)]"
                 />
                 <PlasticButton
-                  text="Invoice"
+                  text="Generate Invoice"
                   icon={FileText}
                   onClick={handleGenerateInvoice}
-                  className="h-7 sm:h-8 px-3 sm:px-4 text-[7px] sm:text-[8px] font-bold uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 border border-white/10"
-                />
-                <PlasticButton
-                  text="Print"
-                  icon={Printer}
-                  onClick={handlePrintInvoice}
-                  className="h-7 sm:h-8 px-3 sm:px-4 text-[7px] sm:text-[8px] font-bold uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 border border-white/10"
+                  className="h-10 px-6 text-[10px] font-bold uppercase tracking-widest bg-white/10 text-white hover:bg-white/20 border border-white/10"
                 />
               </div>
             </div>
