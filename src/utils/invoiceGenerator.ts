@@ -217,10 +217,11 @@ export const generateInvoice = (orders: Order[]) => {
 
 export const printInvoice = (orders: Order[]) => {
   const doc = buildInvoicePdf(orders);
-  const blobUrl = doc.output("bloburl");
+  const blob = doc.output("blob");
+  const blobUrl = URL.createObjectURL(blob);
   const iframe = document.createElement("iframe");
   iframe.style.display = "none";
-  iframe.src = blobUrl as string;
+  iframe.src = blobUrl;
   document.body.appendChild(iframe);
   iframe.onload = () => {
     setTimeout(() => {
