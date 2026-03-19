@@ -317,7 +317,7 @@ export const printInvoice = (orders: Order[]) => {
           .meta span { display: inline-block; min-width: 17mm; }
           .section-title { font-weight: 700; margin-top: 1.6mm; margin-bottom: 1mm; }
           .line { margin-bottom: 0.8mm; word-break: break-word; }
-          .delivery-id-label { margin-top: 1.3mm; margin-bottom: 0.8mm; }
+          
           .delivery-id-box {
             display: inline-block;
             border: 1px solid #000;
