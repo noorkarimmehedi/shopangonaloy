@@ -217,14 +217,17 @@ export const generateInvoice = (orders: Order[]) => {
 
 export const printInvoice = (orders: Order[]) => {
   const doc = buildInvoicePdf(orders);
-  doc.autoPrint();
-  const blob = doc.output("blob");
-  const url = URL.createObjectURL(blob);
-  const printWindow = window.open(url);
-  if (printWindow) {
-    printWindow.onafterprint = () => {
-      printWindow.close();
-      URL.revokeObjectURL(url);
-    };
-  }
+  const blobUrl = doc.output("bloburl");
+  const iframe = document.createElement("iframe");
+  iframe.style.display = "none";
+  iframe.src = blobUrl as string;
+  document.body.appendChild(iframe);
+  iframe.onload = () => {
+    setTimeout(() => {
+      iframe.contentWindow?.print();
+    }, 300);
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 60000);
+  };
 };
