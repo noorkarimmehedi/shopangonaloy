@@ -265,7 +265,7 @@ export const printInvoice = (orders: Order[]) => {
           <div class="meta"><span>Invoice No.:</span> <strong>AN-${invoiceNo}</strong></div>
           <div class="meta"><span>Invoice Date:</span> <strong>${format(new Date(order.created_at), "MMM dd, yyyy")}</strong></div>
           <div class="meta"><span>Courier:</span> <strong>Steadfast</strong></div>
-          ${consignmentId != null ? `<div class="delivery-id-label">Delivery ID:</div><div class="delivery-id-box">${escapeHtml(String(consignmentId))}</div>` : ""}
+          ${consignmentId != null ? `<div class="delivery-id-box">Delivery ID: <strong>${escapeHtml(String(consignmentId))}</strong></div>` : ""}
 
           <div class="section-title">Invoice To:</div>
           <div class="line">• ${customerName}</div>
