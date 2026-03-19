@@ -239,13 +239,6 @@ const formatMoney = (value: number | null | undefined) =>
   });
 
 export const printInvoice = (orders: Order[]) => {
-  const printWindow = window.open("", "_blank", "noopener,noreferrer,width=960,height=720");
-
-  if (!printWindow) {
-    generateInvoice(orders);
-    return;
-  }
-
   const invoicePages = orders
     .map((order) => {
       const invoiceNo = escapeHtml(order.order_number.replace("#", ""));
@@ -268,9 +261,9 @@ export const printInvoice = (orders: Order[]) => {
           ${consignmentId != null ? `<div class="delivery-id-box">Delivery ID: <strong>${escapeHtml(String(consignmentId))}</strong></div>` : ""}
 
           <div class="section-title">Invoice To:</div>
-          <div class="line">• ${customerName}</div>
-          ${phone ? `<div class="line">• ${phone}</div>` : ""}
-          ${address ? `<div class="line">• ${address}</div>` : ""}
+          <div class="line">\u2022 ${customerName}</div>
+          ${phone ? `<div class="line">\u2022 ${phone}</div>` : ""}
+          ${address ? `<div class="line">\u2022 ${address}</div>` : ""}
 
           <hr />
 
@@ -288,8 +281,7 @@ export const printInvoice = (orders: Order[]) => {
     })
     .join("");
 
-  printWindow.document.open();
-  printWindow.document.write(`
+  const html = `
     <!doctype html>
     <html>
       <head>
@@ -317,14 +309,14 @@ export const printInvoice = (orders: Order[]) => {
           .meta span { display: inline-block; min-width: 17mm; }
           .section-title { font-weight: 700; margin-top: 1.6mm; margin-bottom: 1mm; }
           .line { margin-bottom: 0.8mm; word-break: break-word; }
-          
           .delivery-id-box {
             display: inline-block;
             border: 1px solid #000;
             padding: 0.5mm 2.2mm;
             font-size: 12px;
-            font-weight: 700;
+            font-weight: 400;
             letter-spacing: 0.2px;
+            margin-top: 1.3mm;
             margin-bottom: 1.4mm;
           }
           hr { border: none; border-top: 1px solid #000; margin: 1.6mm 0; }
@@ -349,14 +341,37 @@ export const printInvoice = (orders: Order[]) => {
       </head>
       <body>${invoicePages}</body>
     </html>
-  `);
-  printWindow.document.close();
+  `;
 
-  printWindow.onload = () => {
-    printWindow.focus();
+  // Use a hidden iframe to trigger native print dialog
+  const iframe = document.createElement("iframe");
+  iframe.style.position = "fixed";
+  iframe.style.right = "0";
+  iframe.style.bottom = "0";
+  iframe.style.width = "0";
+  iframe.style.height = "0";
+  iframe.style.border = "none";
+  document.body.appendChild(iframe);
+
+  const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+  if (!iframeDoc) {
+    document.body.removeChild(iframe);
+    generateInvoice(orders);
+    return;
+  }
+
+  iframeDoc.open();
+  iframeDoc.write(html);
+  iframeDoc.close();
+
+  iframe.onload = () => {
     setTimeout(() => {
-      printWindow.print();
-      setTimeout(() => printWindow.close(), 250);
-    }, 250);
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      // Clean up after a delay
+      setTimeout(() => {
+        try { document.body.removeChild(iframe); } catch (_) {}
+      }, 5000);
+    }, 300);
   };
 };
