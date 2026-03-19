@@ -215,20 +215,139 @@ export const generateInvoice = (orders: Order[]) => {
   doc.save(filename);
 };
 
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const formatMoney = (value: number | null | undefined) =>
+  (value ?? 0).toLocaleString("en-BD", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
 export const printInvoice = (orders: Order[]) => {
-  const doc = buildInvoicePdf(orders);
-  const blob = doc.output("blob");
-  const blobUrl = URL.createObjectURL(blob);
-  const iframe = document.createElement("iframe");
-  iframe.style.display = "none";
-  iframe.src = blobUrl;
-  document.body.appendChild(iframe);
-  iframe.onload = () => {
+  const printWindow = window.open("", "_blank", "noopener,noreferrer,width=960,height=720");
+
+  if (!printWindow) {
+    generateInvoice(orders);
+    return;
+  }
+
+  const invoicePages = orders
+    .map((order) => {
+      const invoiceNo = escapeHtml(order.order_number.replace("#", ""));
+      const customerName = escapeHtml(order.customer_name || "Customer");
+      const phone = order.phone ? escapeHtml(order.phone) : "";
+      const address = order.address ? escapeHtml(order.address) : "";
+      const product = escapeHtml(order.product || "Item");
+      const qty = order.quantity || 1;
+      const subtotal = order.price || 0;
+      const shipping = order.delivery_rate || 0;
+      const total = subtotal + shipping;
+      const consignmentId = order.consignment_id ?? (order as any).consignment_id;
+
+      return `
+        <section class="invoice">
+          <div class="brand">Angonaloy</div>
+          <div class="meta"><span>Invoice No.:</span> <strong>AN-${invoiceNo}</strong></div>
+          <div class="meta"><span>Invoice Date:</span> <strong>${format(new Date(order.created_at), "MMM dd, yyyy")}</strong></div>
+          <div class="meta"><span>Courier:</span> <strong>Steadfast</strong></div>
+          ${consignmentId != null ? `<div class="delivery-id-label">Delivery ID:</div><div class="delivery-id-box">${escapeHtml(String(consignmentId))}</div>` : ""}
+
+          <div class="section-title">Invoice To:</div>
+          <div class="line">• ${customerName}</div>
+          ${phone ? `<div class="line">• ${phone}</div>` : ""}
+          ${address ? `<div class="line">• ${address}</div>` : ""}
+
+          <hr />
+
+          <div class="table-head"><span>Product</span><span>Qty</span><span>Price</span></div>
+          <div class="table-row"><span>${product}</span><span>${qty}</span><span>${formatMoney(subtotal)}</span></div>
+
+          <hr />
+
+          <div class="total"><span>Sub Total</span><span>${formatMoney(subtotal)}</span></div>
+          <div class="total"><span>Delivery Fee</span><span>${formatMoney(shipping)}</span></div>
+          <div class="total grand"><span>Grand Total</span><span>${formatMoney(total)}</span></div>
+          <div class="total grand"><span>Due Amount</span><span>${formatMoney(total)}</span></div>
+        </section>
+      `;
+    })
+    .join("");
+
+  printWindow.document.open();
+  printWindow.document.write(`
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Invoice Print</title>
+        <style>
+          @page { size: 75mm 100mm; margin: 0; }
+          * { box-sizing: border-box; }
+          body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            color: #000;
+          }
+          .invoice {
+            width: 75mm;
+            height: 100mm;
+            padding: 4mm;
+            page-break-after: always;
+            font-size: 8.5px;
+            line-height: 1.2;
+          }
+          .invoice:last-child { page-break-after: auto; }
+          .brand { font-size: 16px; font-weight: 700; margin-bottom: 1.5mm; }
+          .meta { margin-bottom: 0.8mm; }
+          .meta span { display: inline-block; min-width: 17mm; }
+          .section-title { font-weight: 700; margin-top: 1.6mm; margin-bottom: 1mm; }
+          .line { margin-bottom: 0.8mm; word-break: break-word; }
+          .delivery-id-label { margin-top: 1.3mm; margin-bottom: 0.8mm; }
+          .delivery-id-box {
+            display: inline-block;
+            border: 1px solid #000;
+            padding: 0.5mm 2.2mm;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            margin-bottom: 1.4mm;
+          }
+          hr { border: none; border-top: 1px solid #000; margin: 1.6mm 0; }
+          .table-head,
+          .table-row,
+          .total {
+            display: grid;
+            grid-template-columns: 1fr 8mm 14mm;
+            gap: 1mm;
+            align-items: start;
+            margin-bottom: 0.9mm;
+          }
+          .table-head { font-weight: 700; }
+          .table-head span:nth-child(2),
+          .table-row span:nth-child(2) { text-align: center; }
+          .table-head span:nth-child(3),
+          .table-row span:nth-child(3),
+          .total span:last-child { text-align: right; }
+          .total { grid-template-columns: 1fr 14mm; }
+          .total.grand { font-weight: 700; font-size: 9.5px; }
+        </style>
+      </head>
+      <body>${invoicePages}</body>
+    </html>
+  `);
+  printWindow.document.close();
+
+  printWindow.onload = () => {
+    printWindow.focus();
     setTimeout(() => {
-      iframe.contentWindow?.print();
-    }, 300);
-    setTimeout(() => {
-      document.body.removeChild(iframe);
-    }, 60000);
+      printWindow.print();
+      setTimeout(() => printWindow.close(), 250);
+    }, 250);
   };
 };
