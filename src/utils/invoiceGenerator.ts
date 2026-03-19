@@ -71,15 +71,18 @@ const buildInvoicePdf = (orders: Order[]) => {
 
     const consignmentId = order.consignment_id ?? (order as any).consignment_id;
     if (consignmentId != null) {
-      y += 2;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      doc.text("Delivery ID:", margin, y);
+      y += 4;
+
       const idText = String(consignmentId);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9);
       const idWidth = doc.getTextWidth(idText);
       const boxPadX = 2.5;
-      const boxPadY = 1.5;
-      const boxW = idWidth + boxPadX * 2;
       const boxH = 5;
+      const boxW = idWidth + boxPadX * 2;
       const boxX = margin;
       const boxY = y - 3.2;
       doc.setDrawColor(0, 0, 0);
@@ -87,6 +90,7 @@ const buildInvoicePdf = (orders: Order[]) => {
       doc.rect(boxX, boxY, boxW, boxH);
       doc.text(idText, boxX + boxPadX, y);
       y += boxH + 1.5;
+      doc.setFont("helvetica", "normal");
       doc.setFontSize(7);
     }
 
@@ -213,14 +217,18 @@ export const generateInvoice = (orders: Order[]) => {
 
 export const printInvoice = (orders: Order[]) => {
   const doc = buildInvoicePdf(orders);
-  doc.autoPrint();
   const blob = doc.output("blob");
-  const url = URL.createObjectURL(blob);
-  const printWindow = window.open(url);
-  if (printWindow) {
-    printWindow.onafterprint = () => {
-      printWindow.close();
-      URL.revokeObjectURL(url);
-    };
-  }
+  const blobUrl = URL.createObjectURL(blob);
+  const iframe = document.createElement("iframe");
+  iframe.style.display = "none";
+  iframe.src = blobUrl;
+  document.body.appendChild(iframe);
+  iframe.onload = () => {
+    setTimeout(() => {
+      iframe.contentWindow?.print();
+    }, 300);
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 60000);
+  };
 };
