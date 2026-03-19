@@ -71,24 +71,33 @@ const buildInvoicePdf = (orders: Order[]) => {
 
     const consignmentId = order.consignment_id ?? (order as any).consignment_id;
     if (consignmentId != null) {
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(7);
-      doc.text("Delivery ID:", margin, y);
-      y += 4;
-
+      y += 1;
+      const label = "Delivery ID:";
       const idText = String(consignmentId);
+
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9);
+
+      const labelWidth = doc.getTextWidth(label);
       const idWidth = doc.getTextWidth(idText);
-      const boxPadX = 2.5;
+      const boxPadX = 2;
       const boxH = 5;
-      const boxW = idWidth + boxPadX * 2;
+      const gap = 2;
+
+      // Full box encompassing label + id
+      const totalBoxW = labelWidth + gap + idWidth + boxPadX * 2;
       const boxX = margin;
       const boxY = y - 3.2;
+
       doc.setDrawColor(0, 0, 0);
       doc.setLineWidth(0.3);
-      doc.rect(boxX, boxY, boxW, boxH);
-      doc.text(idText, boxX + boxPadX, y);
+      doc.rect(boxX, boxY, totalBoxW, boxH);
+
+      doc.setFont("helvetica", "normal");
+      doc.text(label, boxX + boxPadX, y);
+      doc.setFont("helvetica", "bold");
+      doc.text(idText, boxX + boxPadX + labelWidth + gap, y);
+
       y += boxH + 1.5;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7);
@@ -256,7 +265,7 @@ export const printInvoice = (orders: Order[]) => {
           <div class="meta"><span>Invoice No.:</span> <strong>AN-${invoiceNo}</strong></div>
           <div class="meta"><span>Invoice Date:</span> <strong>${format(new Date(order.created_at), "MMM dd, yyyy")}</strong></div>
           <div class="meta"><span>Courier:</span> <strong>Steadfast</strong></div>
-          ${consignmentId != null ? `<div class="delivery-id-label">Delivery ID:</div><div class="delivery-id-box">${escapeHtml(String(consignmentId))}</div>` : ""}
+          ${consignmentId != null ? `<div class="delivery-id-box">Delivery ID: <strong>${escapeHtml(String(consignmentId))}</strong></div>` : ""}
 
           <div class="section-title">Invoice To:</div>
           <div class="line">• ${customerName}</div>
@@ -308,7 +317,7 @@ export const printInvoice = (orders: Order[]) => {
           .meta span { display: inline-block; min-width: 17mm; }
           .section-title { font-weight: 700; margin-top: 1.6mm; margin-bottom: 1mm; }
           .line { margin-bottom: 0.8mm; word-break: break-word; }
-          .delivery-id-label { margin-top: 1.3mm; margin-bottom: 0.8mm; }
+          
           .delivery-id-box {
             display: inline-block;
             border: 1px solid #000;
