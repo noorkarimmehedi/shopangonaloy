@@ -71,24 +71,33 @@ const buildInvoicePdf = (orders: Order[]) => {
 
     const consignmentId = order.consignment_id ?? (order as any).consignment_id;
     if (consignmentId != null) {
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(7);
-      doc.text("Delivery ID:", margin, y);
-      y += 4;
-
+      y += 1;
+      const label = "Delivery ID:";
       const idText = String(consignmentId);
+
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9);
+
+      const labelWidth = doc.getTextWidth(label);
       const idWidth = doc.getTextWidth(idText);
-      const boxPadX = 2.5;
+      const boxPadX = 2;
       const boxH = 5;
-      const boxW = idWidth + boxPadX * 2;
+      const gap = 2;
+
+      // Full box encompassing label + id
+      const totalBoxW = labelWidth + gap + idWidth + boxPadX * 2;
       const boxX = margin;
       const boxY = y - 3.2;
+
       doc.setDrawColor(0, 0, 0);
       doc.setLineWidth(0.3);
-      doc.rect(boxX, boxY, boxW, boxH);
-      doc.text(idText, boxX + boxPadX, y);
+      doc.rect(boxX, boxY, totalBoxW, boxH);
+
+      doc.setFont("helvetica", "normal");
+      doc.text(label, boxX + boxPadX, y);
+      doc.setFont("helvetica", "bold");
+      doc.text(idText, boxX + boxPadX + labelWidth + gap, y);
+
       y += boxH + 1.5;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7);
